@@ -1,0 +1,45 @@
+# ===== 빌드 결과물 =====
+target/
+bin/
+*.class
+*.war
+
+# ===== STS / Eclipse 설정 (각자 PC마다 다름) =====
+.settings/
+.metadata/
+.classpath
+.project
+.springBeans
+.factorypath
+.sts4-cache/
+.sts3-*.xml
+Servers/
+RemoteSystemsTempFiles/
+
+# ===== IntelliJ / VS Code =====
+.idea/
+*.iml
+.vscode/
+
+# ===== 로그, 임시 파일 =====
+*.log
+logs/
+*.tmp
+*.bak
+~$*
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== 업로드 파일 (각자 PC에 저장되는 파일) =====
+# 폴더 이름만 쓰면 upload라는 Java 패키지까지 무시되므로 경로를 정확히 쓴다
+/upload/
+src/main/webapp/resources/upload/
+
+# ===== 비밀 정보 (절대 올리지 않기) =====
+# API 키, DB 비밀번호는 아래 파일에만 적고, 예시 파일(*.example)만 올린다
+secret.properties
+*.secret.properties
+src/main/resources/config/secret.properties
