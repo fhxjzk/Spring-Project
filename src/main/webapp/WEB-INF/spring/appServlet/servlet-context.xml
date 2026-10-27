@@ -21,7 +21,14 @@
 		<beans:property name="suffix" value=".jsp" />
 	</beans:bean>
 
-	<context:component-scan base-package="com.project.app" />
+	<!-- Controller만 여기서 만든다. Service, Dao는 root-context.xml에서 만든다. -->
+	<context:component-scan base-package="com.project.app" use-default-filters="false">
+		<context:include-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+		<context:include-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice" />
+	</context:component-scan>
+
+	<!-- Controller에서도 @Value("${키}")로 secret.properties 값을 읽는다 -->
+	<context:property-placeholder location="classpath:config/secret.properties" />
 
 	<!-- 파일 업로드 (용량 제한은 web.xml) -->
 	<beans:bean id="multipartResolver" class="org.springframework.web.multipart.support.StandardServletMultipartResolver" />
