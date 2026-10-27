@@ -31,7 +31,7 @@
 | DB | Oracle XE (XEPDB1) |
 | 기타 | MyBatis, Spring Security, Lombok, REST + Ajax, WebSocket, FileUpload, Kakao Map API |
 
-> 기본 프로젝트는 수업 때 만든 ToyProject 설정을 바탕으로 한다. 기본 프로젝트를 올린 뒤 버전이 바뀌면 이 표를 고친다.
+> 기본 프로젝트는 수업 때 만든 ToyProject 설정을 바탕으로 한다. 라이브러리 버전은 `pom.xml`을 따른다.
 
 ---
 
@@ -107,7 +107,7 @@ git clone https://github.com/fhxjzk/Spring-Project.git
 1. **File → Import → Maven → Existing Maven Projects → Next**
 2. **Root Directory**에 받은 폴더 선택 → `pom.xml`이 체크된 것 확인 → **Finish**
 3. 프로젝트 우클릭 → **Maven → Update Project → OK**
-4. 프로젝트 우클릭 → **Run As → Run on Server → Tomcat v9.0** 으로 실행되는지 확인
+4. 실행은 아래 10, 11번까지 끝낸 뒤에 한다. (DB 설정이 없으면 서버가 켜지지 않는다)
 
 ## 8. GitHub 로그인 (Personal Access Token)
 
@@ -134,13 +134,34 @@ GRANT CONNECT, RESOURCE TO 계정이름;
 ALTER USER 계정이름 QUOTA UNLIMITED ON USERS;
 ```
 
-테이블 생성 SQL(DDL)은 ERD가 확정되면 저장소에 올린다. 각자 그 파일을 실행해서 같은 테이블을 만든다.
+> 수업 때 쓰던 `spring` 계정을 그대로 써도 된다. 프로젝트 테이블은 모두 `tbl_`로 시작해서 수업 테이블과 겹치지 않는다.
 
 ## 10. 비밀 정보 파일 만들기
 
-기본 프로젝트가 올라오면 `secret.properties.example` 파일이 생긴다.
-이 파일을 복사해서 이름을 `secret.properties`로 바꾸고, DB 비밀번호와 API 키를 적는다.
-`secret.properties`는 `.gitignore`에 들어 있어서 GitHub에 올라가지 않는다.
+1. `src/main/resources/config/secret.properties.example`을 같은 폴더에 복사한다.
+2. 복사한 파일 이름을 `secret.properties`로 바꾼다.
+3. `db.username`, `db.password`를 내 PC의 Oracle 계정으로 고친다.
+
+`secret.properties`는 `.gitignore`에 들어 있어서 GitHub에 올라가지 않는다. **example 파일에는 실제 비밀번호를 적지 않는다.**
+
+## 11. DB 테이블 만들고 실행하기
+
+1. SQL Developer에서 프로젝트 계정으로 접속한다.
+2. `db` 폴더의 SQL 파일을 **번호 순서대로** 열어서 **F5(스크립트 실행)** 한다.
+   `00_drop_all.sql` → `01_member.sql` → … → `dummy/01_member_dummy.sql` → …
+   (처음 실행할 때 `00_drop_all.sql`의 "테이블 또는 뷰가 존재하지 않습니다" 오류는 무시한다)
+3. STS에서 프로젝트 우클릭 → **Run As → Run on Server → Tomcat v9.0**
+4. 브라우저에 메인 화면이 뜨고, 테스트 계정으로 로그인되면 끝이다.
+
+| 아이디 | 비밀번호 | 권한 |
+| --- | --- | --- |
+| admin | 1111 | 관리자 |
+| customer1 ~ 3 | 1111 | 고객 |
+| expert1 ~ 3 | 1111 | 고수 |
+
+서버가 안 켜지면 `src/test/java/com/project/app/DBConnectionTest.java` 우클릭 → **Run As → JUnit Test**로 DB 연결부터 확인한다.
+
+코드를 쓰기 전에 **[코딩 규칙 (CONVENTION.md)](CONVENTION.md)**을 꼭 읽는다.
 
 ---
 

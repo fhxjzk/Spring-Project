@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <pattern>%d{HH:mm:ss.SSS} %-5level [%thread] %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+    <logger name="org.springframework" level="INFO" />
+    <root level="INFO">
+        <appender-ref ref="CONSOLE" />
+    </root>
+    <!-- STS3 수업 기능 관리 | MyBatis 인터페이스 시작: jdbc.audit SQL 로그 설정 -->
+    <logger name="jdbc.audit" level="WARN" />
+    <!-- STS3 수업 기능 관리 | MyBatis 인터페이스 끝: jdbc.audit SQL 로그 설정 -->
+    <!-- STS3 수업 기능 관리 | MyBatis 인터페이스 시작: jdbc.resultset SQL 로그 설정 -->
+    <logger name="jdbc.resultset" level="WARN" />
+    <!-- STS3 수업 기능 관리 | MyBatis 인터페이스 끝: jdbc.resultset SQL 로그 설정 -->
+    <!-- STS3 수업 기능 관리 | MyBatis 인터페이스 시작: jdbc.connection SQL 로그 설정 -->
+    <logger name="jdbc.connection" level="WARN" />
+    <!-- STS3 수업 기능 관리 | MyBatis 인터페이스 끝: jdbc.connection SQL 로그 설정 -->
+    <!-- STS3 수업 기능 관리 | MyBatis 인터페이스 시작: jdbc.sqltiming SQL 로그 설정 -->
+    <logger name="jdbc.sqltiming" level="DEBUG" />
+    <!-- STS3 수업 기능 관리 | MyBatis 인터페이스 끝: jdbc.sqltiming SQL 로그 설정 -->
+</configuration>

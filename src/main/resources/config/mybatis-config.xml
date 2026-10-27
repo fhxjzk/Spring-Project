@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "https://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<!-- 공용 설정 파일. 수정이 필요하면 담당자에게 요청한다. -->
+<configuration>
+
+	<settings>
+		<!-- DB 칼럼 member_seq 를 DTO 필드 memberSeq 에 자동으로 넣는다 -->
+		<setting name="mapUnderscoreToCamelCase" value="true" />
+		<!-- null 값을 INSERT, UPDATE 할 때 Oracle에서 나는 오류(부적합한 열 유형)를 막는다 -->
+		<setting name="jdbcTypeForNull" value="NULL" />
+	</settings>
+
+	<!--
+		com.project.app 아래 모든 클래스를 클래스 이름으로 쓸 수 있게 한다.
+		Mapper XML에서 resultType="com.project.app.member.model.MemberDto" 대신 resultType="MemberDto" 로 쓴다.
+		그래서 프로젝트 안에 같은 이름의 클래스가 두 개 있으면 서버가 켜지지 않는다. (CONVENTION.md 참고)
+	-->
+	<typeAliases>
+		<package name="com.project.app" />
+	</typeAliases>
+
+</configuration>
