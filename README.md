@@ -111,7 +111,10 @@ git clone https://github.com/fhxjzk/Spring-Project.git
 
 ## 8. GitHub 로그인 (Personal Access Token)
 
-STS나 Git Bash에서 처음 push할 때 GitHub 로그인을 묻는다.
+> **push와 pull을 Git Bash로 하면 이 단계는 필요 없다.** Git Bash는 처음에 브라우저로 로그인하면 된다. ([GIT_GUIDE.md 1-2](GIT_GUIDE.md#1-2-저장소-받기-clone))
+> 아래는 STS에서 push할 때만 필요하다.
+
+STS에서 처음 push할 때 GitHub 로그인을 묻는다.
 **비밀번호 자리에는 GitHub 비밀번호가 아니라 토큰을 넣는다.**
 
 1. GitHub → 오른쪽 위 프로필 → **Settings → Developer settings → Personal access tokens → Tokens (classic)**
@@ -156,6 +159,8 @@ ALTER USER 계정이름 QUOTA UNLIMITED ON USERS;
 - 브랜치 하나에는 기능 하나만 작업한다.
 
 ## 작업 순서
+
+> Git Bash 명령어, Pull Request 올리는 법, 충돌 해결, 자주 나는 오류는 **[Git 사용 가이드 (GIT_GUIDE.md)](GIT_GUIDE.md)**에 자세히 있다.
 
 1. `develop`으로 이동해서 최신 코드를 받는다.
    ```bash
