@@ -15,14 +15,16 @@
 	<%@ include file="/WEB-INF/views/inc/header.jsp" %>
 
 	<main class="container">
-		<h2>로그아웃 <small>Logout</small></h2>
+		<div class="form-box">
+			<h2>로그아웃</h2>
 
-		<form method="POST" action="${path}/auth/logout.do">
-		<div>
-			<button class="logout">로그아웃</button>
+			<p class="message-info">로그아웃 하시겠어요?</p>
+
+			<form method="POST" action="${path}/auth/logout.do">
+				<button class="btn btn-primary btn-block">로그아웃</button>
+				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+			</form>
 		</div>
-		<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-		</form>
 	</main>
 
 	<script>
