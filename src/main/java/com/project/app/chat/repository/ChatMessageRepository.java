@@ -2,13 +2,14 @@
 package com.project.app.chat.repository;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
+
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
+import javax.sql.DataSource;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Repository;
 
 import com.project.app.chat.model.ChatMessage;
@@ -16,22 +17,19 @@ import com.project.app.chat.model.ChatMessage;
 @Repository
 public class ChatMessageRepository {
 
-    private final String url =
-            "jdbc:oracle:thin:@//localhost:1521/XEPDB1";
 
-    private final String username = "spring";
+private final DataSource dataSource;
 
-    // Oracle 연결
-    private Connection getConnection() throws SQLException {
+public ChatMessageRepository(
+        @Qualifier("dataSource") DataSource dataSource) {
+    this.dataSource = dataSource;
+}
 
-        String password = System.getenv("PROLINK_DB_PASSWORD");
+// 팀 프로젝트의 HikariCP 연결 풀 사용
+private Connection getConnection() throws SQLException {
+    return dataSource.getConnection();
+}
 
-        if (password == null || password.isEmpty()) {
-            throw new SQLException("DB 비밀번호 환경 변수가 없습니다.");
-        }
-
-        return DriverManager.getConnection(url, username, password);
-    }
 
     // 1. 메시지 저장 후 저장된 메시지 반환
     public ChatMessage save(String roomId, String sender, String content)
