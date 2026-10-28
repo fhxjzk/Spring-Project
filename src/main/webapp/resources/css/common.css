@@ -6,7 +6,13 @@
 	- 색은 직접 쓰지 말고 아래 변수를 쓴다. 예) color: var(--color-primary);
 	- 내 화면에만 필요한 스타일은 각 JSP의 <style> 안에 쓴다.
 	- 여기에 추가하거나 고칠 것이 있으면 담당자(①)에게 요청한다.
+
+	목차
+	1. 변수   2. 기본   3. 헤더   4. 본문
+	5. 버튼   6. 입력 폼   7. 표   8. 카드   9. 배지   10. 안내 문구   11. 관리자 화면
 */
+
+/* 1. 변수 ============================================================ */
 
 :root {
 	--color-primary: #2f6fed;		/* 주요 버튼, 링크 */
@@ -16,46 +22,392 @@
 	--color-warning: #f5a524;		/* 주의, 마감 임박 */
 	--color-text: #222222;
 	--color-text-light: #777777;
-	--color-border: #dddddd;
+	--color-border: #e5e7eb;
 	--color-bg: #ffffff;
 	--color-bg-light: #f6f7f9;
 
-	--radius: 6px;
+	--font: 'Pretendard', -apple-system, 'Malgun Gothic', sans-serif;
+	--radius: 8px;
 	--content-width: 1100px;
+	--header-height: 64px;
+}
+
+/* 2. 기본 ============================================================ */
+
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+
+html, body {
+	margin: 0;
+	padding: 0;
 }
 
 body {
+	font-family: var(--font);
+	font-size: 15px;
+	line-height: 1.6;
 	color: var(--color-text);
 	background-color: var(--color-bg);
 }
 
 a {
 	color: var(--color-primary);
+	text-decoration: none;
 }
 
-/* 본문 가운데 정렬 */
+a:hover {
+	text-decoration: underline;
+}
+
+h1, h2, h3 {
+	margin: 0 0 16px;
+	line-height: 1.3;
+}
+
+h2 {
+	font-size: 24px;
+}
+
+h2 small {
+	margin-left: 6px;
+	font-size: 15px;
+	font-weight: 400;
+	color: var(--color-text-light);
+}
+
+img {
+	max-width: 100%;
+}
+
+/* 3. 헤더 (header.jsp) =============================================== */
+
+.site-header {
+	position: sticky;
+	top: 0;
+	z-index: 100;
+	background-color: var(--color-bg);
+	border-bottom: 1px solid var(--color-border);
+}
+
+.header-inner {
+	display: flex;
+	align-items: center;
+	gap: 32px;
+	max-width: var(--content-width);
+	height: var(--header-height);
+	margin: 0 auto;
+	padding: 0 16px;
+}
+
+.logo {
+	font-size: 20px;
+	font-weight: 800;
+	color: var(--color-primary);
+	white-space: nowrap;
+}
+
+.logo:hover {
+	text-decoration: none;
+}
+
+.main-nav {
+	flex: 1;
+}
+
+.main-nav ul {
+	display: flex;
+	gap: 24px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.main-nav a {
+	font-weight: 600;
+	color: var(--color-text);
+}
+
+.main-nav a:hover {
+	color: var(--color-primary);
+	text-decoration: none;
+}
+
+.header-actions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	white-space: nowrap;
+}
+
+.header-actions .user-name {
+	margin-right: 4px;
+	color: var(--color-text-light);
+}
+
+/* 4. 본문 ============================================================ */
+
+/* 각 화면의 <main class="container"> */
 .container {
+	width: 100%;
 	max-width: var(--content-width);
 	margin: 0 auto;
-	padding: 20px 16px;
+	padding: 40px 16px;
 }
 
-/* 안내 문구 */
-.message-error {
+/* 5. 버튼 ============================================================
+	<button class="btn btn-primary">저장</button>
+	<a class="btn" href="...">목록</a>
+	크기: btn-sm(작게), btn-block(가로 꽉 차게)
+*/
+
+button,
+.btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 40px;
+	padding: 0 18px;
+	font: inherit;
+	font-weight: 600;
+	color: var(--color-text);
+	background-color: var(--color-bg);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius);
+	cursor: pointer;
+	text-decoration: none;
+}
+
+button:hover,
+.btn:hover {
+	background-color: var(--color-bg-light);
+	text-decoration: none;
+}
+
+.btn-primary {
+	color: #ffffff;
+	background-color: var(--color-primary);
+	border-color: var(--color-primary);
+}
+
+.btn-primary:hover {
+	background-color: var(--color-primary-dark);
+	border-color: var(--color-primary-dark);
+}
+
+.btn-danger {
+	color: #ffffff;
+	background-color: var(--color-danger);
+	border-color: var(--color-danger);
+}
+
+.btn-danger:hover {
+	background-color: var(--color-danger);
+	opacity: 0.85;
+}
+
+.btn-sm {
+	height: 34px;
+	padding: 0 12px;
+	font-size: 14px;
+}
+
+.btn-block {
+	width: 100%;
+}
+
+/* 6. 입력 폼 =========================================================
+	<div class="form-group">
+		<label for="id">아이디</label>
+		<input type="text" id="id" name="id">
+	</div>
+*/
+
+input[type=text],
+input[type=password],
+input[type=email],
+input[type=number],
+input[type=tel],
+input[type=date],
+input[type=search],
+select,
+textarea {
+	height: 44px;
+	padding: 0 12px;
+	font: inherit;
+	color: var(--color-text);
+	background-color: var(--color-bg);
+	border: 1px solid var(--color-border);
+	border-radius: var(--radius);
+}
+
+textarea {
+	height: auto;
+	min-height: 120px;
+	padding: 10px 12px;
+	resize: vertical;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+	outline: none;
+	border-color: var(--color-primary);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
+}
+
+input[type=radio],
+input[type=checkbox] {
+	accent-color: var(--color-primary);
+}
+
+.form-group {
+	margin-bottom: 18px;
+}
+
+.form-group > label {
+	display: block;
+	margin-bottom: 6px;
+	font-weight: 600;
+}
+
+/* 라디오·체크박스는 빼고 가로로 꽉 채운다 */
+.form-group input:not([type=radio]):not([type=checkbox]),
+.form-group select,
+.form-group textarea {
+	width: 100%;
+}
+
+/* 라디오·체크박스 여러 개를 한 줄로 */
+.radio-group {
+	display: flex;
+	gap: 20px;
+}
+
+.radio-group label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* 로그인, 회원가입처럼 가운데에 놓는 폼 상자 */
+.form-box {
+	max-width: 420px;
+	margin: 0 auto;
+	padding: 32px;
+	border: 1px solid var(--color-border);
+	border-radius: 12px;
+}
+
+.form-box h2 {
+	text-align: center;
+}
+
+.form-footer {
+	margin: 20px 0 0;
+	font-size: 14px;
+	text-align: center;
+	color: var(--color-text-light);
+}
+
+/* 7. 표 ==============================================================
+	<table class="table"> ... </table>
+*/
+
+.table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.table th,
+.table td {
+	padding: 12px;
+	text-align: left;
+	border-bottom: 1px solid var(--color-border);
+}
+
+.table th {
+	font-weight: 600;
+	background-color: var(--color-bg-light);
+}
+
+.table tbody tr:hover {
+	background-color: var(--color-bg-light);
+}
+
+/* 8. 카드 ============================================================
+	<div class="card"> ... </div>
+*/
+
+.card {
+	padding: 24px;
+	background-color: var(--color-bg);
+	border: 1px solid var(--color-border);
+	border-radius: 12px;
+}
+
+.card + .card {
+	margin-top: 16px;
+}
+
+/* 9. 배지 (상태 표시) ===============================================
+	<span class="badge badge-primary">모집 중</span>
+	색: badge-primary(진행), badge-success(완료), badge-warning(임박), badge-danger(취소·반려), 기본(회색)
+*/
+
+.badge {
+	display: inline-block;
+	padding: 2px 10px;
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--color-text-light);
+	background-color: var(--color-bg-light);
+	border-radius: 999px;
+}
+
+.badge-primary {
+	color: var(--color-primary);
+	background-color: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.badge-success {
+	color: var(--color-secondary);
+	background-color: color-mix(in srgb, var(--color-secondary) 12%, transparent);
+}
+
+.badge-warning {
+	color: #b07000;
+	background-color: color-mix(in srgb, var(--color-warning) 18%, transparent);
+}
+
+.badge-danger {
 	color: var(--color-danger);
+	background-color: color-mix(in srgb, var(--color-danger) 12%, transparent);
+}
+
+/* 10. 안내 문구 ====================================================== */
+
+.message-error {
+	padding: 10px 12px;
+	font-size: 14px;
+	color: var(--color-danger);
+	background-color: color-mix(in srgb, var(--color-danger) 8%, transparent);
+	border-radius: var(--radius);
 }
 
 .message-info {
 	color: var(--color-text-light);
 }
 
-/* 관리자 화면: 왼쪽 메뉴 + 오른쪽 내용 */
+/* 11. 관리자 화면: 왼쪽 메뉴 + 오른쪽 내용 =========================== */
+
 .admin-layout {
 	display: flex;
 	gap: 24px;
+	width: 100%;
 	max-width: var(--content-width);
 	margin: 0 auto;
-	padding: 20px 16px;
+	padding: 40px 16px;
 }
 
 .admin-menu {
@@ -63,11 +415,12 @@ a {
 }
 
 .admin-menu ul {
-	list-style: none;
 	margin: 0;
 	padding: 0;
+	list-style: none;
 	border: 1px solid var(--color-border);
 	border-radius: var(--radius);
+	overflow: hidden;
 }
 
 .admin-menu li a {
@@ -83,8 +436,8 @@ a {
 }
 
 .admin-menu li a:hover {
-	background-color: var(--color-bg-light);
 	color: var(--color-primary);
+	background-color: var(--color-bg-light);
 }
 
 .admin-content {
