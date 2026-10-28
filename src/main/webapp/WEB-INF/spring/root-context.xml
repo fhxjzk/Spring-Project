@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/tx https://www.springframework.org/schema/tx/spring-tx.xsd
+		http://www.springframework.org/schema/task https://www.springframework.org/schema/task/spring-task.xsd
+		http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring.xsd">
+
+	<!-- 공용 설정 파일. 수정이 필요하면 담당자에게 요청한다. -->
+
+	<!--
+		DB 비밀번호, API 키는 secret.properties에서 읽는다.
+		이 파일은 GitHub에 올리지 않는다. secret.properties.example을 복사해서 만든다.
+	-->
+	<context:property-placeholder location="classpath:config/secret.properties" />
+
+	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
+		<property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy" />
+		<property name="jdbcUrl" value="${db.url}" />
+		<property name="username" value="${db.username}" />
+		<property name="password" value="${db.password}" />
+	</bean>
+
+	<bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close">
+		<constructor-arg ref="hikariConfig" />
+	</bean>
+
+	<!-- Mapper XML은 mappers/기능/XxxMapper.xml 에 둔다 -->
+	<bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="mapperLocations" value="classpath:mappers/**/*.xml" />
+		<property name="configLocation" value="classpath:config/mybatis-config.xml" />
+	</bean>
+
+	<!-- @Mapper를 붙인 인터페이스만 Mapper로 등록한다 -->
+	<mybatis-spring:scan base-package="com.project.app" annotation="org.apache.ibatis.annotations.Mapper" factory-ref="sessionFactory" />
+
+	<!--
+		Service, Dao는 여기서 만든다. Controller는 servlet-context.xml에서 만든다.
+		아래 @Transactional, @Scheduled 설정과 같은 곳에서 만들어야 동작한다.
+	-->
+	<context:component-scan base-package="com.project.app">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+		<context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice" />
+	</context:component-scan>
+
+	<!-- @Transactional 사용 (결제, 견적 선택처럼 여러 테이블을 한 번에 바꿀 때) -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<!-- @Scheduled 사용 (요청서 자동 마감, 자동 구매 확정) -->
+	<task:annotation-driven />
+
+</beans>

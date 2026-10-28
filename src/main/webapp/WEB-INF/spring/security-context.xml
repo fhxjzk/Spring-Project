@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/security https://www.springframework.org/schema/security/spring-security.xsd">
+
+	<!-- 공용 설정 파일. 권한 규칙을 추가하려면 담당자에게 요청한다. -->
+
+	<bean id="bCryptPasswordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
+
+	<bean id="customAccessDeniedHandler" class="com.project.app.auth.CustomAccessDeniedHandler" />
+	<bean id="customLoginSuccessHandler" class="com.project.app.auth.CustomLoginSuccessHandler" />
+	<bean id="customUserDetailsService" class="com.project.app.auth.CustomUserDetailsService" />
+
+	<security:http>
+
+		<!--
+			URL 권한 규칙 (위에서부터 먼저 맞는 규칙이 적용된다)
+			- 권한: ROLE_CUSTOMER(고객), ROLE_EXPERT(고수), ROLE_ADMIN(관리자)
+			- 목록(list.do), 상세(view.do)는 로그인하지 않아도 볼 수 있다
+			- 그 외 페이지는 로그인해야 들어갈 수 있다
+		-->
+		<security:intercept-url pattern="/" access="permitAll" />
+		<security:intercept-url pattern="/index.do" access="permitAll" />
+		<security:intercept-url pattern="/resources/**" access="permitAll" />
+		<security:intercept-url pattern="/auth/**" access="permitAll" />
+		<security:intercept-url pattern="/member/add*.do" access="permitAll" />
+
+		<!-- 관리자 -->
+		<security:intercept-url pattern="/admin/**" access="hasRole('ROLE_ADMIN')" />
+
+		<!--
+			파트별 권한 규칙은 여기에 추가한다. 예)
+			<security:intercept-url pattern="/quote/add*.do" access="hasRole('ROLE_EXPERT')" />
+			<security:intercept-url pattern="/request/add*.do" access="hasRole('ROLE_CUSTOMER')" />
+		-->
+
+		<!-- 목록, 상세는 누구나 -->
+		<security:intercept-url pattern="/**/list.do" access="permitAll" />
+		<security:intercept-url pattern="/**/view.do" access="permitAll" />
+
+		<!-- 나머지는 로그인 필요 -->
+		<security:intercept-url pattern="/**" access="isAuthenticated()" />
+
+		<security:access-denied-handler ref="customAccessDeniedHandler" />
+
+		<security:form-login
+			login-page="/auth/login.do"
+			authentication-failure-url="/auth/login.do?error"
+			authentication-success-handler-ref="customLoginSuccessHandler" />
+
+		<security:logout
+			logout-url="/auth/logout.do"
+			invalidate-session="true"
+			logout-success-url="/index.do" />
+
+	</security:http>
+
+	<security:authentication-manager>
+		<security:authentication-provider user-service-ref="customUserDetailsService">
+			<security:password-encoder ref="bCryptPasswordEncoder" />
+		</security:authentication-provider>
+	</security:authentication-manager>
+
+</beans>

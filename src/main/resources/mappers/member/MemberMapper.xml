@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper 인터페이스의 전체 이름과 같아야 한다 -->
+<mapper namespace="com.project.app.member.mapper.MemberMapper">
+
+	<!-- 회원가입 -->
+	<insert id="add" parameterType="MemberDto">
+		insert into tbl_member (member_seq, id, pw, name, email, role)
+			values (seq_member.nextval, #{id}, #{pw}, #{name}, #{email}, #{role})
+	</insert>
+
+	<!-- 로그인: 아이디로 회원 조회 (탈퇴 회원 포함, 로그인 가능 여부는 서비스에서 판단) -->
+	<select id="getById" parameterType="String" resultType="MemberDto">
+		select member_seq, id, pw, name, email, role, enabled, regdate
+			from tbl_member
+				where id = #{id}
+	</select>
+
+	<!-- 아이디 중복 확인 -->
+	<select id="countById" parameterType="String" resultType="int">
+		select count(*) from tbl_member where id = #{id}
+	</select>
+
+</mapper>
