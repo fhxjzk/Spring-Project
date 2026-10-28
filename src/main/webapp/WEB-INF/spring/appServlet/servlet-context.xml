@@ -32,5 +32,7 @@
 
 	<!-- 파일 업로드 (용량 제한은 web.xml) -->
 	<beans:bean id="multipartResolver" class="org.springframework.web.multipart.support.StandardServletMultipartResolver" />
-
+    
+    <beans:bean class="com.project.app.chat.config.WebSocketConfig" />
+    
 </beans:beans>
