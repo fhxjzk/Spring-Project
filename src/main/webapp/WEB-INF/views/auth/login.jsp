@@ -15,28 +15,28 @@
 	<%@ include file="/WEB-INF/views/inc/header.jsp" %>
 
 	<main class="container">
-		<h2>로그인 <small>Login</small></h2>
+		<div class="form-box">
+			<h2>로그인</h2>
 
-		<c:if test="${param.error != null}">
-		<p class="message-error">아이디 또는 비밀번호가 맞지 않습니다.</p>
-		</c:if>
+			<c:if test="${param.error != null}">
+			<p class="message-error">아이디 또는 비밀번호가 맞지 않습니다.</p>
+			</c:if>
 
-		<form method="POST" action="${path}/login">
-		<table class="vertical content">
-			<tr>
-				<th>아이디</th>
-				<td><input type="text" name="username" required class="short"></td>
-			</tr>
-			<tr>
-				<th>비밀번호</th>
-				<td><input type="password" name="password" required class="short"></td>
-			</tr>
-		</table>
-		<div>
-			<button class="login">로그인</button>
+			<form method="POST" action="${path}/login">
+				<div class="form-group">
+					<label for="username">아이디</label>
+					<input type="text" id="username" name="username" required>
+				</div>
+				<div class="form-group">
+					<label for="password">비밀번호</label>
+					<input type="password" id="password" name="password" required>
+				</div>
+				<button class="btn btn-primary btn-block">로그인</button>
+				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+			</form>
+
+			<p class="form-footer">아직 회원이 아니신가요? <a href="${path}/member/add.do">회원가입</a></p>
 		</div>
-		<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-		</form>
 	</main>
 
 	<script>

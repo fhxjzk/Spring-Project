@@ -10,16 +10,19 @@
 	<%-- 서비스 이름이 정해지면 여기만 바꾼다 --%>
 	<title>재능 거래 플랫폼</title>
 
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
 	<%-- Ajax로 POST할 때 필요한 CSRF 토큰 (common.js가 자동으로 붙인다) --%>
 	<meta name="_csrf" content="${_csrf.token}">
 	<meta name="_csrf_header" content="${_csrf.headerName}">
 
 	<link rel="icon" href="${path}/resources/favicon.png" type="image/png">
-	<link rel="stylesheet" href="http://bit.ly/3WJ5ilK">
+
+	<%-- 글꼴(Pretendard)과 공통 스타일. 수업용 CSS·JS는 쓰지 않는다 --%>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
 	<link rel="stylesheet" href="${path}/resources/css/common.css">
 
 	<script src="https://code.jquery.com/jquery-4.0.0.js"></script>
-	<script src="https://bit.ly/4cMuheh"></script>
 	<script>
 		const path = '${path}';
 	</script>
