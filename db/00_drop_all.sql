@@ -16,6 +16,18 @@
 -- 04 ④ 결제·거래·포인트
 
 -- 03 ③ 요청서·견적
+DROP TABLE tbl_quote CASCADE CONSTRAINTS PURGE;
+DROP TABLE tbl_request_file CASCADE CONSTRAINTS PURGE;
+DROP TABLE tbl_request_answer CASCADE CONSTRAINTS PURGE;
+DROP TABLE tbl_request CASCADE CONSTRAINTS PURGE;
+DROP TABLE tbl_question_option CASCADE CONSTRAINTS PURGE;
+DROP TABLE tbl_question CASCADE CONSTRAINTS PURGE;
+DROP SEQUENCE seq_quote;
+DROP SEQUENCE seq_request_file;
+DROP SEQUENCE seq_request_answer;
+DROP SEQUENCE seq_request;
+DROP SEQUENCE seq_question_option;
+DROP SEQUENCE seq_question;
 
 -- 02 ② 고수·카테고리·리뷰
 
