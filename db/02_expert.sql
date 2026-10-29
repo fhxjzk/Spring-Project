@@ -40,8 +40,10 @@ CREATE TABLE tbl_expert_profile (
     service_latitude    NUMBER(10, 7)   NOT NULL,                   -- 서비스 제공 위치 위도
     service_longitude   NUMBER(10, 7)   NOT NULL,                   -- 서비스 제공 위치 경도
     regdate             DATE            DEFAULT sysdate NOT NULL,
+    hidden              CHAR(1)         DEFAULT 'N'     NOT NULL,   -- 신고 처리로 숨김(Y/N) (E-02)
     CONSTRAINT pk_expert_profile PRIMARY KEY (expert_seq),
-    CONSTRAINT fk_expert_profile_member FOREIGN KEY (expert_seq) REFERENCES tbl_member (member_seq)
+    CONSTRAINT fk_expert_profile_member FOREIGN KEY (expert_seq) REFERENCES tbl_member (member_seq),
+    CONSTRAINT ck_expert_profile_hidden CHECK (hidden IN ('Y', 'N'))
 );
 
 -- 고수 경력 (D-01-a)
