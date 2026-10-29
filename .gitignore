@@ -4,6 +4,8 @@ bin/
 *.class
 *.war
 
+
+
 # ===== STS / Eclipse 설정 (각자 PC마다 다름) =====
 .settings/
 .metadata/
