@@ -4,8 +4,7 @@ bin/
 *.class
 *.war
 
-# ===== 테이블 삭제 후 재생성 용 drop.sql =====#
-00_drop_all.sql
+
 
 # ===== STS / Eclipse 설정 (각자 PC마다 다름) =====
 .settings/

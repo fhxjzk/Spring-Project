@@ -78,21 +78,50 @@ CREATE TABLE tbl_talent (
 
 CREATE SEQUENCE seq_talent;
 
--- 포트폴리오 사진 (D-01-a, D-01-b)
--- talent_seq가 비어 있으면 프로필 전체 포트폴리오, 값이 있으면 그 서비스의 사진
+-- 포트폴리오 글 (D-01-a)
+-- 게시글처럼 제목·내용·사진 여러 장으로 작성한다.
+-- 거래·리뷰가 참조하지 않아서 실제로 지운다. (사진·서비스 연결도 같이 지워진다)
 CREATE TABLE tbl_portfolio (
     portfolio_seq   NUMBER          NOT NULL,
     expert_seq      NUMBER          NOT NULL,
-    talent_seq      NUMBER,
-    file_name       VARCHAR2(200)   NOT NULL,                   -- 서버에 저장한 파일 이름
-    origin_name     VARCHAR2(200)   NOT NULL,                   -- 업로드한 원래 파일 이름
+    title           VARCHAR2(100)   NOT NULL,
+    content         VARCHAR2(4000)  NOT NULL,
     regdate         DATE            DEFAULT sysdate NOT NULL,
     CONSTRAINT pk_portfolio PRIMARY KEY (portfolio_seq),
-    CONSTRAINT fk_portfolio_expert FOREIGN KEY (expert_seq) REFERENCES tbl_expert_profile (expert_seq),
-    CONSTRAINT fk_portfolio_talent FOREIGN KEY (talent_seq) REFERENCES tbl_talent (talent_seq)
+    CONSTRAINT fk_portfolio_expert FOREIGN KEY (expert_seq) REFERENCES tbl_expert_profile (expert_seq)
 );
 
 CREATE SEQUENCE seq_portfolio;
+
+-- 포트폴리오 글에 올린 사진
+-- 글 하나에 최대 5장. slot은 1 ~ 5만 쓸 수 있고 한 글에서 겹칠 수 없다.
+-- 글을 지워도 서버에 저장한 파일은 남으니, 글을 지우기 전에 파일도 지운다.
+CREATE TABLE tbl_portfolio_image (
+    image_seq       NUMBER          NOT NULL,
+    portfolio_seq   NUMBER          NOT NULL,
+    file_name       VARCHAR2(200)   NOT NULL,                   -- 서버에 저장한 파일 이름
+    origin_name     VARCHAR2(200)   NOT NULL,                   -- 업로드한 원래 파일 이름
+    slot            NUMBER(1)       NOT NULL,                   -- 1 ~ 5, 보여주는 순서 (1이 대표 사진)
+    CONSTRAINT pk_portfolio_image PRIMARY KEY (image_seq),
+    CONSTRAINT uq_portfolio_image_slot UNIQUE (portfolio_seq, slot),
+    CONSTRAINT ck_portfolio_image_slot CHECK (slot BETWEEN 1 AND 5),
+    CONSTRAINT fk_portfolio_image_portfolio FOREIGN KEY (portfolio_seq) REFERENCES tbl_portfolio (portfolio_seq) ON DELETE CASCADE
+);
+
+CREATE SEQUENCE seq_portfolio_image;
+
+-- 서비스에 연결한 포트폴리오 글 (D-01-b)
+-- 서비스 하나에 최대 3개. slot은 1 ~ 3만 쓸 수 있고 한 서비스에서 겹칠 수 없다.
+CREATE TABLE tbl_talent_portfolio (
+    talent_seq      NUMBER          NOT NULL,
+    portfolio_seq   NUMBER          NOT NULL,
+    slot            NUMBER(1)       NOT NULL,                   -- 1 ~ 3, 보여주는 순서
+    CONSTRAINT pk_talent_portfolio PRIMARY KEY (talent_seq, portfolio_seq),
+    CONSTRAINT uq_talent_portfolio_slot UNIQUE (talent_seq, slot),
+    CONSTRAINT ck_talent_portfolio_slot CHECK (slot BETWEEN 1 AND 3),
+    CONSTRAINT fk_talent_portfolio_talent FOREIGN KEY (talent_seq) REFERENCES tbl_talent (talent_seq),
+    CONSTRAINT fk_talent_portfolio_portfolio FOREIGN KEY (portfolio_seq) REFERENCES tbl_portfolio (portfolio_seq) ON DELETE CASCADE
+);
 
 -- 리뷰·별점 (C-04), 고수 답변 (D-04)
 -- 평균 별점은 저장하지 않고 AVG(rating)으로 계산한다.
