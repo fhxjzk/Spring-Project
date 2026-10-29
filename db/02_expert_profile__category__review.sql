@@ -1,7 +1,15 @@
 -- ============================================================
 -- 02_expert.sql (② 고수·카테고리·리뷰)
 --
--- 고수의 주소·좌표(위도·경도)는 tbl_member에 저장한다. (① 담당)
+-- 고수의 "서비스 제공 위치"(주소·좌표)는 tbl_member가 아니라
+-- tbl_expert_profile에 별도로 저장한다. (② 담당)
+--   - tbl_member.address/latitude/longitude  : 가입 시 받는 기본 위치 (거주지 느낌,
+--     B-04 검색의 기본 검색 기준 위치)
+--   - tbl_expert_profile.service_address 등  : 고수가 실제 서비스를 제공하는 위치
+--     (D-01-a에서 등록, B-04 거리 필터·지도 표시에 실제로 쓰이는 값)
+-- 두 값은 의미가 달라 같은 칼럼을 공유하지 않는다. (회원가입 때는 집 주소를 쓰고,
+-- 고수가 프로필을 등록할 때 영업 위치를 따로 입력받는 식)
+--
 -- 고수를 가리키는 칼럼은 expert_seq를 쓰고, 값은 tbl_member.member_seq와 같다.
 -- ============================================================
 
@@ -22,10 +30,16 @@ CREATE SEQUENCE seq_category;
 
 -- 고수 프로필 (D-01-a)
 -- 회원 한 명당 프로필 하나. PK가 곧 회원 번호라서 시퀀스가 없다.
+-- service_address/service_latitude/service_longitude 는 고수가 서비스를 제공하는
+-- 활동지역·기준 지점 좌표다. tbl_member의 address/latitude/longitude(거주지 느낌,
+-- 가입 시 기본 검색 기준 위치)와는 다른 값이라 이름을 구분했다.
 CREATE TABLE tbl_expert_profile (
-    expert_seq      NUMBER          NOT NULL,                   -- tbl_member.member_seq
-    intro           VARCHAR2(2000)  NOT NULL,                   -- 고수 소개
-    regdate         DATE            DEFAULT sysdate NOT NULL,
+    expert_seq          NUMBER          NOT NULL,                   -- tbl_member.member_seq
+    intro               VARCHAR2(2000)  NOT NULL,                   -- 고수 소개
+    service_address     VARCHAR2(300)   NOT NULL,                   -- 서비스 제공 위치 주소(활동지역)
+    service_latitude    NUMBER(10, 7)   NOT NULL,                   -- 서비스 제공 위치 위도
+    service_longitude   NUMBER(10, 7)   NOT NULL,                   -- 서비스 제공 위치 경도
+    regdate             DATE            DEFAULT sysdate NOT NULL,
     CONSTRAINT pk_expert_profile PRIMARY KEY (expert_seq),
     CONSTRAINT fk_expert_profile_member FOREIGN KEY (expert_seq) REFERENCES tbl_member (member_seq)
 );
