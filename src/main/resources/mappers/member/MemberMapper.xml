@@ -22,4 +22,9 @@
 		select count(*) from tbl_member where id = #{id}
 	</select>
 
+	<!-- 로그인 성공: 마지막 로그인 일시 갱신 -->
+	<update id="updateLastLogin" parameterType="Long">
+		update tbl_member set last_login_date = sysdate where member_seq = #{memberSeq}
+	</update>
+
 </mapper>
