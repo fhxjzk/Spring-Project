@@ -17,7 +17,13 @@ DROP SEQUENCE seq_report;
 
 -- 05 ⑤ 채팅·알림
 
--- 04 ④ 결제·거래·포인트
+-- 04 ④ 결제·거래·포인트 (tbl_member.point 칼럼은 tbl_member와 같이 지워진다)
+DROP TABLE tbl_point_history CASCADE CONSTRAINTS PURGE;
+DROP TABLE tbl_trade_file CASCADE CONSTRAINTS PURGE;
+DROP TABLE tbl_trade CASCADE CONSTRAINTS PURGE;
+DROP SEQUENCE seq_point_history;
+DROP SEQUENCE seq_trade_file;
+DROP SEQUENCE seq_trade;
 
 -- 03 ③ 요청서·견적
 DROP TABLE tbl_quote CASCADE CONSTRAINTS PURGE;
