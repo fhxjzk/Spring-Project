@@ -6,9 +6,7 @@
 --
 -- 고수 활동지역(tbl_expert_region)은 ② tbl_expert 가 만들어진 뒤에 넣는다.
 -- 지금 넣으면 ②의 고수 번호와 안 맞을 수 있다.
---
--- 요청서 신고(target_type = 'REQUEST')도 ③ tbl_request 더미 번호가
--- 정해진 뒤에 추가한다. 지금은 고수 프로필 신고만 넣는다.
+
 -- ============================================================
 
 -- 신고 (신고자 = 고객 2~4, 대상 = 고수 프로필 5~7, 처리 관리자 = 1)
@@ -32,5 +30,22 @@ VALUES (seq_report.NEXTVAL, 4, 'PROFILE', 7, 'ABUSE', '채팅에서 욕설을 �
 -- 반려 (REJECTED) - 처리 사유 필수
 INSERT INTO tbl_report (report_seq, reporter_seq, target_type, target_seq, reason_type, reason_detail, status, process_reason, admin_seq, regdate, process_date)
 VALUES (seq_report.NEXTVAL, 2, 'PROFILE', 6, 'ETC', '프로필 사진이 본인이 아닌 것 같습니다.', 'REJECTED', '확인 결과 본인 사진이 맞아 반려합니다.', 1, sysdate - 15, sysdate - 12);
+
+-- ------------------------------------------------------------
+-- 요청서 신고 (신고자 = 고수 5~7, 대상 = ③ tbl_request 1~5)
+-- 처리완료(DONE)면 해당 요청서를 비공개로 바꾼다. (E-02)
+-- ------------------------------------------------------------
+
+-- 접수 (RECEIVED)
+INSERT INTO tbl_report (report_seq, reporter_seq, target_type, target_seq, reason_type, reason_detail, status, process_reason, admin_seq, regdate, process_date)
+VALUES (seq_report.NEXTVAL, 5, 'REQUEST', 1, 'FALSE_INFO', '예산과 요청 내용이 서로 맞지 않습니다.', 'RECEIVED', NULL, NULL, sysdate - 2, NULL);
+
+-- 처리완료 (DONE) - 요청서를 비공개로 바꾼 건
+INSERT INTO tbl_report (report_seq, reporter_seq, target_type, target_seq, reason_type, reason_detail, status, process_reason, admin_seq, regdate, process_date)
+VALUES (seq_report.NEXTVAL, 6, 'REQUEST', 4, 'FRAUD', '견적을 받은 뒤 외부 거래를 유도합니다.', 'DONE', '외부 거래 유도가 확인되어 요청서를 비공개 처리했습니다.', 1, sysdate - 6, sysdate - 4);
+
+-- 반려 (REJECTED)
+INSERT INTO tbl_report (report_seq, reporter_seq, target_type, target_seq, reason_type, reason_detail, status, process_reason, admin_seq, regdate, process_date)
+VALUES (seq_report.NEXTVAL, 7, 'REQUEST', 2, 'ETC', '같은 내용을 반복해서 올리는 것 같습니다.', 'REJECTED', '중복 등록으로 보기 어려워 반려합니다.', 1, sysdate - 9, sysdate - 7);
 
 COMMIT;

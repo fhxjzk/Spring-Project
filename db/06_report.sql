@@ -21,13 +21,14 @@ CREATE TABLE tbl_region (
 
 -- 고수 활동지역 (고수 한 명이 여러 지역 가능)
 CREATE TABLE tbl_expert_region (
-    expert_seq   NUMBER          NOT NULL,                   -- ② tbl_expert 참조 예정
+    expert_seq   NUMBER          NOT NULL,                   -- ② tbl_expert_profile.expert_seq
     region_seq   NUMBER          NOT NULL,
     CONSTRAINT pk_expert_region PRIMARY KEY (expert_seq, region_seq),
     CONSTRAINT fk_expert_region_region FOREIGN KEY (region_seq)
-        REFERENCES tbl_region(region_seq)
+        REFERENCES tbl_region(region_seq),
+    CONSTRAINT fk_expert_region_expert FOREIGN KEY (expert_seq)
+        REFERENCES tbl_expert_profile(expert_seq)
 );
--- expert_seq 의 FK 는 ② tbl_expert 가 만들어진 뒤에 추가한다.
 
 -- 신고 (B-07 접수 · E-02 검토·처리)
 -- 회원이 쓴 신고 사유(reason_detail)와 관리자가 쓴 처리 사유(process_reason)는
