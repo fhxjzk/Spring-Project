@@ -49,8 +49,7 @@ ALTER TABLE tbl_trade ADD CONSTRAINT fk_trade_request FOREIGN KEY (request_seq) 
 ALTER TABLE tbl_trade ADD CONSTRAINT fk_trade_quote FOREIGN KEY (quote_seq) REFERENCES tbl_quote (quote_seq);
 
 -- ② 리뷰(tbl_review.trade_seq)의 FK. tbl_review는 02에서 만들어지는데 tbl_trade가 더 늦게 생겨서 여기서 건다.
--- ② 테이블이 develop에 합쳐지면 주석을 푼다.
--- ALTER TABLE tbl_review ADD CONSTRAINT fk_review_trade FOREIGN KEY (trade_seq) REFERENCES tbl_trade (trade_seq);
+ALTER TABLE tbl_review ADD CONSTRAINT fk_review_trade FOREIGN KEY (trade_seq) REFERENCES tbl_trade (trade_seq);
 
 CREATE TABLE tbl_trade_file (
     trade_file_seq  NUMBER          NOT NULL,
