@@ -7,7 +7,15 @@
 	<meta charset="UTF-8">
 	<%@ include file="/WEB-INF/views/inc/asset.jsp" %>
 	<style>
+		.address-row {
+			display: flex;
+			gap: 8px;
+		}
 
+		.address-row .btn {
+			height: 44px;
+			flex-shrink: 0;
+		}
 	</style>
 </head>
 <body>
@@ -42,6 +50,13 @@
 					<label for="email">이메일</label>
 					<input type="email" id="email" name="email" required maxlength="100">
 				</div>
+				<div class="form-group">
+					<label for="address">주소</label>
+					<div class="address-row">
+						<input type="text" id="address" name="address" readonly maxlength="300" placeholder="주소 검색을 눌러 주세요">
+						<button type="button" class="btn" id="btnAddress">주소 검색</button>
+					</div>
+				</div>
 				<button class="btn btn-primary btn-block">가입하기</button>
 				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 			</form>
@@ -50,7 +65,18 @@
 		</div>
 	</main>
 
+	<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 	<script>
+
+		//주소 검색 버튼 → 다음 우편번호 팝업
+		$('#btnAddress').on('click', function() {
+			new daum.Postcode({
+				oncomplete: function(data) {
+					//도로명 주소, 없으면 지번 주소
+					$('#address').val(data.roadAddress || data.jibunAddress);
+				}
+			}).open();
+		});
 
 	</script>
 </body>

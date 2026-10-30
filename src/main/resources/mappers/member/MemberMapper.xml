@@ -6,8 +6,8 @@
 
 	<!-- 회원가입 -->
 	<insert id="add" parameterType="MemberDto">
-		insert into tbl_member (member_seq, id, pw, name, email, role)
-			values (seq_member.nextval, #{id}, #{pw}, #{name}, #{email}, #{role})
+		insert into tbl_member (member_seq, id, pw, name, email, role, address, latitude, longitude)
+			values (seq_member.nextval, #{id}, #{pw}, #{name}, #{email}, #{role}, #{address}, #{latitude}, #{longitude})
 	</insert>
 
 	<!-- 로그인: 아이디로 회원 조회 (탈퇴 회원 포함, 로그인 가능 여부는 서비스에서 판단) -->
