@@ -1,0 +1,132 @@
+-- ============================================================
+-- dummy/04_trade_dummy.sql (④ 결제·거래·통계)
+--
+-- dummy/01_member_dummy.sql, dummy/03_request_dummy.sql 다음에 실행한다.
+-- 회원 번호 2~4 고객, 5~7 고수를 쓴다.
+--
+-- 거래는 선택된 견적이 있어야 하므로
+--   14번 거래: ③ 더미의 요청서 4 / 견적 4 (선택됨)를 쓴다.
+--   나머지 거래: 여기서 요청서(선택 완료, 취소된 거래는 취소)와 견적(선택됨)을 하나씩 만들고 바로 이어서 거래를 만든다.
+--              요청서·견적 번호는 ③ 더미 다음 번호이고, seq_request.currval / seq_quote.currval로 가져온다.
+-- category_seq는 ③ 더미와 같이 임시로 1, 2를 쓴다. (② 카테고리 더미가 합쳐지면 바꾼다)
+--
+-- 날짜는 sysdate 기준이라 언제 실행해도 최근 30일 안에 들어간다.
+-- 포인트 내역의 잔액(balance)과 tbl_member.point는 서로 맞춰서 만들었다.
+-- 7번 거래는 납품 후 7일이 지나서, 서버를 켜고 1분 뒤 자동 구매 확정된다. (스케줄러 확인용)
+--
+--   거래 번호  고객       고수     금액      상태
+--   1        customer1  expert1  150,000   CONFIRMED
+--   2        customer2  expert2  80,000    CONFIRMED
+--   3        customer3  expert3  200,000   CONFIRMED
+--   4        customer1  expert2  50,000    CONFIRMED
+--   5        customer2  expert1  120,000   CONFIRMED
+--   6        customer3  expert1  70,000    CONFIRMED
+--   7        customer2  expert1  65,000    DELIVERED
+--   8        customer1  expert3  300,000   CONFIRMED
+--   9        customer3  expert3  75,000    CANCELED
+--   10       customer2  expert2  90,000    CONFIRMED
+--   11       customer3  expert3  60,000    CONFIRMED
+--   12       customer1  expert1  110,000   DELIVERED
+--   13       customer2  expert3  130,000   IN_PROGRESS
+--   14       customer1  expert2  95,000    PAID
+--   15       customer3  expert2  40,000    PAID
+-- ============================================================
+
+-- 거래 (+ 거래마다 요청서·견적)
+INSERT INTO tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, content, status, quote_count, quote_deadline, regdate) VALUES (seq_request.nextval, 2, NULL, 1, '서울 서초구', '거래 더미용 요청서', 'SELECTED', 1, sysdate - 26.50, sysdate - 28.50);
+INSERT INTO tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content, status, regdate) VALUES (seq_quote.nextval, seq_request.currval, 5, 150000, 7, '거래 더미용 견적', 'SELECTED', sysdate - 28.00);
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, seq_request.currval, seq_quote.currval, 2, 5, 150000, 'CONFIRMED', sysdate - 27.00, sysdate - 26.00, sysdate - 24.00, sysdate - 23.00, NULL);
+
+INSERT INTO tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, content, status, quote_count, quote_deadline, regdate) VALUES (seq_request.nextval, 3, NULL, 2, '서울 마포구', '거래 더미용 요청서', 'SELECTED', 1, sysdate - 25.50, sysdate - 27.50);
+INSERT INTO tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content, status, regdate) VALUES (seq_quote.nextval, seq_request.currval, 6, 80000, 7, '거래 더미용 견적', 'SELECTED', sysdate - 27.00);
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, seq_request.currval, seq_quote.currval, 3, 6, 80000, 'CONFIRMED', sysdate - 26.00, sysdate - 25.00, sysdate - 22.00, sysdate - 21.00, NULL);
+
+INSERT INTO tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, content, status, quote_count, quote_deadline, regdate) VALUES (seq_request.nextval, 4, NULL, 2, '서울 송파구', '거래 더미용 요청서', 'SELECTED', 1, sysdate - 24.50, sysdate - 26.50);
+INSERT INTO tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content, status, regdate) VALUES (seq_quote.nextval, seq_request.currval, 7, 200000, 7, '거래 더미용 견적', 'SELECTED', sysdate - 26.00);
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, seq_request.currval, seq_quote.currval, 4, 7, 200000, 'CONFIRMED', sysdate - 25.00, sysdate - 24.00, sysdate - 20.00, sysdate - 19.00, NULL);
+
+INSERT INTO tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, content, status, quote_count, quote_deadline, regdate) VALUES (seq_request.nextval, 2, NULL, 1, '서울 용산구', '거래 더미용 요청서', 'SELECTED', 1, sysdate - 21.50, sysdate - 23.50);
+INSERT INTO tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content, status, regdate) VALUES (seq_quote.nextval, seq_request.currval, 6, 50000, 7, '거래 더미용 견적', 'SELECTED', sysdate - 23.00);
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, seq_request.currval, seq_quote.currval, 2, 6, 50000, 'CONFIRMED', sysdate - 22.00, sysdate - 21.00, sysdate - 18.00, sysdate - 16.00, NULL);
+
+INSERT INTO tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, content, status, quote_count, quote_deadline, regdate) VALUES (seq_request.nextval, 3, NULL, 1, '서울 성동구', '거래 더미용 요청서', 'SELECTED', 1, sysdate - 19.50, sysdate - 21.50);
+INSERT INTO tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content, status, regdate) VALUES (seq_quote.nextval, seq_request.currval, 5, 120000, 7, '거래 더미용 견적', 'SELECTED', sysdate - 21.00);
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, seq_request.currval, seq_quote.currval, 3, 5, 120000, 'CONFIRMED', sysdate - 20.00, sysdate - 19.00, sysdate - 15.00, sysdate - 13.00, NULL);
+
+INSERT INTO tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, content, status, quote_count, quote_deadline, regdate) VALUES (seq_request.nextval, 4, NULL, 1, '서울 강남구', '거래 더미용 요청서', 'SELECTED', 1, sysdate - 16.50, sysdate - 18.50);
+INSERT INTO tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content, status, regdate) VALUES (seq_quote.nextval, seq_request.currval, 5, 70000, 7, '거래 더미용 견적', 'SELECTED', sysdate - 18.00);
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, seq_request.currval, seq_quote.currval, 4, 5, 70000, 'CONFIRMED', sysdate - 17.00, sysdate - 16.00, sysdate - 12.00, sysdate - 10.00, NULL);
+
+INSERT INTO tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, content, status, quote_count, quote_deadline, regdate) VALUES (seq_request.nextval, 3, NULL, 1, '서울 서초구', '거래 더미용 요청서', 'SELECTED', 1, sysdate - 14.50, sysdate - 16.50);
+INSERT INTO tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content, status, regdate) VALUES (seq_quote.nextval, seq_request.currval, 5, 65000, 7, '거래 더미용 견적', 'SELECTED', sysdate - 16.00);
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, seq_request.currval, seq_quote.currval, 3, 5, 65000, 'DELIVERED', sysdate - 15.00, sysdate - 14.00, sysdate - 9.00, NULL, NULL);
+
+INSERT INTO tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, content, status, quote_count, quote_deadline, regdate) VALUES (seq_request.nextval, 2, NULL, 2, '서울 마포구', '거래 더미용 요청서', 'SELECTED', 1, sysdate - 13.50, sysdate - 15.50);
+INSERT INTO tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content, status, regdate) VALUES (seq_quote.nextval, seq_request.currval, 7, 300000, 7, '거래 더미용 견적', 'SELECTED', sysdate - 15.00);
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, seq_request.currval, seq_quote.currval, 2, 7, 300000, 'CONFIRMED', sysdate - 14.00, sysdate - 13.00, sysdate - 9.00, sysdate - 7.00, NULL);
+
+INSERT INTO tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, content, status, quote_count, quote_deadline, regdate) VALUES (seq_request.nextval, 4, NULL, 2, '서울 송파구', '거래 더미용 요청서', 'CANCELED', 1, sysdate - 11.50, sysdate - 13.50);
+INSERT INTO tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content, status, regdate) VALUES (seq_quote.nextval, seq_request.currval, 7, 75000, 7, '거래 더미용 견적', 'SELECTED', sysdate - 13.00);
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, seq_request.currval, seq_quote.currval, 4, 7, 75000, 'CANCELED', sysdate - 12.00, NULL, NULL, NULL, sysdate - 11.00);
+
+INSERT INTO tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, content, status, quote_count, quote_deadline, regdate) VALUES (seq_request.nextval, 3, NULL, 1, '서울 용산구', '거래 더미용 요청서', 'SELECTED', 1, sysdate - 9.50, sysdate - 11.50);
+INSERT INTO tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content, status, regdate) VALUES (seq_quote.nextval, seq_request.currval, 6, 90000, 7, '거래 더미용 견적', 'SELECTED', sysdate - 11.00);
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, seq_request.currval, seq_quote.currval, 3, 6, 90000, 'CONFIRMED', sysdate - 10.00, sysdate - 9.00, sysdate - 6.00, sysdate - 4.00, NULL);
+
+INSERT INTO tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, content, status, quote_count, quote_deadline, regdate) VALUES (seq_request.nextval, 4, NULL, 2, '서울 성동구', '거래 더미용 요청서', 'SELECTED', 1, sysdate - 6.50, sysdate - 8.50);
+INSERT INTO tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content, status, regdate) VALUES (seq_quote.nextval, seq_request.currval, 7, 60000, 7, '거래 더미용 견적', 'SELECTED', sysdate - 8.00);
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, seq_request.currval, seq_quote.currval, 4, 7, 60000, 'CONFIRMED', sysdate - 7.00, sysdate - 6.00, sysdate - 2.00, sysdate - 0.20, NULL);
+
+INSERT INTO tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, content, status, quote_count, quote_deadline, regdate) VALUES (seq_request.nextval, 2, NULL, 1, '서울 강남구', '거래 더미용 요청서', 'SELECTED', 1, sysdate - 5.50, sysdate - 7.50);
+INSERT INTO tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content, status, regdate) VALUES (seq_quote.nextval, seq_request.currval, 5, 110000, 7, '거래 더미용 견적', 'SELECTED', sysdate - 7.00);
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, seq_request.currval, seq_quote.currval, 2, 5, 110000, 'DELIVERED', sysdate - 6.00, sysdate - 5.00, sysdate - 2.00, NULL, NULL);
+
+INSERT INTO tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, content, status, quote_count, quote_deadline, regdate) VALUES (seq_request.nextval, 3, NULL, 2, '서울 서초구', '거래 더미용 요청서', 'SELECTED', 1, sysdate - 3.50, sysdate - 5.50);
+INSERT INTO tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content, status, regdate) VALUES (seq_quote.nextval, seq_request.currval, 7, 130000, 7, '거래 더미용 견적', 'SELECTED', sysdate - 5.00);
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, seq_request.currval, seq_quote.currval, 3, 7, 130000, 'IN_PROGRESS', sysdate - 4.00, sysdate - 3.00, NULL, NULL, NULL);
+
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, 4, 4, 2, 6, 95000, 'PAID', sysdate - 3.50, NULL, NULL, NULL, NULL);
+
+INSERT INTO tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, content, status, quote_count, quote_deadline, regdate) VALUES (seq_request.nextval, 4, NULL, 1, '서울 송파구', '거래 더미용 요청서', 'SELECTED', 1, sysdate - 1.50, sysdate - 3.50);
+INSERT INTO tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content, status, regdate) VALUES (seq_quote.nextval, seq_request.currval, 6, 40000, 7, '거래 더미용 견적', 'SELECTED', sysdate - 3.00);
+INSERT INTO tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status, regdate, start_date, delivered_date, confirm_date, cancel_date) VALUES (seq_trade.nextval, seq_request.currval, seq_quote.currval, 4, 6, 40000, 'PAID', sysdate - 2.00, NULL, NULL, NULL, NULL);
+
+-- 포인트 내역 (시간 순서)
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 2, 'CHARGE', 1000000, 1000000, NULL, sysdate - 29.50);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 3, 'CHARGE', 800000, 800000, NULL, sysdate - 29.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 4, 'CHARGE', 600000, 600000, NULL, sysdate - 28.50);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 2, 'PAY', -150000, 850000, 1, sysdate - 27.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 3, 'PAY', -80000, 720000, 2, sysdate - 26.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 4, 'PAY', -200000, 400000, 3, sysdate - 25.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 5, 'SETTLE', 150000, 150000, 1, sysdate - 23.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 2, 'PAY', -50000, 800000, 4, sysdate - 22.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 6, 'SETTLE', 80000, 80000, 2, sysdate - 21.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 3, 'PAY', -120000, 600000, 5, sysdate - 20.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 7, 'SETTLE', 200000, 200000, 3, sysdate - 19.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 4, 'PAY', -70000, 330000, 6, sysdate - 17.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 6, 'SETTLE', 50000, 130000, 4, sysdate - 16.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 3, 'PAY', -65000, 535000, 7, sysdate - 15.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 2, 'PAY', -300000, 500000, 8, sysdate - 14.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 5, 'SETTLE', 120000, 270000, 5, sysdate - 13.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 4, 'PAY', -75000, 255000, 9, sysdate - 12.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 4, 'REFUND', 75000, 330000, 9, sysdate - 11.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 5, 'SETTLE', 70000, 340000, 6, sysdate - 10.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 3, 'PAY', -90000, 445000, 10, sysdate - 10.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 7, 'SETTLE', 300000, 500000, 8, sysdate - 7.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 4, 'PAY', -60000, 270000, 11, sysdate - 7.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 2, 'PAY', -110000, 390000, 12, sysdate - 6.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 6, 'SETTLE', 90000, 220000, 10, sysdate - 4.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 3, 'PAY', -130000, 315000, 13, sysdate - 4.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 2, 'PAY', -95000, 295000, 14, sysdate - 3.50);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 4, 'PAY', -40000, 230000, 15, sysdate - 2.00);
+INSERT INTO tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq, regdate) VALUES (seq_point_history.nextval, 7, 'SETTLE', 60000, 560000, 11, sysdate - 0.20);
+
+-- 최종 잔액 (위 내역의 마지막 balance와 같다)
+UPDATE tbl_member SET point = 295000 WHERE member_seq = 2;
+UPDATE tbl_member SET point = 315000 WHERE member_seq = 3;
+UPDATE tbl_member SET point = 230000 WHERE member_seq = 4;
+UPDATE tbl_member SET point = 340000 WHERE member_seq = 5;
+UPDATE tbl_member SET point = 220000 WHERE member_seq = 6;
+UPDATE tbl_member SET point = 560000 WHERE member_seq = 7;
+
+COMMIT;
