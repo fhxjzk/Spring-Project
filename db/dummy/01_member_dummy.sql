@@ -16,8 +16,10 @@ INSERT INTO tbl_member (member_seq, id, pw, name, email, role, address, latitude
 INSERT INTO tbl_member (member_seq, id, pw, name, email, role, address, latitude, longitude) VALUES (seq_member.nextval, 'customer2', '$2a$10$eTdtvYdo62mVseiilZ7RFeOx7ATX1L4wNEt0h/G/CuwFaIEdjbvkC', '고객2', 'customer2@test.com', 'ROLE_CUSTOMER', '서울 마포구 양화로 160', 37.5572000, 126.9245000);
 INSERT INTO tbl_member (member_seq, id, pw, name, email, role, address, latitude, longitude) VALUES (seq_member.nextval, 'customer3', '$2a$10$eTdtvYdo62mVseiilZ7RFeOx7ATX1L4wNEt0h/G/CuwFaIEdjbvkC', '고객3', 'customer3@test.com', 'ROLE_CUSTOMER', '서울 송파구 올림픽로 300', 37.5126000, 127.1025000);
 
-INSERT INTO tbl_member (member_seq, id, pw, name, email, role, address, latitude, longitude) VALUES (seq_member.nextval, 'expert1', '$2a$10$eTdtvYdo62mVseiilZ7RFeOx7ATX1L4wNEt0h/G/CuwFaIEdjbvkC', '고수1', 'expert1@test.com', 'ROLE_EXPERT', '서울 강남구 강남대로 396', 37.4979000, 127.0276000);
-INSERT INTO tbl_member (member_seq, id, pw, name, email, role, address, latitude, longitude) VALUES (seq_member.nextval, 'expert2', '$2a$10$eTdtvYdo62mVseiilZ7RFeOx7ATX1L4wNEt0h/G/CuwFaIEdjbvkC', '고수2', 'expert2@test.com', 'ROLE_EXPERT', '서울 용산구 한강대로 405', 37.5547000, 126.9707000);
-INSERT INTO tbl_member (member_seq, id, pw, name, email, role, address, latitude, longitude) VALUES (seq_member.nextval, 'expert3', '$2a$10$eTdtvYdo62mVseiilZ7RFeOx7ATX1L4wNEt0h/G/CuwFaIEdjbvkC', '고수3', 'expert3@test.com', 'ROLE_EXPERT', '경기 성남시 분당구 판교역로 160', 37.3948000, 127.1112000);
+-- 고수 (last_login_date: 최근활동순 정렬 확인용)
+INSERT INTO tbl_member (member_seq, id, pw, name, email, role, address, latitude, longitude, last_login_date) VALUES (seq_member.nextval, 'expert1', '$2a$10$eTdtvYdo62mVseiilZ7RFeOx7ATX1L4wNEt0h/G/CuwFaIEdjbvkC', '고수1', 'expert1@test.com', 'ROLE_EXPERT', '서울 강남구 강남대로 396', 37.4979000, 127.0276000, sysdate);
+INSERT INTO tbl_member (member_seq, id, pw, name, email, role, address, latitude, longitude, last_login_date) VALUES (seq_member.nextval, 'expert2', '$2a$10$eTdtvYdo62mVseiilZ7RFeOx7ATX1L4wNEt0h/G/CuwFaIEdjbvkC', '고수2', 'expert2@test.com', 'ROLE_EXPERT', '서울 용산구 한강대로 405', 37.5547000, 126.9707000, sysdate - 3);
+INSERT INTO tbl_member (member_seq, id, pw, name, email, role, address, latitude, longitude, last_login_date) VALUES (seq_member.nextval, 'expert3', '$2a$10$eTdtvYdo62mVseiilZ7RFeOx7ATX1L4wNEt0h/G/CuwFaIEdjbvkC', '고수3', 'expert3@test.com', 'ROLE_EXPERT', '경기 성남시 분당구 판교역로 160', 37.3948000, 127.1112000, sysdate - 30);
 
 COMMIT;
+ 

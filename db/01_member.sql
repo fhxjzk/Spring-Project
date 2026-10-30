@@ -20,6 +20,7 @@ CREATE TABLE tbl_member (
     regdate         DATE            DEFAULT sysdate NOT NULL,       -- 가입일
     moddate         DATE            DEFAULT sysdate NOT NULL,       -- 정보 수정일
     withdraw_date   DATE,                                           -- 탈퇴일
+    last_login_date DATE,                                           -- 마지막 로그인 일시
     CONSTRAINT pk_member PRIMARY KEY (member_seq),
     CONSTRAINT uq_member_id UNIQUE (id),
     CONSTRAINT uq_member_email UNIQUE (email),
