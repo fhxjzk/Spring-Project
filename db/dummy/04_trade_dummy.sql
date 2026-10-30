@@ -130,3 +130,30 @@ UPDATE tbl_member SET point = 220000 WHERE member_seq = 6;
 UPDATE tbl_member SET point = 560000 WHERE member_seq = 7;
 
 COMMIT;
+
+-- ------------------------------------------------------------
+-- ② 리뷰 더미 (② 담당)
+-- 리뷰는 거래 번호(trade_seq)가 있어야 해서 02 더미가 아니라 거래 더미 다음인 여기에 둔다.
+-- 구매 확정(CONFIRMED)된 거래만 리뷰를 쓸 수 있다. (C-04)
+-- 11번 거래는 리뷰를 쓰지 않은 상태로 남겨서 '리뷰 작성' 버튼을 확인할 수 있게 했다.
+--
+--   리뷰  거래  고객       고수     별점  고수 답변
+--   1     1     customer1  expert1  5     있음
+--   2     2     customer2  expert2  4     있음
+--   3     3     customer3  expert3  5     없음
+--   4     4     customer1  expert2  3     있음
+--   5     5     customer2  expert1  5     없음
+--   6     6     customer3  expert1  4     있음
+--   7     8     customer1  expert3  2     있음
+--   8     10    customer2  expert2  5     없음
+-- ------------------------------------------------------------
+INSERT INTO tbl_review (review_seq, trade_seq, customer_seq, expert_seq, rating, content, reply, reply_date, regdate) VALUES (seq_review.nextval, 1, 2, 5, 5, '처음 배우는데도 꼼꼼하게 잘 가르쳐 주셨어요.', '열심히 따라와 주셔서 감사합니다!', sysdate - 22.00, sysdate - 22.50);
+INSERT INTO tbl_review (review_seq, trade_seq, customer_seq, expert_seq, rating, content, reply, reply_date, regdate) VALUES (seq_review.nextval, 2, 3, 6, 4, '청소는 깔끔했는데 도착이 조금 늦었어요.', '늦어서 죄송합니다. 다음에는 시간을 꼭 지키겠습니다.', sysdate - 20.00, sysdate - 20.50);
+INSERT INTO tbl_review (review_seq, trade_seq, customer_seq, expert_seq, rating, content, reply, reply_date, regdate) VALUES (seq_review.nextval, 3, 4, 7, 5, '요청한 기능을 전부 넣어 주시고 설명도 친절했어요.', NULL, NULL, sysdate - 18.50);
+INSERT INTO tbl_review (review_seq, trade_seq, customer_seq, expert_seq, rating, content, reply, reply_date, regdate) VALUES (seq_review.nextval, 4, 2, 6, 3, '보통이었어요. 욕실 구석이 조금 덜 닦였어요.', '말씀해 주신 부분은 무료로 다시 청소해 드릴게요.', sysdate - 15.00, sysdate - 15.50);
+INSERT INTO tbl_review (review_seq, trade_seq, customer_seq, expert_seq, rating, content, reply, reply_date, regdate) VALUES (seq_review.nextval, 5, 3, 5, 5, '아이가 피아노를 좋아하게 됐어요.', NULL, NULL, sysdate - 12.50);
+INSERT INTO tbl_review (review_seq, trade_seq, customer_seq, expert_seq, rating, content, reply, reply_date, regdate) VALUES (seq_review.nextval, 6, 4, 5, 4, '수업 시간을 유연하게 맞춰 주셔서 좋았어요.', '편하실 때 언제든 연락 주세요.', sysdate - 9.00, sysdate - 9.50);
+INSERT INTO tbl_review (review_seq, trade_seq, customer_seq, expert_seq, rating, content, reply, reply_date, regdate) VALUES (seq_review.nextval, 8, 2, 7, 2, '시안이 생각했던 느낌과 많이 달랐어요.', '기대에 못 미쳐 죄송합니다. 추가 수정은 채팅으로 말씀해 주세요.', sysdate - 6.00, sysdate - 6.50);
+INSERT INTO tbl_review (review_seq, trade_seq, customer_seq, expert_seq, rating, content, reply, reply_date, regdate) VALUES (seq_review.nextval, 10, 3, 6, 5, '에어컨에서 냄새가 완전히 사라졌어요!', NULL, NULL, sysdate - 3.50);
+
+COMMIT;
