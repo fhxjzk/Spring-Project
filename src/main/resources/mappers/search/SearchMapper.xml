@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper 인터페이스의 전체 이름과 같아야 한다 -->
+<mapper namespace="com.project.app.search.mapper.SearchMapper">
+
+	<!-- 지역 17개 (체크박스·드롭다운 그릴 때 쓴다) -->
+	<select id="getRegionList" resultType="RegionDto">
+		select region_seq, region_name, center_lat, center_lng
+			from tbl_region
+				order by region_seq
+	</select>
+
+	<!-- 고수가 전에 체크해둔 지역 (수정 화면에서 체크 표시할 때 쓴다) -->
+	<select id="getRegionSeqListByExpert" parameterType="Long" resultType="int">
+		select region_seq
+			from tbl_expert_region
+				where expert_seq = #{expertSeq}
+	</select>
+
+	<!-- 저장 1단계: 기존 지역을 전부 지운다 -->
+	<delete id="removeExpertRegion" parameterType="Long">
+		delete from tbl_expert_region
+			where expert_seq = #{expertSeq}
+	</delete>
+
+	<!-- 저장 2단계: 체크한 지역들을 한 번에 넣는다 -->
+	<insert id="addExpertRegion" parameterType="hashmap">
+		insert all
+		<foreach collection="regionSeqList" item="regionSeq">
+			into tbl_expert_region (expert_seq, region_seq)
+				values (#{expertSeq}, #{regionSeq})
+		</foreach>
+		select * from dual
+	</insert>
+
+</mapper>
