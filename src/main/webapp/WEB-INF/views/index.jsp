@@ -143,31 +143,12 @@
 			<h2>카테고리</h2>
 
 			<div class="grid grid-6">
-				<%-- TODO: <c:forEach>로 바꾼다. 링크는 ⑥ 검색 주소 + 카테고리 번호 --%>
+				<c:forEach items="${clist}" var="category">
 				<a class="card card-link category-card" href="#">
 					<div class="category-icon"></div>
-					레슨
+					${category.name}
 				</a>
-				<a class="card card-link category-card" href="#">
-					<div class="category-icon"></div>
-					홈·리빙
-				</a>
-				<a class="card card-link category-card" href="#">
-					<div class="category-icon"></div>
-					디자인·개발
-				</a>
-				<a class="card card-link category-card" href="#">
-					<div class="category-icon"></div>
-					이벤트
-				</a>
-				<a class="card card-link category-card" href="#">
-					<div class="category-icon"></div>
-					건강·뷰티
-				</a>
-				<a class="card card-link category-card" href="#">
-					<div class="category-icon"></div>
-					비즈니스·상담
-				</a>
+				</c:forEach>
 			</div>
 		</section>
 
