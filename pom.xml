@@ -165,7 +165,12 @@
             <version>1.1</version>
             <scope>provided</scope>
         </dependency>
-
+        <!-- STOMP 메시지 처리 -->
+        <dependency>
+             <groupId>org.springframework</groupId>
+             <artifactId>spring-messaging</artifactId>
+             <version>${org.springframework-version}</version>
+        </dependency>
         <!-- 크롤링 (초기 데이터) -->
         <dependency>
             <groupId>org.jsoup</groupId>
