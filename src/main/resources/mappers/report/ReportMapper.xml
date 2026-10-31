@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.app.report.mapper.ReportMapper">
+
+	<!-- 신고 접수 (B-07) -->
+	<insert id="add" parameterType="ReportDto">
+		insert into tbl_report (report_seq, reporter_seq, target_type, target_seq, reason_type, reason_detail)
+			values (seq_report.nextval, #{reporterSeq}, #{targetType}, #{targetSeq}, #{reasonType}, #{reasonDetail})
+	</insert>
+
+	<!-- 중복 신고 확인 (B-07) : 같은 사람이 같은 대상을 신고해두고 아직 처리가 안 됐는지 -->
+	<select id="countDuplicate" parameterType="hashmap" resultType="int">
+		select count(*)
+			from tbl_report
+				where reporter_seq = #{reporterSeq}
+					and target_type = #{targetType}
+					and target_seq = #{targetSeq}
+					and status in ('RECEIVED', 'REVIEWING')
+	</select>
+
+	<!-- 관리자 신고 목록 (E-02) : status 가 비어 있으면 전체를 가져온다 -->
+	<select id="getList" parameterType="hashmap" resultType="ReportDto">
+		select r.report_seq, r.reporter_seq, r.target_type, r.target_seq,
+				r.reason_type, r.status,
+				to_char(r.regdate, 'YYYY-MM-DD HH24:MI') as regdate,
+				m.id as reporter_id
+			from tbl_report r
+				join tbl_member m on r.reporter_seq = m.member_seq
+		<where>
+			<if test="status != null and status != ''">
+				r.status = #{status}
+			</if>
+		</where>
+			order by r.report_seq desc
+	</select>
+
+	<!-- 신고 상세 (E-02) -->
+	<select id="getBySeq" parameterType="Long" resultType="ReportDto">
+		select r.report_seq, r.reporter_seq, r.target_type, r.target_seq,
+				r.reason_type, r.reason_detail, r.status, r.process_reason, r.admin_seq,
+				to_char(r.regdate, 'YYYY-MM-DD HH24:MI') as regdate,
+				to_char(r.process_date, 'YYYY-MM-DD HH24:MI') as process_date,
+				m.id as reporter_id,
+				a.id as admin_id
+			from tbl_report r
+				join tbl_member m on r.reporter_seq = m.member_seq
+				left join tbl_member a on r.admin_seq = a.member_seq
+					where r.report_seq = #{reportSeq}
+	</select>
+
+	<!-- 요청서를 쓴 사람 번호 (본인 신고를 막을 때 쓴다) -->
+	<select id="getRequestOwner" parameterType="Long" resultType="Long">
+		select customer_seq
+			from tbl_request
+				where request_seq = #{targetSeq}
+	</select>
+	
+	<!-- 검토중으로 바꾸기 (E-02) : 아직 처리한 게 아니라서 처리일시는 안 넣는다 -->
+	<update id="updateReviewing" parameterType="hashmap">
+		update tbl_report
+			set status = 'REVIEWING',
+				admin_seq = #{adminSeq}
+			where report_seq = #{reportSeq}
+	</update>
+
+	<!-- 처리완료 / 반려 (E-02) : 처리 사유와 처리일시를 같이 넣는다 -->
+	<update id="updateProcess" parameterType="hashmap">
+		update tbl_report
+			set status = #{status},
+				process_reason = #{processReason},
+				admin_seq = #{adminSeq},
+				process_date = sysdate
+			where report_seq = #{reportSeq}
+	</update>
+
+	<!-- 고수 프로필 숨김 / 해제 (E-02) : hidden 에 'Y' 또는 'N' 을 넣는다 -->
+	<update id="updateExpertHidden" parameterType="hashmap">
+		update tbl_expert_profile
+			set hidden = #{hidden}
+				where expert_seq = #{targetSeq}
+	</update>
+
+	<!-- 요청서 숨김 / 해제 (E-02) -->
+	<update id="updateRequestHidden" parameterType="hashmap">
+		update tbl_request
+			set hidden = #{hidden}
+				where request_seq = #{targetSeq}
+	</update>
+
+</mapper>
