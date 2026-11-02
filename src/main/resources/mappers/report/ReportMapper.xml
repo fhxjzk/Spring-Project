@@ -62,6 +62,7 @@
 			set status = 'REVIEWING',
 				admin_seq = #{adminSeq}
 			where report_seq = #{reportSeq}
+				and status = 'RECEIVED'	
 	</update>
 
 	<!-- 처리완료 / 반려 (E-02) : 처리 사유와 처리일시를 같이 넣는다 -->
@@ -72,6 +73,7 @@
 				admin_seq = #{adminSeq},
 				process_date = sysdate
 			where report_seq = #{reportSeq}
+				and status in ('RECEIVED', 'REVIEWING')
 	</update>
 
 	<!-- 고수 프로필 숨김 / 해제 (E-02) : hidden 에 'Y' 또는 'N' 을 넣는다 -->
