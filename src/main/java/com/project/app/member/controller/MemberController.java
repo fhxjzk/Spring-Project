@@ -1,5 +1,6 @@
 package com.project.app.member.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,9 +25,14 @@ public class MemberController {
 
 	private final MemberService memberService;
 
+	@Value("${kakao.js.key:}")
+	private String kakaoJsKey;
+
 	//회원가입 화면
 	@GetMapping(value = "/add.do")
-	public String add() {
+	public String add(Model model) {
+
+		model.addAttribute("kakaoJsKey", kakaoJsKey);
 
 		return "member/add";
 	}

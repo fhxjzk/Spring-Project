@@ -21,8 +21,23 @@
 		history.back();
 		</c:if>
 
+		<c:if test="${result == -2}">
+		alert('이미 사용 중인 이메일입니다.');
+		history.back();
+		</c:if>
+
 		<c:if test="${result == 0}">
 		alert('회원가입에 실패했습니다.');
+		history.back();
+		</c:if>
+
+		<c:if test="${result == -3}">
+		alert('위치를 확인하지 못했습니다. 주소를 다시 골라 주세요.');
+		history.back();
+		</c:if>
+
+		<c:if test="${result == -4}">
+		alert('입력한 값을 다시 확인해 주세요.');
 		history.back();
 		</c:if>
 
