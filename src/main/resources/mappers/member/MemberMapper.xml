@@ -6,8 +6,8 @@
 
 	<!-- 회원가입 -->
 	<insert id="add" parameterType="MemberDto">
-		insert into tbl_member (member_seq, id, pw, name, email, role)
-			values (seq_member.nextval, #{id}, #{pw}, #{name}, #{email}, #{role})
+		insert into tbl_member (member_seq, id, pw, name, email, role, address, latitude, longitude)
+			values (seq_member.nextval, #{id}, #{pw}, #{name}, #{email}, #{role}, #{address}, #{latitude}, #{longitude})
 	</insert>
 
 	<!-- 로그인: 아이디로 회원 조회 (탈퇴 회원 포함, 로그인 가능 여부는 서비스에서 판단) -->
@@ -21,5 +21,15 @@
 	<select id="countById" parameterType="String" resultType="int">
 		select count(*) from tbl_member where id = #{id}
 	</select>
+
+	<!-- 이메일 중복 확인 -->
+	<select id="countByEmail" parameterType="String" resultType="int">
+		select count(*) from tbl_member where email = #{email}
+	</select>
+
+	<!-- 로그인 성공: 마지막 로그인 일시 갱신 -->
+	<update id="updateLastLogin" parameterType="Long">
+		update tbl_member set last_login_date = sysdate where member_seq = #{memberSeq}
+	</update>
 
 </mapper>

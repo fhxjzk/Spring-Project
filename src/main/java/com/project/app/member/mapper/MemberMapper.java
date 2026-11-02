@@ -14,4 +14,7 @@ public interface MemberMapper {
 
 	int countById(String id);
 
+	int countByEmail(String email);
+	
+	int updateLastLogin(Long memberSeq);
 }

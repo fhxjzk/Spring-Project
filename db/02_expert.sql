@@ -127,6 +127,7 @@ CREATE TABLE tbl_talent_portfolio (
 
 -- 리뷰·별점 (C-04), 고수 답변 (D-04)
 -- 평균 별점은 저장하지 않고 AVG(rating)으로 계산한다.
+-- trade_seq의 FK(fk_review_trade)는 tbl_trade가 04에서 만들어져서 04_trade.sql에서 건다.
 CREATE TABLE tbl_review (
     review_seq      NUMBER          NOT NULL,
     trade_seq       NUMBER          NOT NULL,                   -- 거래 하나에 리뷰 하나
@@ -139,8 +140,6 @@ CREATE TABLE tbl_review (
     regdate         DATE            DEFAULT sysdate NOT NULL,
     CONSTRAINT pk_review PRIMARY KEY (review_seq),
     CONSTRAINT uq_review_trade UNIQUE (trade_seq),
-    -- TODO: ④ tbl_trade가 02보다 나중에 만들어져서 여기서는 FK를 걸 수 없다. 04_trade.sql에서 추가하기로 정하면 옮긴다.
-    -- CONSTRAINT fk_review_trade FOREIGN KEY (trade_seq) REFERENCES tbl_trade (trade_seq),
     CONSTRAINT fk_review_customer FOREIGN KEY (customer_seq) REFERENCES tbl_member (member_seq),
     CONSTRAINT fk_review_expert FOREIGN KEY (expert_seq) REFERENCES tbl_expert_profile (expert_seq),
     CONSTRAINT ck_review_rating CHECK (rating BETWEEN 1 AND 5)
