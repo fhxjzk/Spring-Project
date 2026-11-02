@@ -142,7 +142,7 @@
 				<div class="expert-photo"></div>
 
 				<div class="expert-side-body">
-					<%-- TODO: 평균 별점, 리뷰 수 --%>
+
 					<strong class="expert-name">${edto.name}</strong>
 				<c:choose>
 					<c:when test="${rsdto.reviewCount > 0}">
@@ -170,7 +170,6 @@
 						</dd>
 					</dl>
 
-					<%-- TODO: 본인(isOwner)이면 요청하기 대신 프로필 수정 버튼 --%>
 					<c:choose>
 						<c:when test="${isOwner}">
 							<a class="btn btn-primary btn-block" href="#">수정하기</a>
@@ -297,7 +296,7 @@
 					<div class="expert-side-footer">
 							<a class="message-info" href="#">전체보기</a>
 						</div>
-					<c:forEach items="${reviewlist}" var="review">
+					<c:forEach items="${reviewList}" var="review">
 					<%-- TODO: <c:forEach>로 바꾼다. tbl_review --%>
 					<%-- TODO: reviewDto 수정하기, 리뷰한 사람 이름 가져와야함 --%>
 					<div class="review-item">

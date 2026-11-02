@@ -9,5 +9,4 @@ import lombok.RequiredArgsConstructor;
 @Controller
 @RequiredArgsConstructor
 public class CategoryController {
-	private final CategoryService CategoryService;
 }

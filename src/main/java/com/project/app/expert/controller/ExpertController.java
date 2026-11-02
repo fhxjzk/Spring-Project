@@ -42,7 +42,7 @@ public class ExpertController {
 		List<ExpertPortfolioDto> portfolioList = expertService.getPortfolioList(expertSeq);
 
 		//프로필 화면에 띄울 리뷰 최신순으로 5개만 가져오기
-		List<ReviewDto> reviewlist = reviewService.getRecentReviewList(expertSeq);
+		List<ReviewDto> reviewList = reviewService.getRecentReviewList(expertSeq);
 		
 		//리뷰 갯수, 평균 별점 가져오기
 		ReviewSummaryDto rsdto = reviewService.getReviewSummary(expertSeq);
@@ -53,14 +53,14 @@ public class ExpertController {
 		if (auth != null) {
 			memberSeq = ((CustomUser) auth.getPrincipal()).getMemberSeq();
 		}
-		boolean isOwner = expertService.OwnerCheck(memberSeq, expertSeq);
+		boolean isOwner = expertService.ownerCheck(memberSeq, expertSeq);
 		
 		model.addAttribute("edto",edto);
 		model.addAttribute("careerList",careerList);
 		model.addAttribute("regionNameList",regionNameList);
 		model.addAttribute("talentList",talentList);
 		model.addAttribute("portfolioList",portfolioList);
-		model.addAttribute("reviewlist",reviewlist);
+		model.addAttribute("reviewList",reviewList);
 		model.addAttribute("rsdto",rsdto);
 		model.addAttribute("isOwner",isOwner);
 		

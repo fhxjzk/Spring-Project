@@ -55,7 +55,7 @@ public class ExpertService {
 	}
 
 	// 프로필 주인이 로그인 한 사용자인지 체크
-	public boolean OwnerCheck(Long memberSeq, Long expertSeq) {
+	public boolean ownerCheck(Long memberSeq, Long expertSeq) {
 		
 		// memberSeq가 null일 수 있기 때문에 expertSeq에서 equals() 호출하기
 		if(expertSeq.equals(memberSeq)) {
