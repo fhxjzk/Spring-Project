@@ -47,6 +47,8 @@
 	<context:component-scan base-package="com.project.app">
 		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
 		<context:exclude-filter type="annotation" expression="org.springframework.web.bind.annotation.ControllerAdvice" />
+		 <context:exclude-filter type="assignable"
+        expression="com.project.app.chat.config.WebSocketConfig" />
 	</context:component-scan>
 
 	<!-- @Transactional 사용 (결제, 견적 선택처럼 여러 테이블을 한 번에 바꿀 때) -->
