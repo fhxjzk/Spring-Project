@@ -14,4 +14,6 @@ public interface ReviewMapper {
 	
 	ReviewSummaryDto getReviewSummary(Long expertSeq);
 
+	List<ReviewDto> getLatestReviewList();
+
 }

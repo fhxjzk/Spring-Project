@@ -256,7 +256,6 @@
 										<span class="message-info small">
 											${talent.parentCategoryName} · ${talent.categoryName}
 											· <fmt:formatNumber value="${talent.price}" pattern="#,###" />원
-											<c:if test="${talent.portfolioCount > 0}">· 포트폴리오 ${talent.portfolioCount}</c:if>
 										</span>
 									</div>
 								</div>

@@ -23,6 +23,10 @@ public class ReviewDao {
 	public ReviewSummaryDto getReviewSummary(Long expertSeq) {
 		return reviewMapper.getReviewSummary(expertSeq);
 	}
+
+	public List<ReviewDto> getLatestReviewList() {
+		return reviewMapper.getLatestReviewList();
+	}
 	
 	
 }

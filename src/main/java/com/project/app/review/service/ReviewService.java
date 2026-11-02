@@ -25,4 +25,10 @@ public class ReviewService {
 		ReviewSummaryDto rsdto = reviewDao.getReviewSummary(expertSeq);
 		return rsdto;
 	}
+
+	// 메인 최근 리뷰 (전체 고수 대상 최신 3개)
+	public List<ReviewDto> getLatestReviewList() {
+		List<ReviewDto> reviewList = reviewDao.getLatestReviewList();
+		return reviewList;
+	}
 }

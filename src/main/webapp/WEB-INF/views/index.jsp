@@ -111,8 +111,13 @@
 			letter-spacing: 2px;
 		}
 
+		/* 리뷰가 길면 2줄까지만 보이고 ...으로 자른다 */
 		.review-content {
 			margin: 8px 0;
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
 		}
 
 		.small {
@@ -181,24 +186,25 @@
 		<section class="main-section">
 			<h2>최근 리뷰</h2>
 
-			<div class="grid grid-3">
-				<%-- TODO: <c:forEach>로 바꾼다. 링크는 리뷰를 받은 고수의 상세(②-04) --%>
-				<a class="card card-link" href="#">
-					<div class="review-stars">★★★★★</div>
-					<p class="review-content">"에어컨에서 냄새가 완전히 사라졌어요!"</p>
-					<span class="message-info small">고객2 · 고수2</span>
-				</a>
-				<a class="card card-link" href="#">
-					<div class="review-stars">★★★★☆</div>
-					<p class="review-content">"수업 시간을 유연하게 맞춰 주셔서 좋았어요."</p>
-					<span class="message-info small">고객3 · 고수1</span>
-				</a>
-				<a class="card card-link" href="#">
-					<div class="review-stars">★★★★★</div>
-					<p class="review-content">"아이가 피아노를 좋아하게 됐어요."</p>
-					<span class="message-info small">고객2 · 고수1</span>
-				</a>
-			</div>
+			<c:choose>
+				<c:when test="${empty reviewList}">
+					<p class="message-info small">아직 등록된 리뷰가 없어요</p>
+				</c:when>
+				<c:otherwise>
+					<div class="grid grid-3">
+						<%-- 카드를 누르면 리뷰를 받은 고수의 상세(②-04)로 간다 --%>
+						<c:forEach items="${reviewList}" var="review">
+						<a class="card card-link" href="${path}/expert/view.do?expertSeq=${review.expertSeq}">
+							<div class="review-stars">
+								<c:forEach begin="1" end="5" var="i">${i <= review.rating ? '★' : '☆'}</c:forEach>
+							</div>
+							<p class="review-content">"${review.content}"</p>
+							<span class="message-info small">${review.customerName} · ${review.expertName}</span>
+						</a>
+						</c:forEach>
+					</div>
+				</c:otherwise>
+			</c:choose>
 		</section>
 
 	</main>
