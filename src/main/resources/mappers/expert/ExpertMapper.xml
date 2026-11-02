@@ -27,6 +27,37 @@
 			order by r.region_seq
 	</select>
 
+	<!-- 제공 서비스: 사용 중(enabled='Y')인 것만, 최근 등록 순 -->
+	<!-- 대표 사진 = 1번으로 연결한 포트폴리오의 1번 사진 -->
+	<select id="getTalentList" parameterType="Long" resultType="ExpertTalentDto">
+		select t.*,
+				c.name as category_name,
+				pc.name as parent_category_name,
+				(select count(*) from tbl_talent_portfolio tp
+					where tp.talent_seq = t.talent_seq) as portfolio_count,
+				(select pi.file_name from tbl_talent_portfolio tp
+					inner join tbl_portfolio_image pi on pi.portfolio_seq = tp.portfolio_seq
+					where tp.talent_seq = t.talent_seq and tp.slot = 1 and pi.slot = 1) as thumbnail
+			from tbl_talent t
+				inner join tbl_category c on c.category_seq = t.category_seq
+				left join tbl_category pc on pc.category_seq = c.parent_seq
+			where t.expert_seq = #{expertSeq}
+				and t.enabled = 'Y'
+			order by t.regdate desc
+	</select>
+
+	<!-- 포트폴리오: 최근 작성 순 -->
+	<select id="getPortfolioList" parameterType="Long" resultType="ExpertPortfolioDto">
+		select p.*,
+				(select count(*) from tbl_portfolio_image pi
+					where pi.portfolio_seq = p.portfolio_seq) as image_count,
+				(select pi.file_name from tbl_portfolio_image pi
+					where pi.portfolio_seq = p.portfolio_seq and pi.slot = 1) as thumbnail
+			from tbl_portfolio p
+			where p.expert_seq = #{expertSeq}
+			order by p.regdate desc
+	</select>
+
 	<!-- 메인 인기 고수: 평균 별점 높은 순 4명 (숨김 고수, 탈퇴 회원 제외 / 리뷰 없는 고수는 맨 뒤) -->
 	<select id="getPopularExpertList" resultType="ExpertCardDto">
 		select p.expert_seq, m.name,

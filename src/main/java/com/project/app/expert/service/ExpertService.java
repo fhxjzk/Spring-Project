@@ -6,7 +6,9 @@ import org.springframework.stereotype.Service;
 
 import com.project.app.expert.model.ExpertCardDto;
 import com.project.app.expert.model.ExpertCareerDto;
+import com.project.app.expert.model.ExpertPortfolioDto;
 import com.project.app.expert.model.ExpertProfileDto;
+import com.project.app.expert.model.ExpertTalentDto;
 import com.project.app.expert.repository.ExpertDao;
 
 import lombok.RequiredArgsConstructor;
@@ -32,6 +34,18 @@ public class ExpertService {
 	public List<String> getRegionNameList(Long expertSeq) {
 		List<String> regionNameList = expertDao.getRegionNameList(expertSeq);
 		return regionNameList;
+	}
+
+	//제공 서비스 목록 (사용 중인 것만)
+	public List<ExpertTalentDto> getTalentList(Long expertSeq) {
+		List<ExpertTalentDto> talentList = expertDao.getTalentList(expertSeq);
+		return talentList;
+	}
+
+	//포트폴리오 목록
+	public List<ExpertPortfolioDto> getPortfolioList(Long expertSeq) {
+		List<ExpertPortfolioDto> portfolioList = expertDao.getPortfolioList(expertSeq);
+		return portfolioList;
 	}
 
 	//메인 인기 고수 (평균 별점 높은 순 4명)

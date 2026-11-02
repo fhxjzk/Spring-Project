@@ -97,6 +97,14 @@
 			background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg));
 		}
 
+		/* 사진이 있으면 칸을 꽉 채우고, 파일이 없으면(onerror) img를 지워서 배경색만 남긴다 */
+		.thumb img {
+			display: block;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
 		.thumb-info {
 			padding: 12px 14px;
 		}
@@ -229,30 +237,60 @@
 
 				<section class="card">
 					<h3>제공 서비스</h3>
-					<div class="grid-3">
-						<%-- TODO: <c:forEach>로 바꾼다. tbl_talent (enabled='Y'만) --%>
-						<a class="card card-link" href="#">
-							<div class="thumb"></div>
-							<div class="thumb-info">
-								<strong>서비스 제목</strong>
-								<span class="message-info small">피아노 · 50,000원</span>
+					<c:choose>
+						<c:when test="${empty talentList}">
+							<p class="message-info small">등록된 서비스가 없어요</p>
+						</c:when>
+						<c:otherwise>
+							<div class="grid-3">
+								<%-- TODO: 서비스 상세 화면이 생기면 a 태그로 바꾸고 링크 걸기 --%>
+								<c:forEach items="${talentList}" var="talent">
+								<div class="card card-link">
+									<div class="thumb">
+										<c:if test="${not empty talent.thumbnail}">
+											<img src="${path}/resources/upload/portfolio/${talent.thumbnail}" alt="" onerror="this.remove()">
+										</c:if>
+									</div>
+									<div class="thumb-info">
+										<strong>${talent.title}</strong>
+										<span class="message-info small">
+											${talent.parentCategoryName} · ${talent.categoryName}
+											· <fmt:formatNumber value="${talent.price}" pattern="#,###" />원
+											<c:if test="${talent.portfolioCount > 0}">· 포트폴리오 ${talent.portfolioCount}</c:if>
+										</span>
+									</div>
+								</div>
+								</c:forEach>
 							</div>
-						</a>
-					</div>
+						</c:otherwise>
+					</c:choose>
 				</section>
 
 				<section class="card">
-					<h3>포트폴리오</h3>
-					<div class="grid-3">
-						<%-- TODO: <c:forEach>로 바꾼다. 링크는 포트폴리오 상세(②-09) --%>
-						<a class="card card-link" href="#">
-							<div class="thumb"></div>
-							<div class="thumb-info">
-								<strong>포트폴리오 제목</strong>
-								<span class="message-info small">사진 5장</span>
+					<h3>포트폴리오 <small>${fn:length(portfolioList)}개</small></h3>
+					<c:choose>
+						<c:when test="${empty portfolioList}">
+							<p class="message-info small">등록된 포트폴리오가 없어요</p>
+						</c:when>
+						<c:otherwise>
+							<div class="grid-3">
+								<%-- TODO: 포트폴리오 상세(②-09) 화면을 만들면 이 주소로 연결된다 --%>
+								<c:forEach items="${portfolioList}" var="portfolio">
+								<a class="card card-link" href="${path}/expert/portfolio/view.do?portfolioSeq=${portfolio.portfolioSeq}">
+									<div class="thumb">
+										<c:if test="${not empty portfolio.thumbnail}">
+											<img src="${path}/resources/upload/portfolio/${portfolio.thumbnail}" alt="" onerror="this.remove()">
+										</c:if>
+									</div>
+									<div class="thumb-info">
+										<strong>${portfolio.title}</strong>
+										<span class="message-info small">사진 ${portfolio.imageCount}장</span>
+									</div>
+								</a>
+								</c:forEach>
 							</div>
-						</a>
-					</div>
+						</c:otherwise>
+					</c:choose>
 				</section>
 
 				<section class="card">

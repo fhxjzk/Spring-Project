@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.project.app.auth.CustomUser;
 import com.project.app.expert.model.ExpertCareerDto;
+import com.project.app.expert.model.ExpertPortfolioDto;
 import com.project.app.expert.model.ExpertProfileDto;
+import com.project.app.expert.model.ExpertTalentDto;
 import com.project.app.expert.service.ExpertService;
 import com.project.app.review.model.ReviewDto;
 import com.project.app.review.model.ReviewSummaryDto;
@@ -35,6 +37,10 @@ public class ExpertController {
 		//활동 가능 지역 이름
 		List<String> regionNameList = expertService.getRegionNameList(expertSeq);
 
+		//제공 서비스, 포트폴리오
+		List<ExpertTalentDto> talentList = expertService.getTalentList(expertSeq);
+		List<ExpertPortfolioDto> portfolioList = expertService.getPortfolioList(expertSeq);
+
 		//프로필 화면에 띄울 리뷰 최신순으로 5개만 가져오기
 		List<ReviewDto> reviewlist = reviewService.getRecentReviewList(expertSeq);
 		
@@ -52,6 +58,8 @@ public class ExpertController {
 		model.addAttribute("edto",edto);
 		model.addAttribute("careerList",careerList);
 		model.addAttribute("regionNameList",regionNameList);
+		model.addAttribute("talentList",talentList);
+		model.addAttribute("portfolioList",portfolioList);
 		model.addAttribute("reviewlist",reviewlist);
 		model.addAttribute("rsdto",rsdto);
 		model.addAttribute("isOwner",isOwner);
