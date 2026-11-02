@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.app.request.mapper.RequestMapper">
+
+	<!-- 카테고리 목록: parentSeq가 없으면 대분류, 있으면 그 대분류의 소분류 (사용 중인 것만) -->
+	<select id="categoryList" parameterType="Long" resultType="RequestCategoryDto">
+		select category_seq, parent_seq, name
+			from tbl_category
+				where enabled = 'Y'
+				<choose>
+					<when test="_parameter == null">and parent_seq is null</when>
+					<otherwise>and parent_seq = #{parentSeq}</otherwise>
+				</choose>
+					order by sort_order, category_seq
+	</select>
+
+	<!-- 카테고리 하나 (사용 중인 것만) -->
+	<select id="getCategory" parameterType="Long" resultType="RequestCategoryDto">
+		select category_seq, parent_seq, name
+			from tbl_category
+				where category_seq = #{categorySeq} and enabled = 'Y'
+	</select>
+
+	<!-- 카테고리의 질문 항목과 보기 (사용 중인 것만, 화면에 보이는 순서대로) -->
+	<resultMap id="questionMap" type="QuestionDto">
+		<id property="questionSeq" column="question_seq" />
+		<result property="categorySeq" column="category_seq" />
+		<result property="content" column="content" />
+		<result property="questionType" column="question_type" />
+		<result property="required" column="required" />
+		<result property="sortOrder" column="sort_order" />
+		<collection property="options" ofType="QuestionOptionDto" notNullColumn="option_seq">
+			<id property="optionSeq" column="option_seq" />
+			<result property="questionSeq" column="question_seq" />
+			<result property="content" column="option_content" />
+			<result property="sortOrder" column="option_sort_order" />
+		</collection>
+	</resultMap>
+
+	<select id="questionList" parameterType="Long" resultMap="questionMap">
+		select q.question_seq, q.category_seq, q.content, q.question_type, q.required, q.sort_order,
+				o.option_seq, o.content as option_content, o.sort_order as option_sort_order
+			from tbl_question q
+				left join tbl_question_option o on o.question_seq = q.question_seq and o.enabled = 'Y'
+					where q.category_seq = #{categorySeq} and q.enabled = 'Y'
+						order by q.sort_order, q.question_seq, o.sort_order, o.option_seq
+	</select>
+
+	<!-- 가입할 때 등록한 주소 (요청 지역 기본값) -->
+	<select id="getMemberAddress" parameterType="Long" resultType="String">
+		select address from tbl_member where member_seq = #{memberSeq}
+	</select>
+
+	<!-- 요청서 등록: 상태는 모집 중, 견적 마감은 등록 후 48시간 -->
+	<insert id="add" parameterType="RequestDto">
+		<selectKey keyProperty="requestSeq" resultType="Long" order="BEFORE">
+			select seq_request.nextval from dual
+		</selectKey>
+		insert into tbl_request (request_seq, customer_seq, expert_seq, category_seq, address, wish_date, budget, content, status, quote_deadline)
+			values (#{requestSeq}, #{customerSeq}, #{expertSeq}, #{categorySeq}, #{address}, to_date(#{wishDate}, 'YYYY-MM-DD'), #{budget}, #{content}, 'OPEN', sysdate + 2)
+	</insert>
+
+	<!-- 질문 답변 -->
+	<insert id="addAnswer" parameterType="RequestAnswerDto">
+		insert into tbl_request_answer (answer_seq, request_seq, question_seq, option_seq, answer)
+			values (seq_request_answer.nextval, #{requestSeq}, #{questionSeq}, #{optionSeq}, #{answer})
+	</insert>
+
+	<!-- 참고 이미지 -->
+	<insert id="addFile" parameterType="RequestFileDto">
+		insert into tbl_request_file (file_seq, request_seq, org_filename, save_filename)
+			values (seq_request_file.nextval, #{requestSeq}, #{orgFilename}, #{saveFilename})
+	</insert>
+
+</mapper>

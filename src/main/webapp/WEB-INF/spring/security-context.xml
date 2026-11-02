@@ -36,6 +36,9 @@
 			<security:intercept-url pattern="/request/add*.do" access="hasRole('ROLE_CUSTOMER')" />
 		-->
 
+		<!-- ③ 요청서: 요청서 작성은 고객만 -->
+		<security:intercept-url pattern="/request/add*.do" access="hasRole('ROLE_CUSTOMER')" />
+
 		<!-- 목록, 상세는 누구나 -->
 		<security:intercept-url pattern="/**/list.do" access="permitAll" />
 		<security:intercept-url pattern="/**/view.do" access="permitAll" />
