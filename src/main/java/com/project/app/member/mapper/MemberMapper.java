@@ -13,5 +13,6 @@ public interface MemberMapper {
 	MemberDto getById(String id);
 
 	int countById(String id);
-
+	
+	int updateLastLogin(Long memberSeq);
 }
