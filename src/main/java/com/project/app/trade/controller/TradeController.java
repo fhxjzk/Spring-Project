@@ -24,6 +24,7 @@ import com.project.app.trade.exception.TradeErrorCode;
 import com.project.app.trade.exception.TradeException;
 import com.project.app.trade.model.TradeDto;
 import com.project.app.trade.model.TradeFileDto;
+import com.project.app.trade.model.TradeTab;
 import com.project.app.trade.service.TradeService;
 
 import lombok.RequiredArgsConstructor;
@@ -73,17 +74,18 @@ public class TradeController {
 		return redirectDetail(tradeSeq);
 	}
 
-	//내 거래 목록 (고객: 맡긴 거래, 고수: 맡은 거래)
+	//내 거래 목록 (④-04). 고객: 맡긴 거래, 고수: 맡은 거래. tab으로 상태를 거른다 (?tab=PROGRESS)
 	@GetMapping(value = "/mylist.do")
-	public String mylist(Model model, Authentication auth) {
+	public String mylist(Model model, String tab, Authentication auth) {
 
 		CustomUser user = (CustomUser) auth.getPrincipal();
 		boolean expert = "ROLE_EXPERT".equals(user.getDto().getRole());
+		TradeTab current = TradeTab.of(tab);
 
 		model.addAttribute("expert", expert);
-		model.addAttribute("list", expert
-				? tradeService.listForExpert(user.getMemberSeq())
-				: tradeService.listForCustomer(user.getMemberSeq()));
+		model.addAttribute("tabs", TradeTab.values());
+		model.addAttribute("tab", current);
+		model.addAttribute("list", tradeService.listMine(user.getMemberSeq(), expert, current));
 
 		return "trade/mylist";
 	}
@@ -100,6 +102,7 @@ public class TradeController {
 		model.addAttribute("isCustomer", trade.isCustomer(memberSeq));
 		model.addAttribute("isExpert", trade.isExpert(memberSeq));
 		model.addAttribute("autoConfirmDays", TradeService.AUTO_CONFIRM_DAYS);
+		model.addAttribute("canWriteReview", trade.isCustomer(memberSeq) && tradeService.canWriteReview(tradeSeq, memberSeq));
 
 		return "trade/detail";
 	}

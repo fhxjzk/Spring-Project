@@ -25,6 +25,7 @@ public class TradeQuoteDto {
 	private Long customerSeq;		//요청서를 쓴 고객
 	private Long expertSeq;			//견적을 보낸 고수
 	private String expertName;
+	private String serviceName;		//고수가 등록한 서비스 제목, 없으면 요청서 카테고리 이름
 	private Integer price;			//견적 금액 = 결제 금액
 	private String requestStatus;	//③ 요청서 상태 (OPEN 모집 중, CLOSED 견적 마감, SELECTED 선택 완료 ...)
 

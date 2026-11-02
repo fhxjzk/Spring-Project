@@ -26,21 +26,18 @@ public class PointController {
 
 	private final PointService pointService;
 
-	//내 포인트: 잔액, 충전, 내역
-	@GetMapping(value = "/mylist.do")
-	public String mylist(Model model, Authentication auth) {
+	//포인트 충전 화면 (④-01)
+	@GetMapping(value = "/charge.do")
+	public String charge(Model model, Authentication auth) {
 
-		Long memberSeq = memberSeq(auth);
-
-		model.addAttribute("balance", pointService.getBalance(memberSeq));
-		model.addAttribute("list", pointService.getHistory(memberSeq));
+		model.addAttribute("balance", pointService.getBalance(memberSeq(auth)));
 		model.addAttribute("minCharge", PointService.MIN_CHARGE);
 		model.addAttribute("maxCharge", PointService.MAX_CHARGE);
 
-		return "point/mylist";
+		return "point/charge";
 	}
 
-	//포인트 충전: 실제 결제 없이 입력한 금액만큼 더한다
+	//포인트 충전: 실제 결제 없이 입력한 금액만큼 더한다. 충전 후 잔액은 충전 화면에서 보여 준다
 	@PostMapping(value = "/chargeok.do")
 	public String chargeok(Integer amount, Authentication auth, RedirectAttributes ra) {
 
@@ -48,7 +45,19 @@ public class PointController {
 
 		ra.addFlashAttribute("message", String.format("%,dP를 충전했어요.", amount));
 
-		return "redirect:/point/mylist.do";
+		return "redirect:/point/charge.do";
+	}
+
+	//포인트 내역 (④-02): 충전, 결제, 정산, 환불
+	@GetMapping(value = "/mylist.do")
+	public String mylist(Model model, Authentication auth) {
+
+		Long memberSeq = memberSeq(auth);
+
+		model.addAttribute("balance", pointService.getBalance(memberSeq));
+		model.addAttribute("list", pointService.getHistory(memberSeq));
+
+		return "point/mylist";
 	}
 
 	private Long memberSeq(Authentication auth) {

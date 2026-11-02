@@ -42,6 +42,8 @@ public interface TradeMapper {
 
 	List<Long> listAutoConfirmTargets(int days);
 
+	int countReview(Long tradeSeq);
+
 	int countConfirmedByExpert(Long expertSeq);
 
 	int countOngoing(Long memberSeq);

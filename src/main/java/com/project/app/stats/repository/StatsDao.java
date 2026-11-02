@@ -6,6 +6,8 @@ import org.springframework.stereotype.Repository;
 
 import com.project.app.stats.mapper.StatsMapper;
 import com.project.app.stats.model.StatsCategoryDto;
+import com.project.app.stats.model.StatsMonthlyDto;
+import com.project.app.stats.model.StatsSummaryDto;
 
 import lombok.RequiredArgsConstructor;
 
@@ -15,9 +17,19 @@ public class StatsDao {
 
 	private final StatsMapper statsMapper;
 
-	public List<StatsCategoryDto> categoryPrices(int days) {
+	public StatsSummaryDto summary() {
 
-		return statsMapper.categoryPrices(days);
+		return statsMapper.summary();
+	}
+
+	public List<StatsCategoryDto> categoryPrices() {
+
+		return statsMapper.categoryPrices();
+	}
+
+	public List<StatsMonthlyDto> monthlyAmounts(int months) {
+
+		return statsMapper.monthlyAmounts(months);
 	}
 
 }

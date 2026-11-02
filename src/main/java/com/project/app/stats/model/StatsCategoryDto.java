@@ -8,7 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 /**
- * 분류별 거래 통계 한 줄 (StatsMapper.categoryPrices 결과)
+ * 카테고리(대분류)별 거래 통계 한 줄 (StatsMapper.categoryPrices 결과)
  */
 @Getter
 @Setter

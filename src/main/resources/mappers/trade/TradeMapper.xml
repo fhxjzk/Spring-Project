@@ -13,14 +13,23 @@
 		             status (WAITING 대기, SELECTED 선택됨, UNSELECTED 미선택)
 	-->
 
-	<!-- 결제할 견적: 금액, 고수, 요청서를 쓴 고객, 요청서 상태 -->
+	<!--
+		서비스 이름: 고수가 그 카테고리에 등록한 서비스 제목(② tbl_talent.title), 없으면 요청서 카테고리 이름(② tbl_category.name)
+		한 카테고리에 서비스가 여러 개면 그중 하나(max)를 쓴다.
+	-->
+
+	<!-- 결제할 견적: 서비스, 금액, 고수, 요청서를 쓴 고객, 요청서 상태 (④-03 결제 화면) -->
 	<select id="getQuote" parameterType="Long" resultType="TradeQuoteDto">
 		select q.quote_seq, q.request_seq, q.expert_seq, q.price,
 				r.customer_seq, r.status as request_status,
-				e.name as expert_name
+				e.name as expert_name,
+				nvl((select max(tal.title) from tbl_talent tal
+						where tal.expert_seq = q.expert_seq and tal.category_seq = r.category_seq and tal.enabled = 'Y'),
+					cat.name) as service_name
 			from tbl_quote q
 				inner join tbl_request r on r.request_seq = q.request_seq
 				inner join tbl_member e on e.member_seq = q.expert_seq
+				left join tbl_category cat on cat.category_seq = r.category_seq
 					where q.quote_seq = #{quoteSeq}
 	</select>
 
@@ -60,13 +69,18 @@
 		to_char(t.confirm_date, 'YYYY-MM-DD HH24:MI') as confirm_date,
 		to_char(t.cancel_date, 'YYYY-MM-DD HH24:MI') as cancel_date,
 		c.name as customer_name,
-		e.name as expert_name
+		e.name as expert_name,
+		nvl((select max(tal.title) from tbl_talent tal
+				where tal.expert_seq = t.expert_seq and tal.category_seq = r.category_seq and tal.enabled = 'Y'),
+			cat.name) as service_name
 	</sql>
 
 	<sql id="tradeJoin">
 		from tbl_trade t
 			inner join tbl_member c on c.member_seq = t.customer_seq
 			inner join tbl_member e on e.member_seq = t.expert_seq
+			inner join tbl_request r on r.request_seq = t.request_seq
+			left join tbl_category cat on cat.category_seq = r.category_seq
 	</sql>
 
 	<!-- 거래 생성 = 결제 완료. selectKey로 받은 새 번호는 dto.tradeSeq에 들어간다 -->
@@ -128,6 +142,11 @@
 	<select id="listAutoConfirmTargets" parameterType="int" resultType="Long">
 		select trade_seq from tbl_trade
 			where status = 'DELIVERED' and delivered_date &lt;= sysdate - #{days}
+	</select>
+
+	<!-- 이 거래에 ② 리뷰가 이미 있는지 (거래 상세의 리뷰 작성 버튼용, 거래 하나에 리뷰 하나) -->
+	<select id="countReview" parameterType="Long" resultType="int">
+		select count(*) from tbl_review where trade_seq = #{tradeSeq}
 	</select>
 
 	<!-- ② 고수 고용 수 = 구매 확정된 거래 수 -->

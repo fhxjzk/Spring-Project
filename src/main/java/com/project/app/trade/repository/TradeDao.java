@@ -82,6 +82,11 @@ public class TradeDao {
 		return tradeMapper.listAutoConfirmTargets(days);
 	}
 
+	public int countReview(Long tradeSeq) {
+
+		return tradeMapper.countReview(tradeSeq);
+	}
+
 	public int countConfirmedByExpert(Long expertSeq) {
 
 		return tradeMapper.countConfirmedByExpert(expertSeq);

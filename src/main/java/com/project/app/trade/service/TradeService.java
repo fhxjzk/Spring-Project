@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,7 @@ import com.project.app.trade.model.TradeDto;
 import com.project.app.trade.model.TradeFileDto;
 import com.project.app.trade.model.TradeQuoteDto;
 import com.project.app.trade.model.TradeStatus;
+import com.project.app.trade.model.TradeTab;
 import com.project.app.trade.repository.TradeDao;
 
 import lombok.RequiredArgsConstructor;
@@ -117,16 +119,17 @@ public class TradeService {
 		return trade;
 	}
 
-	//고객의 거래 (최신순)
-	public List<TradeDto> listForCustomer(Long customerSeq) {
+	/**
+	 * 내 거래 목록 (④-04, 최신순)
+	 * 고객이면 내가 맡긴 거래, 고수면 내가 맡은 거래. 상태 탭에 맞는 거래만 남긴다.
+	 */
+	public List<TradeDto> listMine(Long memberSeq, boolean expert, TradeTab tab) {
 
-		return tradeDao.listByCustomer(customerSeq);
-	}
+		List<TradeDto> list = expert ? tradeDao.listByExpert(memberSeq) : tradeDao.listByCustomer(memberSeq);
 
-	//고수가 맡은 거래 (최신순)
-	public List<TradeDto> listForExpert(Long expertSeq) {
-
-		return tradeDao.listByExpert(expertSeq);
+		return list.stream()
+				.filter(trade -> tab.matches(trade.getStatus()))
+				.collect(Collectors.toList());
 	}
 
 	//D-03 작업 시작 (고수): 결제 완료 → 진행 중
@@ -240,6 +243,12 @@ public class TradeService {
 		return trade != null
 				&& trade.isCustomer(customerSeq)
 				&& TradeStatus.CONFIRMED.is(trade.getStatus());
+	}
+
+	//거래 상세의 리뷰 작성 버튼: 리뷰 자격이 있고 아직 리뷰를 안 썼을 때만
+	public boolean canWriteReview(Long tradeSeq, Long customerSeq) {
+
+		return canReview(tradeSeq, customerSeq) && tradeDao.countReview(tradeSeq) == 0;
 	}
 
 	//② 고수 고용 수 (구매 확정 건수). 고수 상세, 메인 인기 고수에 쓴다
