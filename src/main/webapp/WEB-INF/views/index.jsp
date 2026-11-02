@@ -157,21 +157,23 @@
 			<h2>인기 고수</h2>
 
 			<div class="grid grid-4">
-				<%-- TODO: <c:forEach>로 바꾼다. 링크는 고수 상세(②-04) --%>
-				<a class="card card-link expert-card" href="${path}/expert/view.do?expertSeq=5">
+				<%-- TODO: 카테고리 이름 붙이기 (LISTAGG) --%>
+				<c:forEach items="${expertList}" var="expert">
+				<a class="card card-link expert-card" href="${path}/expert/view.do?expertSeq=${expert.expertSeq}">
 					<div class="expert-thumb"></div>
 					<div class="expert-info">
-						<strong>고수1</strong>
-						<span class="message-info small">레슨 · ★4.8 (12)</span>
+						<strong>${expert.name}</strong>
+						<c:choose>
+							<c:when test="${expert.reviewCount > 0}">
+								<span class="message-info small">★${expert.averageRating} (${expert.reviewCount})</span>
+							</c:when>
+							<c:otherwise>
+								<span class="message-info small">아직 리뷰가 없어요</span>
+							</c:otherwise>
+						</c:choose>
 					</div>
 				</a>
-				<a class="card card-link expert-card" href="#">
-					<div class="expert-thumb"></div>
-					<div class="expert-info">
-						<strong>고수2</strong>
-						<span class="message-info small">홈·리빙 · ★4.7 (15)</span>
-					</div>
-				</a>
+				</c:forEach>
 			</div>
 		</section>
 

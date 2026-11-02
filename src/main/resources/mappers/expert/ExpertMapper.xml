@@ -4,10 +4,26 @@
 <!-- namespace는 Mapper 인터페이스의 전체 이름과 같아야 한다 -->
 <mapper namespace="com.project.app.expert.mapper.ExpertMapper">
 
-	<select id="getProfile" parameterType="Long" resultType="ExpertDto">
+	<select id="getProfile" parameterType="Long" resultType="ExpertProfileDto">
 		select p.*, m.name
 			from tbl_expert_profile p
    				 inner join tbl_member m on m.member_seq = p.expert_seq
 					where p.expert_seq = #{expertSeq}
 	</select>
+
+	<!-- 메인 인기 고수: 평균 별점 높은 순 4명 (숨김 고수, 탈퇴 회원 제외 / 리뷰 없는 고수는 맨 뒤) -->
+	<select id="getPopularExpertList" resultType="ExpertCardDto">
+		select p.expert_seq, m.name,
+				count(r.review_seq) as review_count,
+				round(avg(r.rating), 1) as average_rating
+			from tbl_expert_profile p
+				inner join tbl_member m on m.member_seq = p.expert_seq
+				left join tbl_review r on r.expert_seq = p.expert_seq
+			where p.hidden = 'N'
+				and m.enabled = 'Y'
+			group by p.expert_seq, m.name
+			order by average_rating desc nulls last, review_count desc
+			fetch first 4 rows only
+	</select>
+
 </mapper>

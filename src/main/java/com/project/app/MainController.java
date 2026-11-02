@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import com.project.app.category.service.CategoryService;
 import com.project.app.category.model.CategoryDto;
+import com.project.app.expert.model.ExpertCardDto;
+import com.project.app.expert.service.ExpertService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -16,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 public class MainController {
 
 	private final CategoryService categoryService;
+	private final ExpertService expertService;
 	
 	@GetMapping(value = "/")
 	public String root() {
@@ -29,6 +32,9 @@ public class MainController {
 		
 		List<CategoryDto> clist = categoryService.getTopCategory();
 		model.addAttribute("clist",clist);
+
+		List<ExpertCardDto> expertList = expertService.getPopularExpertList();
+		model.addAttribute("expertList", expertList);
 		return "index";
 	}
 

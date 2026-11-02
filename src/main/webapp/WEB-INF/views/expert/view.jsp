@@ -134,8 +134,14 @@
 				<div class="expert-side-body">
 					<%-- TODO: 평균 별점, 리뷰 수 --%>
 					<strong class="expert-name">${edto.name}</strong>
-					<span class="message-info small">★4.9 (128)</span>
-
+				<c:choose>
+					<c:when test="${rsdto.reviewCount > 0}">
+						★${rsdto.averageRating} (${rsdto.reviewCount})
+					</c:when>
+					<c:otherwise>
+						아직 리뷰가 없어요
+					</c:otherwise>
+				</c:choose>
 					<dl class="expert-meta">
 						<dt>서비스 위치</dt>
 						<dd>${edto.serviceAddress}</dd>
@@ -145,12 +151,19 @@
 					</dl>
 
 					<%-- TODO: 본인(isOwner)이면 요청하기 대신 프로필 수정 버튼 --%>
-					<a class="btn btn-primary btn-block" href="#">요청하기</a>
-
-					<div class="expert-side-footer">
-						<%-- TODO: ⑥ 신고 주소 --%>
-						<a class="message-info" href="#">신고하기</a>
-					</div>
+					<c:choose>
+						<c:when test="${isOwner}">
+							<a class="btn btn-primary btn-block" href="#">수정하기</a>
+						</c:when>
+						<c:otherwise>
+							<a class="btn btn-primary btn-block" href="#">요청하기</a>
+						</c:otherwise>
+					</c:choose>
+					<c:if test="${!isOwner}">
+						<div class="expert-side-footer">
+							<a class="message-info" href="#">신고하기</a>
+						</div>
+					</c:if>
 				</div>
 			</aside>
 
@@ -211,11 +224,24 @@
 
 				<section class="card">
 					<h3>리뷰</h3>
+					<div class="expert-side-footer">
+							<a class="message-info" href="#">전체보기</a>
+						</div>
+					<c:forEach items="${reviewlist}" var="review">
 					<%-- TODO: <c:forEach>로 바꾼다. tbl_review --%>
+					<%-- TODO: reviewDto 수정하기, 리뷰한 사람 이름 가져와야함 --%>
 					<div class="review-item">
-						<div><span class="review-stars">★★★★★</span> 고객1</div>
-						<div class="message-info small">꼼꼼하게 잘 가르쳐주셨어요</div>
+						<div>
+							<span class="review-stars">
+								<c:forEach begin="1" end="5" var="i">
+									${i <= review.rating ? '★' : '☆'}
+								</c:forEach>
+							</span>
+							${review.customerName}
+						</div>
+						<div class="message-info small">${review.content}</div>
 					</div>
+					</c:forEach>
 				</section>
 
 			</div>

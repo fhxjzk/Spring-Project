@@ -1,8 +1,11 @@
 package com.project.app.expert.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
-import com.project.app.expert.model.ExpertDto;
+import com.project.app.expert.model.ExpertCardDto;
+import com.project.app.expert.model.ExpertProfileDto;
 import com.project.app.expert.repository.ExpertDao;
 
 import lombok.RequiredArgsConstructor;
@@ -12,8 +15,27 @@ import lombok.RequiredArgsConstructor;
 public class ExpertService {
 	private final ExpertDao expertDao;
 
-	public ExpertDto getProfile(Long expertSeq) {
-		ExpertDto edto = expertDao.getProfile(expertSeq);
+	//프로필 정보 받아오기
+	public ExpertProfileDto getProfile(Long expertSeq) {
+		ExpertProfileDto edto = expertDao.getProfile(expertSeq);
 		return edto;
 	}
+
+	//메인 인기 고수 (평균 별점 높은 순 4명)
+	public List<ExpertCardDto> getPopularExpertList() {
+		List<ExpertCardDto> expertList = expertDao.getPopularExpertList();
+		return expertList;
+	}
+
+	// 프로필 주인이 로그인 한 사용자인지 체크
+	public boolean OwnerCheck(Long memberSeq, Long expertSeq) {
+		
+		// memberSeq가 null일 수 있기 때문에 expertSeq에서 equals() 호출하기
+		if(expertSeq.equals(memberSeq)) {
+			return true;
+		}
+		return false;
+	}
+
+	
 }
