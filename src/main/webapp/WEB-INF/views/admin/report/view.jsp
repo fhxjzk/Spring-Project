@@ -51,7 +51,9 @@
 								<c:when test="${report.targetType eq 'PROFILE'}">고수 프로필</c:when>
 								<c:otherwise>요청서</c:otherwise>
 							</c:choose>
-							${report.targetSeq}번
+							&middot;
+							<c:out value="${report.targetName}" default="(삭제됨)" />
+							(${report.targetSeq}번)
 						</td>
 					</tr>
 					<tr>

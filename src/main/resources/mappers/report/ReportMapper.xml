@@ -19,12 +19,21 @@
 					and status in ('RECEIVED', 'REVIEWING')
 	</select>
 
-	<!-- 관리자 신고 목록 (E-02) : status 가 비어 있으면 전체를 가져온다 -->
+		<!-- 관리자 신고 목록 (E-02) : status 가 비어 있으면 전체를 가져온다 -->
 	<select id="getList" parameterType="hashmap" resultType="ReportDto">
 		select r.report_seq, r.reporter_seq, r.target_type, r.target_seq,
 				r.reason_type, r.status,
 				to_char(r.regdate, 'YYYY-MM-DD HH24:MI') as regdate,
-				m.id as reporter_id
+				m.id as reporter_id,
+				case when r.target_type = 'PROFILE'
+						then (select m2.name
+								from tbl_member m2
+									where m2.member_seq = r.target_seq)
+						else (select c.name || ' · ' || regexp_substr(rq.address, '^\S+(\s\S+)?')
+								from tbl_request rq
+									join tbl_category c on c.category_seq = rq.category_seq
+										where rq.request_seq = r.target_seq)
+				end as target_name
 			from tbl_report r
 				join tbl_member m on r.reporter_seq = m.member_seq
 		<where>
@@ -42,7 +51,16 @@
 				to_char(r.regdate, 'YYYY-MM-DD HH24:MI') as regdate,
 				to_char(r.process_date, 'YYYY-MM-DD HH24:MI') as process_date,
 				m.id as reporter_id,
-				a.id as admin_id
+				a.id as admin_id,
+				case when r.target_type = 'PROFILE'
+						then (select m2.name
+								from tbl_member m2
+									where m2.member_seq = r.target_seq)
+						else (select c.name || ' · ' || regexp_substr(rq.address, '^\S+(\s\S+)?')
+								from tbl_request rq
+									join tbl_category c on c.category_seq = rq.category_seq
+										where rq.request_seq = r.target_seq)
+				end as target_name
 			from tbl_report r
 				join tbl_member m on r.reporter_seq = m.member_seq
 				left join tbl_member a on r.admin_seq = a.member_seq

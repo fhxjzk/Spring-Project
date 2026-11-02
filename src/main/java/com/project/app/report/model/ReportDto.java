@@ -29,5 +29,6 @@ public class ReportDto {
 	//--- 아래는 테이블에 없다. 목록 화면에 이름을 보여주려고 조인해서 채운다 ---
 	private String reporterId;		//신고한 회원 아이디
 	private String adminId;			//처리한 관리자 아이디
+	private String targetName;		//신고 대상 이름 (고수 이름 / 요청서는 카테고리·지역)
 
 }

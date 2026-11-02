@@ -19,6 +19,10 @@
 		.admin-content {
 			overflow-x: auto;
 		}
+		.target-seq {
+			color: var(--color-text-light);
+			font-size: 13px;
+		}
 	</style>
 </head>
 <body>
@@ -44,6 +48,7 @@
 				<thead>
 					<tr>
 						<th>번호</th>
+						<th>대상 유형</th>
 						<th>신고 대상</th>
 						<th>사유</th>
 						<th>신고자</th>
@@ -61,7 +66,10 @@
 								<c:when test="${r.targetType eq 'PROFILE'}">고수 프로필</c:when>
 								<c:otherwise>요청서</c:otherwise>
 							</c:choose>
-							${r.targetSeq}번
+						</td>
+						<td>
+							<c:out value="${r.targetName}" default="(삭제됨)" />
+							<span class="target-seq">(${r.targetSeq}번)</span>
 						</td>
 						<td>
 							<c:choose>
@@ -87,7 +95,7 @@
 
 					<c:if test="${empty list}">
 					<tr>
-						<td colspan="7">신고 내역이 없습니다.</td>
+						<td colspan="8">신고 내역이 없습니다.</td>
 					</tr>
 					</c:if>
 				</tbody>
