@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.project.app.expert.model.ExpertCardDto;
+import com.project.app.expert.model.ExpertCareerDto;
 import com.project.app.expert.model.ExpertProfileDto;
 import com.project.app.expert.repository.ExpertDao;
 
@@ -19,6 +20,18 @@ public class ExpertService {
 	public ExpertProfileDto getProfile(Long expertSeq) {
 		ExpertProfileDto edto = expertDao.getProfile(expertSeq);
 		return edto;
+	}
+
+	//경력 목록 받아오기 (최근 경력이 위로)
+	public List<ExpertCareerDto> getCareerList(Long expertSeq) {
+		List<ExpertCareerDto> careerList = expertDao.getCareerList(expertSeq);
+		return careerList;
+	}
+
+	//활동 가능 지역 이름 목록 (서울, 경기, ...)
+	public List<String> getRegionNameList(Long expertSeq) {
+		List<String> regionNameList = expertDao.getRegionNameList(expertSeq);
+		return regionNameList;
 	}
 
 	//메인 인기 고수 (평균 별점 높은 순 4명)

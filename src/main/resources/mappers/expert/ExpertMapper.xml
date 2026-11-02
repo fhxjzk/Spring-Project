@@ -11,6 +11,22 @@
 					where p.expert_seq = #{expertSeq}
 	</select>
 
+	<!-- 고수 경력: 최근에 시작한 경력이 위로 -->
+	<select id="getCareerList" parameterType="Long" resultType="ExpertCareerDto">
+		select * from tbl_expert_career
+			where expert_seq = #{expertSeq}
+				order by start_date desc
+	</select>
+
+	<!-- 고수 활동 가능 지역 이름 (테이블은 ⑥ 06_report.sql의 tbl_expert_region, tbl_region) -->
+	<select id="getRegionNameList" parameterType="Long" resultType="String">
+		select r.region_name
+			from tbl_expert_region er
+				inner join tbl_region r on r.region_seq = er.region_seq
+			where er.expert_seq = #{expertSeq}
+			order by r.region_seq
+	</select>
+
 	<!-- 메인 인기 고수: 평균 별점 높은 순 4명 (숨김 고수, 탈퇴 회원 제외 / 리뷰 없는 고수는 맨 뒤) -->
 	<select id="getPopularExpertList" resultType="ExpertCardDto">
 		select p.expert_seq, m.name,

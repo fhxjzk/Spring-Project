@@ -1,5 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -145,9 +147,19 @@
 					<dl class="expert-meta">
 						<dt>서비스 위치</dt>
 						<dd>${edto.serviceAddress}</dd>
-						<%-- TODO: ⑥ 활동 지역 연동 --%>
 						<dt>활동 가능 지역</dt>
-						<dd>서울 · 경기 · 인천</dd>
+						<dd>
+							<c:choose>
+								<c:when test="${empty regionNameList}">-</c:when>
+								<c:otherwise>
+									<%-- 3개까지만 쓰고, 4개 이상이면 뒤에 ... (end는 0부터 세서 2 = 3개) --%>
+									<c:forEach items="${regionNameList}" var="regionName" end="2" varStatus="status">
+										${regionName}<c:if test="${not status.last}"> · </c:if>
+									</c:forEach>
+									<c:if test="${fn:length(regionNameList) > 3}"> ...</c:if>
+								</c:otherwise>
+							</c:choose>
+						</dd>
 					</dl>
 
 					<%-- TODO: 본인(isOwner)이면 요청하기 대신 프로필 수정 버튼 --%>
@@ -177,21 +189,42 @@
 
 				<section class="card">
 					<h3>경력</h3>
-					<table class="table">
-						<thead>
-							<tr>
-								<th style="width: 40%;">기간</th>
-								<th>내용</th>
-							</tr>
-						</thead>
-						<tbody>
-							<%-- TODO: <c:forEach>로 바꾼다. tbl_expert_career --%>
-							<tr>
-								<td>2016 ~ 진행중</td>
-								<td>OO음악학원 강사</td>
-							</tr>
-						</tbody>
-					</table>
+					<c:choose>
+						<c:when test="${empty careerList}">
+							<p class="message-info small">등록된 경력이 없어요</p>
+						</c:when>
+						<c:otherwise>
+							<table class="table">
+								<thead>
+									<tr>
+										<th style="width: 40%;">기간</th>
+										<th>내용</th>
+									</tr>
+								</thead>
+								<tbody>
+									<c:forEach items="${careerList}" var="career">
+									<tr>
+										<td>
+											<%-- yyyy.MM: MM은 대문자 (소문자 mm은 분) --%>
+											<fmt:formatDate value="${career.startDate}" pattern="yyyy.MM" />
+											~
+											<c:choose>
+												<c:when test="${empty career.endDate}">진행 중</c:when>
+												<c:otherwise><fmt:formatDate value="${career.endDate}" pattern="yyyy.MM" /></c:otherwise>
+											</c:choose>
+										</td>
+										<td>
+											${career.title}
+											<c:if test="${not empty career.description}">
+												<div class="message-info small">${career.description}</div>
+											</c:if>
+										</td>
+									</tr>
+									</c:forEach>
+								</tbody>
+							</table>
+						</c:otherwise>
+					</c:choose>
 				</section>
 
 				<section class="card">
