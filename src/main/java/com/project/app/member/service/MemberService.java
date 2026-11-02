@@ -39,6 +39,11 @@ public class MemberService {
 			return -4;
 		}
 
+		//DB 칸 크기를 넘는 값을 막는다 (한글은 1글자에 3바이트)
+		if (dto.getName().length() > 16 || dto.getEmail().length() > 100 || dto.getAddress().length() > 100) {
+			return -4;
+		}
+
 		if (memberDao.countById(dto.getId()) > 0) {
 			return -1;
 		}

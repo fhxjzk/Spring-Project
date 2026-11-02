@@ -67,7 +67,7 @@
 				</div>
 				<div class="form-group">
 					<label for="name">이름</label>
-					<input type="text" id="name" name="name" required maxlength="50">
+					<input type="text" id="name" name="name" required maxlength="16">
 				</div>
 				<div class="form-group">
 					<label for="email">이메일</label>
