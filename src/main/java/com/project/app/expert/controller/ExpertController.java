@@ -54,6 +54,9 @@ public class ExpertController {
 			memberSeq = ((CustomUser) auth.getPrincipal()).getMemberSeq();
 		}
 		boolean isOwner = expertService.ownerCheck(memberSeq, expertSeq);
+
+		// 신고 처리로 숨김(hidden='Y')된 고수인지. 숨김이면 요청하기, 수정하기를 막는다
+		boolean isHidden = edto != null && "Y".equals(edto.getHidden());
 		
 		model.addAttribute("edto",edto);
 		model.addAttribute("careerList",careerList);
@@ -63,6 +66,7 @@ public class ExpertController {
 		model.addAttribute("reviewList",reviewList);
 		model.addAttribute("rsdto",rsdto);
 		model.addAttribute("isOwner",isOwner);
+		model.addAttribute("isHidden",isHidden);
 		
 		return "expert/view";
 	}

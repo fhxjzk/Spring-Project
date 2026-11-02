@@ -128,6 +128,25 @@
 		.small {
 			font-size: 14px;
 		}
+
+		/* 신고 처리(숨김) 고수 안내 */
+		.hidden-notice {
+			margin-bottom: 24px;
+			padding: 14px 18px;
+			border: 1px solid var(--color-danger);
+			border-radius: 8px;
+			background-color: color-mix(in srgb, var(--color-danger) 8%, var(--color-bg));
+			color: var(--color-danger);
+		}
+
+		.hidden-notice strong {
+			display: block;
+		}
+
+		.btn:disabled {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
 	</style>
 </head>
 <body>
@@ -135,6 +154,13 @@
 	<%@ include file="/WEB-INF/views/inc/header.jsp" %>
 
 	<main class="container">
+		<c:if test="${isHidden}">
+			<div class="hidden-notice">
+				<strong>신고 처리된 고수입니다.</strong>
+				<span class="small">운영 정책에 따라 검색과 메인에 노출되지 않으며, 요청을 보낼 수 없습니다.</span>
+			</div>
+		</c:if>
+
 		<div class="expert-layout">
 
 			<!-- 왼쪽: 프로필 요약 -->
@@ -171,6 +197,10 @@
 					</dl>
 
 					<c:choose>
+						<%-- 숨김 고수는 요청하기, 수정하기 둘 다 막는다 --%>
+						<c:when test="${isHidden}">
+							<button type="button" class="btn btn-block" disabled>${isOwner ? '수정할 수 없어요' : '요청할 수 없어요'}</button>
+						</c:when>
 						<c:when test="${isOwner}">
 							<a class="btn btn-primary btn-block" href="#">수정하기</a>
 						</c:when>

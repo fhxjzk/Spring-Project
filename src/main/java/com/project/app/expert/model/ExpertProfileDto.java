@@ -17,7 +17,7 @@ public class ExpertProfileDto {
 	private double serviceLatitude;
 	private double serviceLongitude;
 	private Date regdate;
-	private char hidden;
+	private String hidden;	// Y: 신고 처리로 숨김, N: 공개
 	
 	
 	
