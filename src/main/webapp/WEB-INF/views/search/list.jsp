@@ -454,7 +454,13 @@
 		const baseLat = ${empty search.baseLat ? 37.5665 : search.baseLat};
 		const baseLng = ${empty search.baseLng ? 126.9780 : search.baseLng};
 
-		kakao.maps.load(function () {
+		//카카오 키를 안 넣었거나 설정이 틀리면 sdk.js 를 못 받아와 kakao 가 없다.
+		//그냥 두면 빈 네모만 남고 콘솔에만 오류가 떠서 원인을 모른다.
+		if (typeof kakao === 'undefined') {
+
+			$('#map').text('지도를 불러오지 못했습니다. (secret.properties 의 kakao.js.key 확인)');
+
+		} else kakao.maps.load(function () {
 
 			const mapBox = document.getElementById('map');
 

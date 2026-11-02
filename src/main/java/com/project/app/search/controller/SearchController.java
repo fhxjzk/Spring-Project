@@ -30,8 +30,10 @@ public class SearchController {
 
 	private final SearchService searchService;
 
-	//카카오맵 자바스크립트 키. secret.properties 에 있고 깃에는 올라가지 않는다
-	@Value("${kakao.map.key}")
+	//카카오맵 자바스크립트 키. secret.properties 에 있고 깃에는 올라가지 않는다.
+	//뒤의 ':' 은 "값이 없으면 빈 값으로 두고 넘어가라"는 뜻이다.
+	//이게 없으면 키를 안 넣은 팀원 PC에서 서버 자체가 안 뜬다.
+	@Value("${kakao.js.key:}")
 	private String kakaoMapKey;
 
 	//검색 화면
