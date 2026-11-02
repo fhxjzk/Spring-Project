@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.app.point.mapper.PointMapper">
+
+	<!-- 포인트 잔액 (tbl_member.point). 회원이 없으면 null -->
+	<select id="getBalance" parameterType="Long" resultType="Integer">
+		select point from tbl_member where member_seq = #{memberSeq}
+	</select>
+
+	<update id="addPoint">
+		update tbl_member set point = point + #{amount}
+			where member_seq = #{memberSeq}
+	</update>
+
+	<!-- 잔액이 충분할 때만 뺀다. 바뀐 행 수가 0이면 포인트 부족 -->
+	<update id="subtractPoint">
+		update tbl_member set point = point - #{amount}
+			where member_seq = #{memberSeq} and point >= #{amount}
+	</update>
+
+	<insert id="addHistory" parameterType="PointHistoryDto">
+		insert into tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq)
+			values (seq_point_history.nextval, #{memberSeq}, #{historyType}, #{amount}, #{balance}, #{tradeSeq})
+	</insert>
+
+	<select id="listHistory" parameterType="Long" resultType="PointHistoryDto">
+		select point_history_seq, member_seq, history_type, amount, balance, trade_seq,
+				to_char(regdate, 'YYYY-MM-DD HH24:MI') as regdate
+			from tbl_point_history
+				where member_seq = #{memberSeq}
+					order by point_history_seq desc
+	</select>
+
+</mapper>
