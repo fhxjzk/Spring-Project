@@ -158,7 +158,7 @@
 
 			<div class="grid grid-4">
 				<%-- TODO: <c:forEach>로 바꾼다. 링크는 고수 상세(②-04) --%>
-				<a class="card card-link expert-card" href="#">
+				<a class="card card-link expert-card" href="${path}/expert/view.do?expertSeq=5">
 					<div class="expert-thumb"></div>
 					<div class="expert-info">
 						<strong>고수1</strong>

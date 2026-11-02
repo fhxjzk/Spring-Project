@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper 인터페이스의 전체 이름과 같아야 한다 -->
+<mapper namespace="com.project.app.expert.mapper.ExpertMapper">
+
+	<select id="getProfile" parameterType="Long" resultType="ExpertDto">
+		select p.*, m.name
+			from tbl_expert_profile p
+   				 inner join tbl_member m on m.member_seq = p.expert_seq
+					where p.expert_seq = #{expertSeq}
+	</select>
+</mapper>
