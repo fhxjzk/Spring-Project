@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.project.app.auth.CustomUser;
 import com.project.app.request.model.QuestionDto;
@@ -42,7 +43,7 @@ public class RequestController {
 		Long memberSeq = ((CustomUser) auth.getPrincipal()).getMemberSeq();
 
 		model.addAttribute("parentList", requestService.parentCategoryList());
-		model.addAttribute("address", requestService.getMemberAddress(memberSeq));
+		model.addAttribute("address", requestService.getDefaultAddress(memberSeq));
 
 		return "request/add";
 	}
@@ -65,6 +66,49 @@ public class RequestController {
 		return "request/addok";
 	}
 
+	//내 요청서 목록 (C-01-d). status로 상태별 보기
+	@GetMapping(value = "/mylist.do")
+	public String mylist(Model model, Authentication auth,
+			@RequestParam(value = "status", required = false) String status) {
+
+		model.addAttribute("list", requestService.myList(getMemberSeq(auth), status));
+		model.addAttribute("status", status);
+
+		return "request/mylist";
+	}
+
+	//내 요청서 상세. 다른 사람 요청서면 목록으로 돌려보낸다
+	@GetMapping(value = "/myview.do")
+	public String myview(Model model, Authentication auth, RedirectAttributes rttr,
+			@RequestParam(value = "requestSeq", required = false) Long requestSeq) {
+
+		RequestDto dto = requestService.getMine(requestSeq, getMemberSeq(auth));
+
+		if (dto == null) {
+			rttr.addFlashAttribute("msg", "요청서를 찾을 수 없습니다.");
+			return "redirect:/request/mylist.do";
+		}
+
+		model.addAttribute("dto", dto);
+		model.addAttribute("answerList", requestService.answerList(requestSeq));
+		model.addAttribute("fileList", requestService.fileList(requestSeq));
+		model.addAttribute("quoteList", requestService.quoteList(requestSeq));
+
+		return "request/myview";
+	}
+
+	//요청서 취소 (고수를 고르기 전에만)
+	@PostMapping(value = "/cancel.do")
+	public String cancel(Authentication auth, RedirectAttributes rttr,
+			@RequestParam(value = "requestSeq") Long requestSeq) {
+
+		int result = requestService.cancel(requestSeq, getMemberSeq(auth));
+
+		rttr.addFlashAttribute("msg", result == 1 ? "요청서를 취소했습니다." : "취소할 수 없는 요청서입니다.");
+
+		return "redirect:/request/myview.do?requestSeq=" + requestSeq;
+	}
+
 	//대분류의 소분류 목록 (Ajax)
 	@GetMapping(value = "/category.do")
 	@ResponseBody
@@ -79,6 +123,12 @@ public class RequestController {
 	public List<QuestionDto> question(Long categorySeq) {
 
 		return requestService.questionList(categorySeq);
+	}
+
+	//로그인한 회원 번호
+	private Long getMemberSeq(Authentication auth) {
+
+		return ((CustomUser) auth.getPrincipal()).getMemberSeq();
 	}
 
 }

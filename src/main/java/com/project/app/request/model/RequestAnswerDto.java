@@ -20,4 +20,7 @@ public class RequestAnswerDto {
 	private Long optionSeq;
 	private String answer;
 
+	//상세 화면용: 질문 내용 (answer에는 고른 보기 또는 주관식 답을 쉼표로 이어 담는다)
+	private String question;
+
 }
