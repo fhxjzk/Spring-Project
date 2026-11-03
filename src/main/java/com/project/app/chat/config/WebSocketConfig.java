@@ -6,11 +6,16 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
-
+import org.springframework.messaging.simp.config.ChannelRegistration;
+import com.project.app.chat.mapper.ChatRoomMapper;
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+    private final ChatRoomMapper chatRoomMapper;
 
+    public WebSocketConfig(ChatRoomMapper chatRoomMapper) {
+        this.chatRoomMapper = chatRoomMapper;
+    }
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws");
@@ -27,5 +32,11 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
         // 로그인 사용자별 알림 전송 경로
         registry.setUserDestinationPrefix("/user");
+    }
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(
+            new ChatSubscriptionInterceptor(chatRoomMapper)
+        );
     }
 }

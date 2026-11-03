@@ -7,8 +7,7 @@
 
 <!-- Spring Security CSRF 토큰 -->
 <sec:authorize access="isAuthenticated()">
-    <meta name="_csrf" content="${_csrf.token}">
-    <meta name="_csrf_header" content="${_csrf.headerName}">
+   
 </sec:authorize>
 <!-- header.jsp: 모든 페이지의 <body> 첫 줄에 include 한다 -->
 <header class="site-header">

@@ -206,7 +206,7 @@ list.appendChild(li);
 
         client.activate();
     }
-
+    loadNotifications();
     connectNotificationWebSocket();
     
 
