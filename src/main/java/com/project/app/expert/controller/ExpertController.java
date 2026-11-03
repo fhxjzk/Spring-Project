@@ -30,7 +30,13 @@ public class ExpertController {
 	public String view(@RequestParam("expertSeq") Long expertSeq, Model model, Authentication auth) {
 		
 		ExpertProfileDto edto = expertService.getProfile(expertSeq);
-
+		
+		
+		//TODO 공용 에러 페이지가 있을경우 해당 경로로 redirect 하기
+		if(edto == null) {
+			return "redirect:/index.do";
+		}
+		
 		//경력 목록
 		List<ExpertCareerDto> careerList = expertService.getCareerList(expertSeq);
 
@@ -56,7 +62,7 @@ public class ExpertController {
 		boolean isOwner = expertService.ownerCheck(memberSeq, expertSeq);
 
 		// 신고 처리로 숨김(hidden='Y')된 고수인지. 숨김이면 요청하기, 수정하기를 막는다
-		boolean isHidden = edto != null && "Y".equals(edto.getHidden());
+		boolean isHidden = "Y".equals(edto.getHidden());
 		
 		model.addAttribute("edto",edto);
 		model.addAttribute("careerList",careerList);
