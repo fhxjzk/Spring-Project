@@ -1,6 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
+
 	<%--
 		report/modal.jsp: 신고 접수 모달 (⑥ B-07)
 
@@ -10,7 +12,11 @@
 		  2) 신고 버튼에서 아래 함수를 부른다
 		     고수   : openReportModal('PROFILE', 고수번호)
 		     요청서 : openReportModal('REQUEST', 요청서번호)
+
+		비회원이 눌렀을 때는 이 파일이 알아서 로그인 안내를 한다.
+		②③ 화면에서 로그인 확인을 따로 할 필요가 없다.
 	--%>
+
 	<div id="reportModal" class="report-modal">
 		<div class="report-modal-box">
 			<h3>신고하기</h3>
@@ -76,8 +82,20 @@
 	</style>
 
 	<script>
+		//로그인 여부. 비회원은 신고할 수 없다 (B-07)
+		const reportLogin = '<sec:authorize access="isAuthenticated()">Y</sec:authorize>' === 'Y';
+
 		//신고 모달 열기
 		function openReportModal(targetType, targetSeq) {
+
+			//비회원은 신고하지 못한다. 로그인 화면으로 보낸다
+			if (!reportLogin) {
+
+				if (confirm('신고는 로그인 후에 할 수 있습니다.\n로그인 화면으로 이동하시겠습니까?')) {
+					location.href = path + '/auth/login.do';
+				}
+				return;
+			}
 
 			$('#reportForm')[0].reset();
 
