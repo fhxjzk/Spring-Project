@@ -210,7 +210,7 @@
 					</c:choose>
 					<c:if test="${!isOwner}">
 						<div class="expert-side-footer">
-							<a class="message-info" href="#">신고하기</a>
+							<a class="message-info" href="#" onclick="openReportModal('PROFILE', ${edto.expertSeq}); return false;">신고하기</a>
 						</div>
 					</c:if>
 				</div>
@@ -349,5 +349,6 @@
 
 	<script>
 	</script>
+	<%@ include file="/WEB-INF/views/report/modal.jsp" %>
 </body>
 </html>
