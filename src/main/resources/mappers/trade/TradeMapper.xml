@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.app.trade.mapper.TradeMapper">
+
+	<!--
+		③ 요청서·견적 테이블 (db/03_request.sql)
+		이 파일에서 ③ 테이블을 쓰는 곳은 getQuote, selectRequest, selectQuote, cancelRequest 네 개다.
+
+		tbl_request  request_seq, customer_seq, select_deadline,
+		             status (OPEN 모집 중, CLOSED 견적 마감, SELECTED 선택 완료, CANCELED 취소, REJECTED 거절, EXPIRED 만료)
+		tbl_quote    quote_seq, request_seq, expert_seq, price,
+		             status (WAITING 대기, SELECTED 선택됨, UNSELECTED 미선택)
+	-->
+
+	<!--
+		서비스 이름: 고수가 그 카테고리에 등록한 서비스 제목(② tbl_talent.title), 없으면 요청서 카테고리 이름(② tbl_category.name)
+		한 카테고리에 서비스가 여러 개면 그중 하나(max)를 쓴다.
+	-->
+
+	<!--
+		결제할 견적: 서비스, 금액, 고수, 요청서를 쓴 고객, 요청서 상태, 고수 숨김 여부 (④-03 결제 화면)
+		고수 프로필(② tbl_expert_profile)이 없으면 숨김이 아닌 것(N)으로 본다.
+	-->
+	<select id="getQuote" parameterType="Long" resultType="TradeQuoteDto">
+		select q.quote_seq, q.request_seq, q.expert_seq, q.price,
+				r.customer_seq, r.status as request_status,
+				e.name as expert_name,
+				nvl(ep.hidden, 'N') as expert_hidden,
+				nvl((select max(tal.title) from tbl_talent tal
+						where tal.expert_seq = q.expert_seq and tal.category_seq = r.category_seq and tal.enabled = 'Y'),
+					cat.name) as service_name
+			from tbl_quote q
+				inner join tbl_request r on r.request_seq = q.request_seq
+				inner join tbl_member e on e.member_seq = q.expert_seq
+				left join tbl_expert_profile ep on ep.expert_seq = q.expert_seq
+				left join tbl_category cat on cat.category_seq = r.category_seq
+					where q.quote_seq = #{quoteSeq}
+	</select>
+
+	<!--
+		요청서 → 선택 완료
+		모집 중, 견적 마감이고 고수 선택 마감(select_deadline)이 지나지 않았을 때만 바뀐다.
+		0건이면 그 사이 마감·취소·만료됐거나 이미 다른 견적으로 결제된 것이다.
+		그래서 결제 버튼을 두 번 눌러도 두 번째는 여기서 막힌다.
+		(③ 스케줄러가 만료로 바꾸기 전 몇 분 사이에도 마감 시각이 지났으면 막힌다)
+	-->
+	<update id="selectRequest" parameterType="Long">
+		update tbl_request set status = 'SELECTED'
+			where request_seq = #{requestSeq}
+				and status in ('OPEN', 'CLOSED')
+				and (select_deadline is null or select_deadline > sysdate)
+	</update>
+
+	<!-- 고른 견적은 선택됨, 같은 요청서의 나머지 견적은 미선택 -->
+	<update id="selectQuote">
+		update tbl_quote
+			set status = case when quote_seq = #{quoteSeq} then 'SELECTED' else 'UNSELECTED' end
+				where request_seq = #{requestSeq}
+	</update>
+
+	<!-- 거래 취소 → 요청서도 취소 (03_request.sql: CANCELED는 선택 완료 후 거래가 취소된 경우도 포함) -->
+	<update id="cancelRequest" parameterType="Long">
+		update tbl_request set status = 'CANCELED'
+			where request_seq = #{requestSeq} and status = 'SELECTED'
+	</update>
+
+	<!-- 거래 조회 공통 칼럼: 날짜는 화면에 보여 줄 형식으로 바꾸고, 고객·고수 이름은 join으로 가져온다 -->
+	<sql id="tradeColumns">
+		t.trade_seq, t.request_seq, t.quote_seq, t.customer_seq, t.expert_seq, t.price, t.status,
+		to_char(t.regdate, 'YYYY-MM-DD HH24:MI') as regdate,
+		to_char(t.start_date, 'YYYY-MM-DD HH24:MI') as start_date,
+		to_char(t.delivered_date, 'YYYY-MM-DD HH24:MI') as delivered_date,
+		to_char(t.confirm_date, 'YYYY-MM-DD HH24:MI') as confirm_date,
+		to_char(t.cancel_date, 'YYYY-MM-DD HH24:MI') as cancel_date,
+		c.name as customer_name,
+		e.name as expert_name,
+		nvl((select max(tal.title) from tbl_talent tal
+				where tal.expert_seq = t.expert_seq and tal.category_seq = r.category_seq and tal.enabled = 'Y'),
+			cat.name) as service_name
+	</sql>
+
+	<sql id="tradeJoin">
+		from tbl_trade t
+			inner join tbl_member c on c.member_seq = t.customer_seq
+			inner join tbl_member e on e.member_seq = t.expert_seq
+			inner join tbl_request r on r.request_seq = t.request_seq
+			left join tbl_category cat on cat.category_seq = r.category_seq
+	</sql>
+
+	<!-- 거래 생성 = 결제 완료. selectKey로 받은 새 번호는 dto.tradeSeq에 들어간다 -->
+	<insert id="add" parameterType="TradeDto">
+		<selectKey keyProperty="tradeSeq" resultType="Long" order="BEFORE">
+			select seq_trade.nextval from dual
+		</selectKey>
+		insert into tbl_trade (trade_seq, request_seq, quote_seq, customer_seq, expert_seq, price, status)
+			values (#{tradeSeq}, #{requestSeq}, #{quoteSeq}, #{customerSeq}, #{expertSeq}, #{price}, 'PAID')
+	</insert>
+
+	<select id="get" parameterType="Long" resultType="TradeDto">
+		select <include refid="tradeColumns" />
+		<include refid="tradeJoin" />
+			where t.trade_seq = #{tradeSeq}
+	</select>
+
+	<select id="listByCustomer" parameterType="Long" resultType="TradeDto">
+		select <include refid="tradeColumns" />
+		<include refid="tradeJoin" />
+			where t.customer_seq = #{customerSeq}
+				order by t.trade_seq desc
+	</select>
+
+	<select id="listByExpert" parameterType="Long" resultType="TradeDto">
+		select <include refid="tradeColumns" />
+		<include refid="tradeJoin" />
+			where t.expert_seq = #{expertSeq}
+				order by t.trade_seq desc
+	</select>
+
+	<!--
+		상태 변경
+		where에 "지금 상태"를 같이 걸어서 그 상태일 때만 바뀌게 한다.
+		바뀐 행 수가 0이면 이미 다른 상태라는 뜻이다. (서비스에서 예외)
+		구매 확정 버튼과 자동 구매 확정이 동시에 실행돼도 한쪽만 바뀌어서 정산이 두 번 되지 않는다.
+	-->
+	<update id="start" parameterType="Long">
+		update tbl_trade set status = 'IN_PROGRESS', start_date = sysdate
+			where trade_seq = #{tradeSeq} and status = 'PAID'
+	</update>
+
+	<update id="complete" parameterType="Long">
+		update tbl_trade set status = 'DELIVERED', delivered_date = sysdate
+			where trade_seq = #{tradeSeq} and status = 'IN_PROGRESS'
+	</update>
+
+	<update id="confirm" parameterType="Long">
+		update tbl_trade set status = 'CONFIRMED', confirm_date = sysdate
+			where trade_seq = #{tradeSeq} and status = 'DELIVERED'
+	</update>
+
+	<update id="cancel" parameterType="Long">
+		update tbl_trade set status = 'CANCELED', cancel_date = sysdate
+			where trade_seq = #{tradeSeq} and status = 'PAID'
+	</update>
+
+	<!-- 자동 구매 확정 대상: 납품 후 #{days}일이 지난 거래 -->
+	<select id="listAutoConfirmTargets" parameterType="int" resultType="Long">
+		select trade_seq from tbl_trade
+			where status = 'DELIVERED' and delivered_date &lt;= sysdate - #{days}
+	</select>
+
+	<!-- 이 거래에 ② 리뷰가 이미 있는지 (거래 상세의 리뷰 작성 버튼용, 거래 하나에 리뷰 하나) -->
+	<select id="countReview" parameterType="Long" resultType="int">
+		select count(*) from tbl_review where trade_seq = #{tradeSeq}
+	</select>
+
+	<!-- ② 고수 고용 수 = 구매 확정된 거래 수 -->
+	<select id="countConfirmedByExpert" parameterType="Long" resultType="int">
+		select count(*) from tbl_trade
+			where expert_seq = #{expertSeq} and status = 'CONFIRMED'
+	</select>
+
+	<!-- ① 탈퇴 전 확인: 고객이든 고수든 끝나지 않은 거래 수 -->
+	<select id="countOngoing" parameterType="Long" resultType="int">
+		select count(*) from tbl_trade
+			where (customer_seq = #{memberSeq} or expert_seq = #{memberSeq})
+				and status in ('PAID', 'IN_PROGRESS', 'DELIVERED')
+	</select>
+
+	<!-- 결과물 파일 -->
+	<insert id="addFile" parameterType="TradeFileDto">
+		insert into tbl_trade_file (trade_file_seq, trade_seq, orgname, filename, filesize)
+			values (seq_trade_file.nextval, #{tradeSeq}, #{orgname}, #{filename}, #{filesize})
+	</insert>
+
+	<select id="listFiles" parameterType="Long" resultType="TradeFileDto">
+		select trade_file_seq, trade_seq, orgname, filename, filesize,
+				to_char(regdate, 'YYYY-MM-DD HH24:MI') as regdate
+			from tbl_trade_file
+				where trade_seq = #{tradeSeq}
+					order by trade_file_seq
+	</select>
+
+	<select id="getFile" parameterType="Long" resultType="TradeFileDto">
+		select trade_file_seq, trade_seq, orgname, filename, filesize,
+				to_char(regdate, 'YYYY-MM-DD HH24:MI') as regdate
+			from tbl_trade_file
+				where trade_file_seq = #{tradeFileSeq}
+	</select>
+
+</mapper>
