@@ -117,7 +117,7 @@
 				<div class="form-group">
 					<label for="address">지역<span class="required-mark">*</span></label>
 					<input type="text" id="address" name="address" maxlength="100" value="<c:out value='${address}' />" placeholder="예) 서울 강남구">
-					<p class="hint">가입할 때 등록한 주소가 기본으로 들어가 있어요.</p>
+					<p class="hint">여러 고수가 보는 정보라서 구·동까지만 적어 주세요. 가입 주소의 시·군·구가 기본으로 들어가 있어요.</p>
 				</div>
 
 				<div class="form-group">
