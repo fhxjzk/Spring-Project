@@ -1,7 +1,9 @@
 package com.project.app.expert.controller;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.project.app.expert.service.PortfolioService;
 
@@ -26,7 +28,15 @@ public class PortfolioController {
 	//  2. 사진 목록 조회 (slot 순서)
 	//  3. 작성한 고수 본인인지 확인 (본인이면 수정·삭제 버튼)
 	//  4. Model에 담고 "expert/portfolio/view" 반환
-
+	@RequestMapping(value="/view.do")
+	public String viewPortfolio(@RequestParam("portfolioSeq") long portfolioSeq, Model model) {
+		
+		
+		
+		return "/expert/portfolio/view";
+	}
+	
+	
 
 	// TODO 작성 화면 (②-08)  GET /expert/portfolio/add.do
 	//  - 작성 폼만 보여 준다
