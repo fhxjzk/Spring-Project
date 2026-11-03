@@ -66,7 +66,7 @@
 		</ol>
 
 		<c:if test="${trade.status eq 'CANCELED'}">
-		<p class="message-error">${fn:substring(trade.cancelDate, 0, 10)}에 취소된 거래예요. 결제한 포인트는 환불됐어요.</p>
+		<p class="message-error">${fn:substring(trade.cancelDate, 0, 10)}에 취소된 거래예요. 결제한 포인트는 고객에게 전액 환불됐어요.</p>
 		</c:if>
 
 		<%-- 거래 정보 --%>
@@ -138,9 +138,19 @@
 			</form>
 			</c:if>
 
-			<%-- 고객: 결제 완료(작업 시작 전) → 거래 취소 --%>
-			<c:if test="${isCustomer and trade.status eq 'PAID'}">
-			<form method="POST" action="${path}/trade/cancelok.do" onsubmit="return confirm('거래를 취소할까요? 결제한 포인트가 돌아와요.');">
+			<%-- 고수: 결제 완료 → 작업 시작 --%>
+			<c:if test="${isExpert and trade.status eq 'PAID'}">
+			<form method="POST" action="${path}/trade/startok.do" onsubmit="return confirm('작업을 시작할까요? 시작하면 고객도 고수도 거래를 취소할 수 없어요.');">
+				<input type="hidden" name="tradeSeq" value="${trade.tradeSeq}">
+				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+				<button class="btn btn-primary">작업 시작</button>
+			</form>
+			</c:if>
+
+			<%-- 고객·고수: 결제 완료(작업 시작 전) → 거래 취소. 누가 취소하든 포인트는 고객에게 전액 환불 (C-03-c) --%>
+			<c:if test="${trade.status eq 'PAID'}">
+			<form method="POST" action="${path}/trade/cancelok.do"
+					onsubmit="return confirm('${isExpert ? '작업을 할 수 없어 거래를 취소할까요? 결제한 포인트는 고객에게 전액 환불돼요.' : '거래를 취소할까요? 결제한 포인트가 돌아와요.'}');">
 				<input type="hidden" name="tradeSeq" value="${trade.tradeSeq}">
 				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 				<button class="btn btn-outline-danger">거래 취소</button>
@@ -152,20 +162,11 @@
 			<a class="btn btn-primary" href="${path}/review/add.do?tradeSeq=${trade.tradeSeq}">리뷰 작성</a>
 			</c:if>
 
-			<%-- 고수: 결제 완료 → 작업 시작 --%>
-			<c:if test="${isExpert and trade.status eq 'PAID'}">
-			<form method="POST" action="${path}/trade/startok.do" onsubmit="return confirm('작업을 시작할까요? 시작하면 고객이 취소할 수 없어요.');">
-				<input type="hidden" name="tradeSeq" value="${trade.tradeSeq}">
-				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
-				<button class="btn btn-primary">작업 시작</button>
-			</form>
-			</c:if>
-
 			<a class="btn" href="${path}/trade/mylist.do">목록</a>
 		</div>
 
 		<c:if test="${trade.status eq 'PAID'}">
-		<p class="help">고수가 작업을 시작하기 전까지는 고객이 거래를 취소할 수 있어요.</p>
+		<p class="help">고수가 작업을 시작하기 전까지는 고객과 고수 모두 거래를 취소할 수 있어요. 결제한 포인트는 고객에게 전액 환불돼요.</p>
 		</c:if>
 		<c:if test="${trade.status eq 'DELIVERED'}">
 		<p class="help">납품 후 ${autoConfirmDays}일 동안 구매 확정이 없으면 자동으로 구매 확정되고 고수에게 정산돼요.</p>

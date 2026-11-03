@@ -140,13 +140,13 @@ public class TradeController {
 		return redirectDetail(tradeSeq);
 	}
 
-	//거래 취소 (고객, 작업 시작 전)
+	//거래 취소 (고객·고수 모두, 작업 시작 전)
 	@PostMapping(value = "/cancelok.do")
 	public String cancelok(Long tradeSeq, Authentication auth, RedirectAttributes ra) {
 
 		tradeService.cancel(tradeSeq, memberSeq(auth));
 
-		ra.addFlashAttribute("message", "거래를 취소했어요. 결제한 포인트를 돌려드렸어요.");
+		ra.addFlashAttribute("message", "거래를 취소했어요. 결제한 포인트는 고객에게 전액 환불됐어요.");
 
 		return redirectDetail(tradeSeq);
 	}

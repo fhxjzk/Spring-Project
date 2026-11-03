@@ -19,6 +19,7 @@ public enum TradeErrorCode {
 	QUOTE_NOT_FOUND(HttpStatus.NOT_FOUND, "견적을 찾을 수 없어요."),
 	NOT_REQUEST_OWNER(HttpStatus.FORBIDDEN, "본인 요청서의 견적만 결제할 수 있어요."),
 	REQUEST_NOT_SELECTABLE(HttpStatus.CONFLICT, "이미 마감되거나 취소된 요청서예요."),
+	EXPERT_HIDDEN(HttpStatus.CONFLICT, "지금은 이 고수와 거래할 수 없어요. 다른 견적을 선택해 주세요."),
 
 	//거래
 	TRADE_NOT_FOUND(HttpStatus.NOT_FOUND, "거래를 찾을 수 없어요."),
@@ -30,7 +31,7 @@ public enum TradeErrorCode {
 	CANNOT_START(HttpStatus.CONFLICT, "결제 완료된 거래만 작업을 시작할 수 있어요."),
 	CANNOT_COMPLETE(HttpStatus.CONFLICT, "진행 중인 거래만 작업 완료할 수 있어요."),
 	CANNOT_CONFIRM(HttpStatus.CONFLICT, "아직 구매 확정할 수 없어요. 납품 완료된 거래만 확정할 수 있어요."),
-	CANNOT_CANCEL(HttpStatus.CONFLICT, "취소할 수 없어요. 고수가 작업을 시작하기 전까지만 취소할 수 있어요."),
+	CANNOT_CANCEL(HttpStatus.CONFLICT, "취소할 수 없어요. 고객과 고수 모두 고수가 작업을 시작하기 전까지만 취소할 수 있어요."),
 
 	//포인트 (충전 금액 범위는 PointService.MIN_CHARGE, MAX_CHARGE와 맞춘다)
 	MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없어요."),

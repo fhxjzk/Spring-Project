@@ -18,17 +18,22 @@
 		한 카테고리에 서비스가 여러 개면 그중 하나(max)를 쓴다.
 	-->
 
-	<!-- 결제할 견적: 서비스, 금액, 고수, 요청서를 쓴 고객, 요청서 상태 (④-03 결제 화면) -->
+	<!--
+		결제할 견적: 서비스, 금액, 고수, 요청서를 쓴 고객, 요청서 상태, 고수 숨김 여부 (④-03 결제 화면)
+		고수 프로필(② tbl_expert_profile)이 없으면 숨김이 아닌 것(N)으로 본다.
+	-->
 	<select id="getQuote" parameterType="Long" resultType="TradeQuoteDto">
 		select q.quote_seq, q.request_seq, q.expert_seq, q.price,
 				r.customer_seq, r.status as request_status,
 				e.name as expert_name,
+				nvl(ep.hidden, 'N') as expert_hidden,
 				nvl((select max(tal.title) from tbl_talent tal
 						where tal.expert_seq = q.expert_seq and tal.category_seq = r.category_seq and tal.enabled = 'Y'),
 					cat.name) as service_name
 			from tbl_quote q
 				inner join tbl_request r on r.request_seq = q.request_seq
 				inner join tbl_member e on e.member_seq = q.expert_seq
+				left join tbl_expert_profile ep on ep.expert_seq = q.expert_seq
 				left join tbl_category cat on cat.category_seq = r.category_seq
 					where q.quote_seq = #{quoteSeq}
 	</select>

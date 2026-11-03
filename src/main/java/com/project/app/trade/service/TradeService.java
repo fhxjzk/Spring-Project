@@ -43,8 +43,11 @@ public class TradeService {
 	private final PointService pointService;
 
 	/**
-	 * 결제 화면에 보여 줄 견적 (③ 견적 확인·고수 선택에서 넘어온다)
-	 * 본인 요청서의 견적이고, 요청서가 아직 모집 중이거나 견적 마감이어야 한다.
+	 * 결제할 견적 (③ 견적 확인·고수 선택에서 넘어온다)
+	 * 결제 화면을 열 때와 결제 버튼을 누를 때 둘 다 확인한다. (C-03-a-05)
+	 *   - 본인 요청서의 견적인가
+	 *   - 요청서가 아직 모집 중 또는 견적 마감인가
+	 *   - 선택한 고수가 신고 처리로 숨김 상태가 아닌가
 	 */
 	public TradeQuoteDto getQuoteForPay(Long quoteSeq, Long customerSeq) {
 
@@ -60,6 +63,10 @@ public class TradeService {
 
 		if (!quote.isSelectable()) {
 			throw new TradeException(TradeErrorCode.REQUEST_NOT_SELECTABLE);
+		}
+
+		if (quote.isHiddenExpert()) {
+			throw new TradeException(TradeErrorCode.EXPERT_HIDDEN);
 		}
 
 		return quote;
@@ -196,13 +203,15 @@ public class TradeService {
 	}
 
 	/**
-	 * C-03-c 거래 취소 (고객): 작업 시작 전(결제 완료)에만
-	 * 거래: 취소, 요청서: 취소 (③ 03_request.sql 규칙), 결제한 포인트 환불을 한 번에 처리한다.
+	 * C-03-c 거래 취소 (고객·고수 모두, D-03-04)
+	 * 고수가 작업을 시작하기 전(결제 완료)에만, 이 거래의 고객이나 고수만 취소할 수 있다.
+	 * 누가 취소하든 결제한 포인트는 고객에게 전액 환불한다.
+	 * 거래: 취소, 요청서: 취소(다시 열리지 않음), 포인트 환불을 한 번에 처리한다. (C-03-c-05)
 	 */
 	@Transactional
-	public void cancel(Long tradeSeq, Long customerSeq) {
+	public void cancel(Long tradeSeq, Long memberSeq) {
 
-		TradeDto trade = getForCustomer(tradeSeq, customerSeq);
+		TradeDto trade = getForMember(tradeSeq, memberSeq);
 
 		if (tradeDao.cancel(tradeSeq) == 0) {
 			throw new TradeException(TradeErrorCode.CANNOT_CANCEL);
@@ -210,9 +219,9 @@ public class TradeService {
 
 		tradeDao.cancelRequest(trade.getRequestSeq());
 
-		pointService.increase(customerSeq, trade.getPrice(), PointHistoryType.REFUND, tradeSeq);
+		pointService.increase(trade.getCustomerSeq(), trade.getPrice(), PointHistoryType.REFUND, tradeSeq);
 
-		//TODO ⑤ 알림: 고수에게 취소
+		//TODO ⑤ 알림: 상대방에게 취소 (고객이 취소하면 고수에게, 고수가 취소하면 고객에게) (C-03-c-04)
 	}
 
 	//결과물 파일 목록 (getForMember로 본인 확인을 먼저 한 거래에만 쓴다)
