@@ -5,7 +5,11 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.project.app.search.model.BaseLocationDto;
+import com.project.app.search.model.ExpertSearchDto;
 import com.project.app.search.model.RegionDto;
+import com.project.app.search.model.SearchCategoryDto;
+import com.project.app.search.model.SearchDto;
 import com.project.app.search.repository.SearchDao;
 
 import lombok.RequiredArgsConstructor;
@@ -48,6 +52,45 @@ public class SearchService {
 		}
 
 		searchDao.addExpertRegion(expertSeq, regionSeqList);
+	}
+
+	//--- 고수 검색 (B-04) ---
+
+	/**
+	 * 검색 조건 드롭다운에 쓸 카테고리 (소분류, B-04-01)
+	 */
+	public List<SearchCategoryDto> getCategoryList() {
+
+		return searchDao.getCategoryList();
+	}
+
+	/**
+	 * 로그인한 회원이 등록한 주소·좌표 (검색 기준 위치, B-04-02)
+	 */
+	public BaseLocationDto getMemberLocation(Long memberSeq) {
+
+		return searchDao.getMemberLocation(memberSeq);
+	}
+
+	/**
+	 * 고수 검색 결과 목록
+	 * page, size, sort 가 비어 있으면 여기서 기본값을 채운다. (쿼리에 반드시 있어야 하는 값들)
+	 */
+	public List<ExpertSearchDto> searchExperts(SearchDto dto) {
+
+		dto.setDefault();
+
+		return searchDao.searchExperts(dto);
+	}
+
+	/**
+	 * 검색 결과 전체 개수 ("총 N명" 표시, 더보기 버튼을 보일지 판단할 때 쓴다)
+	 */
+	public int countExperts(SearchDto dto) {
+
+		dto.setDefault();
+
+		return searchDao.countExperts(dto);
 	}
 
 }

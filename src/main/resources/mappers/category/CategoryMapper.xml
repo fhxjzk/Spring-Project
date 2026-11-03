@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper 인터페이스의 전체 이름과 같아야 한다 -->
+<mapper namespace="com.project.app.category.mapper.CategoryMapper">
+
+	<select id="getTopCategory" resultType="CategoryDto">
+		select * from tbl_category 
+		where parent_seq is null
+			and enabled = 'Y'
+		order by sort_order
+		<!-- enabled가 Y인 경우(관리자가 끄지 않은 카테고리)만 반환 -->
+	</select>
+
+</mapper>

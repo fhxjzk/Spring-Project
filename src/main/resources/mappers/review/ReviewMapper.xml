@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper 인터페이스의 전체 이름과 같아야 한다 -->
+<mapper namespace="com.project.app.review.mapper.ReviewMapper">
+
+	<select id="getReviewSummary" parameterType="Long" resultType="ReviewSummaryDto">
+		select count(*) as review_count,round(avg(rating), 1) as average_rating from tbl_review
+			where expert_seq = #{expertSeq}
+	</select>
+
+	<select id="getRecentReviewList" parameterType="Long" resultType="ReviewDto">
+		select r.*,m.name as customer_name from tbl_review r
+			inner join tbl_member m on m.member_seq = r.customer_seq
+			where r.expert_Seq = #{expertSeq}
+				order by r.regdate desc
+					fetch first 5 rows only
+	</select>
+
+	<!-- 메인 최근 리뷰: 전체 고수 대상 최신 3개 (숨김 고수, 탈퇴한 고수의 리뷰는 제외) -->
+	<select id="getLatestReviewList" resultType="ReviewDto">
+		select r.*, c.name as customer_name, e.name as expert_name
+			from tbl_review r
+				inner join tbl_member c on c.member_seq = r.customer_seq
+				inner join tbl_member e on e.member_seq = r.expert_seq
+				inner join tbl_expert_profile p on p.expert_seq = r.expert_seq
+			where p.hidden = 'N'
+				and e.enabled = 'Y'
+			order by r.regdate desc
+			fetch first 3 rows only
+	</select>
+
+</mapper>
