@@ -20,9 +20,10 @@ public class MemberDto {
 	private String name;
 	private String email;
 	private String role;		//ROLE_CUSTOMER, ROLE_EXPERT, ROLE_ADMIN
-	private String enabled;		//Y: 사용, N: 탈퇴
+	private String enabled;		//Y: 사용, N: 중지 또는 탈퇴
 	private String regdate;
 	private String address; 	//주소
 	private Double latitude;	//위도
 	private Double longitude;	//경도
+	private String withdrawDate;	//탈퇴일 (enabled가 N일 때 값이 있으면 탈퇴, 없으면 중지)
 }

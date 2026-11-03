@@ -1,5 +1,8 @@
 package com.project.app.member.mapper;
 
+import java.util.HashMap;
+import java.util.List;
+
 import org.apache.ibatis.annotations.Mapper;
 
 import com.project.app.member.model.MemberDto;
@@ -17,4 +20,6 @@ public interface MemberMapper {
 	int countByEmail(String email);
 	
 	int updateLastLogin(Long memberSeq);
+
+	List<MemberDto> getList(HashMap<String, Object> map);
 }

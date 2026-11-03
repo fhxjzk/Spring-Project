@@ -1,5 +1,5 @@
 package com.project.app.member.service;
-
+import java.util.List;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -63,5 +63,10 @@ public class MemberService {
 
 		return memberDao.add(dto);
 	}
+	//--- 관리자 회원 관리 (E-01) ---
 
+	public List<MemberDto> getList(String word, String role, String status) {
+
+		return memberDao.getList(word, role, status);
+	}
 }

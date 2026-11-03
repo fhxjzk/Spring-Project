@@ -31,5 +31,29 @@
 	<update id="updateLastLogin" parameterType="Long">
 		update tbl_member set last_login_date = sysdate where member_seq = #{memberSeq}
 	</update>
-
+	<!-- 관리자 회원 목록 (E-01) : 비어 있는 조건은 빼고 찾는다 -->
+	<select id="getList" parameterType="hashmap" resultType="MemberDto">
+		select member_seq, id, name, email, role, enabled,
+				to_char(regdate, 'YYYY-MM-DD') as regdate,
+				to_char(withdraw_date, 'YYYY-MM-DD') as withdraw_date
+			from tbl_member
+	<where>
+		<if test="word != null and word != ''">
+			(id like '%' || #{word} || '%' or name like '%' || #{word} || '%')
+		</if>
+		<if test="role != null and role != ''">
+			and role = #{role}
+		</if>
+		<if test="status == 'ACTIVE'">
+			and enabled = 'Y'
+		</if>
+		<if test="status == 'STOP'">
+			and enabled = 'N' and withdraw_date is null
+		</if>
+		<if test="status == 'WITHDRAW'">
+			and enabled = 'N' and withdraw_date is not null
+		</if>
+	</where>
+		order by member_seq
+</select>
 </mapper>
