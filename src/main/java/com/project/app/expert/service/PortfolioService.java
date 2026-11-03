@@ -1,7 +1,11 @@
 package com.project.app.expert.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 
+import com.project.app.expert.model.ExpertPortfolioDto;
+import com.project.app.expert.model.PortfolioImageDto;
 import com.project.app.expert.repository.PortfolioDao;
 
 import lombok.RequiredArgsConstructor;
@@ -14,6 +18,16 @@ import lombok.RequiredArgsConstructor;
 public class PortfolioService {
 
 	private final PortfolioDao portfolioDao;
+
+	public ExpertPortfolioDto getPortfolio(Long portfolioSeq) {
+		ExpertPortfolioDto pdto = portfolioDao.getPortfolio(portfolioSeq);
+		return pdto;
+	}
+
+	public List<PortfolioImageDto> getPortfolioImages(Long portfolioSeq) {
+		List<PortfolioImageDto> imgList = portfolioDao.getPortfolioImages(portfolioSeq);
+		return imgList;
+	}
 
 	// TODO 포트폴리오 글 하나 조회 (상세 화면)
 

@@ -4,12 +4,17 @@
 <!-- namespace는 Mapper 인터페이스의 전체 이름과 같아야 한다 -->
 <mapper namespace="com.project.app.expert.mapper.PortfolioMapper">
 
-	<!-- TODO 포트폴리오 글 하나 (resultType="ExpertPortfolioDto")
-	     tbl_portfolio where portfolio_seq = #{portfolioSeq} -->
+	<select id="getPortfolio" parameterType="Long" resultType="ExpertPortfolioDto">
+	     select p.*,m.name from tbl_portfolio p
+	     	inner join tbl_member m on p.expert_seq = m.member_seq
+	     		where p.portfolio_seq = #{portfolioSeq}
+	</select>
 
-	<!-- TODO 사진 목록 (resultType="PortfolioImageDto")
-	     tbl_portfolio_image where portfolio_seq = #{portfolioSeq} order by slot -->
-
+	<select id="getPortfolioImages" parameterType="Long" resultType="PortfolioImageDto">
+		select * from tbl_portfolio_image
+			where portfolio_seq = #{portfolioSeq}
+				order by slot
+	</select>
 	<!-- TODO 글 INSERT
 	     seq_portfolio.nextval 로 번호를 만들고, 그 번호를 Dto 에 다시 넣어야 사진 INSERT 에 쓸 수 있다 (selectKey) -->
 

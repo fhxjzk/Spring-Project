@@ -7,7 +7,75 @@
 	<meta charset="UTF-8">
 	<%@ include file="/WEB-INF/views/inc/asset.jsp" %>
 	<style>
-		/* 이 화면에만 쓰는 스타일 */
+		/* 글 폭을 좁혀서 읽기 편하게 */
+		.portfolio {
+			max-width: 820px;
+			margin: 0 auto;
+		}
+
+		.portfolio-back {
+			display: inline-block;
+			margin-bottom: 12px;
+			font-size: 14px;
+		}
+
+		.portfolio-head h2 {
+			margin: 0 0 6px;
+		}
+
+		/* 큰 사진 1장 + 아래 작은 사진 줄 */
+		.photo-main {
+			height: 420px;
+			border-radius: 8px;
+			overflow: hidden;
+			background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg));
+		}
+
+		/* 사진이 있으면 칸을 꽉 채우고, 파일이 없으면(onerror) img를 지워서 배경색만 남긴다 */
+		.photo-main img,
+		.photo-thumbs img {
+			display: block;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		.photo-thumbs {
+			display: grid;
+			grid-template-columns: repeat(5, 1fr);
+			gap: 8px;
+			margin-top: 8px;
+		}
+
+		.photo-thumbs button {
+			height: 80px;
+			padding: 0;
+			border: 2px solid transparent;
+			border-radius: 6px;
+			overflow: hidden;
+			cursor: pointer;
+			background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg));
+		}
+
+		.photo-thumbs button.active {
+			border-color: var(--color-primary);
+		}
+
+		/* 줄바꿈을 입력한 그대로 보여 준다 */
+		.portfolio-content {
+			margin: 0;
+			white-space: pre-wrap;
+			line-height: 1.7;
+		}
+
+		.portfolio-buttons {
+			margin-top: 16px;
+			text-align: right;
+		}
+
+		.small {
+			font-size: 14px;
+		}
 	</style>
 </head>
 <body>
@@ -15,22 +83,67 @@
 	<%@ include file="/WEB-INF/views/inc/header.jsp" %>
 
 	<main class="container">
-		<h2>포트폴리오</h2>
+		<div class="portfolio">
 
-		<%-- TODO 제목, 작성일 (fmt:formatDate) --%>
+			<a class="portfolio-back" href="${path}/expert/view.do?expertSeq=${pdto.expertSeq}">← ${pdto.name} 고수 프로필로</a>
 
-		<%-- TODO 사진 (최대 5장, slot 순서)
-		     경로: ${path}/resources/upload/portfolio/파일이름
-		     파일이 없을 때는 고수 상세처럼 onerror="this.remove()" --%>
+			<section class="card portfolio-head">
+				<h2>${pdto.title}</h2>
+				<span class="message-info small">
+					${pdto.name} · <fmt:formatDate value="${pdto.regdate}" pattern="yyyy.MM.dd" />
+				</span>
+			</section>
 
-		<%-- TODO 내용 --%>
+			<section class="card">
+				<c:choose>
+					<c:when test="${empty imgList}">
+						<p class="message-info small">등록된 사진이 없어요</p>
+					</c:when>
+					<c:otherwise>
+						<%-- 처음에는 slot 1 (대표 사진)을 크게 보여 준다 --%>
+						<div class="photo-main">
+							<img id="photoMain" src="${path}/resources/upload/portfolio/${imgList[0].fileName}" alt="${imgList[0].originName}" onerror="this.remove()">
+						</div>
 
-		<%-- TODO 작성한 고수 상세로 돌아가기 링크 (/expert/view.do?expertSeq=) --%>
+						<%-- 사진이 2장 이상일 때만 아래 줄을 만든다. 누르면 위 큰 사진이 바뀐다 --%>
+						<c:if test="${imgList.size() > 1}">
+							<div class="photo-thumbs">
+								<c:forEach items="${imgList}" var="img" varStatus="status">
+									<button type="button" class="${status.first ? 'active' : ''}"
+										data-src="${path}/resources/upload/portfolio/${img.fileName}">
+										<img src="${path}/resources/upload/portfolio/${img.fileName}" alt="${img.originName}" onerror="this.remove()">
+									</button>
+								</c:forEach>
+							</div>
+						</c:if>
+					</c:otherwise>
+				</c:choose>
+			</section>
 
-		<%-- TODO 본인이면 수정·삭제 버튼 --%>
+			<section class="card">
+				<p class="portfolio-content">${pdto.content}</p>
+			</section>
+
+			<%-- isOwner: 컨트롤러에서 본인 확인 결과를 넘겨야 보인다 --%>
+			<c:if test="${isOwner}">
+				<div class="portfolio-buttons">
+					<a class="btn" href="#">수정하기</a>
+					<a class="btn btn-danger" href="#">삭제하기</a>
+				</div>
+			</c:if>
+
+		</div>
 	</main>
 
 	<script>
+		//작은 사진을 누르면 큰 사진을 바꾸고, 누른 칸에 테두리 표시
+		$('.photo-thumbs button').on('click', function () {
+
+			$('#photoMain').attr('src', $(this).data('src'));
+
+			$('.photo-thumbs button').removeClass('active');
+			$(this).addClass('active');
+		});
 	</script>
 </body>
 </html>

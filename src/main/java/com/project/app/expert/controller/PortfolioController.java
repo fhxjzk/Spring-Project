@@ -1,10 +1,15 @@
 package com.project.app.expert.controller;
 
+import java.util.List;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import com.project.app.expert.model.ExpertPortfolioDto;
+import com.project.app.expert.model.PortfolioImageDto;
 import com.project.app.expert.service.PortfolioService;
 
 import lombok.RequiredArgsConstructor;
@@ -28,12 +33,25 @@ public class PortfolioController {
 	//  2. 사진 목록 조회 (slot 순서)
 	//  3. 작성한 고수 본인인지 확인 (본인이면 수정·삭제 버튼)
 	//  4. Model에 담고 "expert/portfolio/view" 반환
-	@RequestMapping(value="/view.do")
-	public String viewPortfolio(@RequestParam("portfolioSeq") long portfolioSeq, Model model) {
+	@GetMapping(value="/view.do")
+	public String viewPortfolio(@RequestParam("portfolioSeq") Long portfolioSeq, Model model) {
 		
+		//포폴 글 조회
+		ExpertPortfolioDto pdto = portfolioService.getPortfolio(portfolioSeq);
 		
+		//없는 포폴 번호인 경우 쫒아내기
+		//에러 페이지 생기면 해당 페이지로 변경
+		if (pdto == null) {
+			return "redirect:/index.do";
+		}
 		
-		return "/expert/portfolio/view";
+		//포폴에 등록된 사진 목록 조회
+		List<PortfolioImageDto> imgList = portfolioService.getPortfolioImages(portfolioSeq);
+		
+		model.addAttribute("pdto",pdto);
+		model.addAttribute("imgList",imgList);
+		
+		return "expert/portfolio/view";
 	}
 	
 	
