@@ -6,7 +6,11 @@ import java.util.List;
 import org.springframework.stereotype.Repository;
 
 import com.project.app.search.mapper.SearchMapper;
+import com.project.app.search.model.BaseLocationDto;
+import com.project.app.search.model.ExpertSearchDto;
 import com.project.app.search.model.RegionDto;
+import com.project.app.search.model.SearchCategoryDto;
+import com.project.app.search.model.SearchDto;
 
 import lombok.RequiredArgsConstructor;
 
@@ -39,6 +43,28 @@ public class SearchDao {
 		map.put("regionSeqList", regionSeqList);
 
 		return searchMapper.addExpertRegion(map);
+	}
+
+	//--- 고수 검색 (B-04) ---
+
+	public List<SearchCategoryDto> getCategoryList() {
+
+		return searchMapper.getCategoryList();
+	}
+
+	public BaseLocationDto getMemberLocation(Long memberSeq) {
+
+		return searchMapper.getMemberLocation(memberSeq);
+	}
+
+	public List<ExpertSearchDto> searchExperts(SearchDto dto) {
+
+		return searchMapper.searchExperts(dto);
+	}
+
+	public int countExperts(SearchDto dto) {
+
+		return searchMapper.countExperts(dto);
 	}
 
 }
