@@ -28,4 +28,9 @@ public class MemberDao {
 		return memberMapper.countById(id);
 	}
 
+	public int countByEmail(String email) {
+
+		return memberMapper.countByEmail(email);
+	}
+
 }

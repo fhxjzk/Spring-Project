@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper 인터페이스의 전체 이름과 같아야 한다 -->
+<mapper namespace="com.project.app.search.mapper.SearchMapper">
+
+	<!-- 지역 17개 (체크박스·드롭다운 그릴 때 쓴다) -->
+	<select id="getRegionList" resultType="RegionDto">
+		select region_seq, region_name, center_lat, center_lng
+			from tbl_region
+				order by region_seq
+	</select>
+
+	<!-- 고수가 전에 체크해둔 지역 (수정 화면에서 체크 표시할 때 쓴다) -->
+	<select id="getRegionSeqListByExpert" parameterType="Long" resultType="int">
+		select region_seq
+			from tbl_expert_region
+				where expert_seq = #{expertSeq}
+	</select>
+
+	<!-- 저장 1단계: 기존 지역을 전부 지운다 -->
+	<delete id="removeExpertRegion" parameterType="Long">
+		delete from tbl_expert_region
+			where expert_seq = #{expertSeq}
+	</delete>
+
+	<!-- 저장 2단계: 체크한 지역들을 한 번에 넣는다 -->
+	<insert id="addExpertRegion" parameterType="hashmap">
+		insert all
+		<foreach collection="regionSeqList" item="regionSeq">
+			into tbl_expert_region (expert_seq, region_seq)
+				values (#{expertSeq}, #{regionSeq})
+		</foreach>
+		select * from dual
+	</insert>
+
+	<!-- ===== 고수 검색 (B-04) ===== -->
+
+	<!-- 검색 조건 드롭다운에 쓸 카테고리 (B-04-01)
+	     고수의 서비스(tbl_talent)가 소분류에 달리므로 소분류를 가져오고, 대분류는 묶음 제목으로 쓴다.
+	     ② tbl_category 를 읽기만 한다 -->
+	<select id="getCategoryList" resultType="SearchCategoryDto">
+		select c.category_seq, c.name, p.name as parent_name
+			from tbl_category c
+				join tbl_category p on p.category_seq = c.parent_seq
+					where c.enabled = 'Y'
+						and p.enabled = 'Y'
+							order by p.sort_order, c.sort_order
+	</select>
+
+	<!-- 로그인한 회원이 등록한 주소와 좌표 (검색 기준 위치, B-04-02)
+	     ① MemberDto 에는 주소·좌표가 없어서 tbl_member 를 직접 읽는다. ①번 파일은 건드리지 않는다 -->
+	<select id="getMemberLocation" parameterType="Long" resultType="BaseLocationDto">
+		select latitude as base_lat, longitude as base_lng, address
+			from tbl_member
+				where member_seq = #{memberSeq}
+	</select>
+
+
+	<!-- 기준 위치에서 고수까지 거리(km).
+	     오라클에는 RADIANS 함수가 없어서 각도에 0.0174532925(= 파이/180)를 곱한다.
+	     least(1, ...) 는 좌표가 똑같을 때 계산값이 1을 살짝 넘어 acos 가 오류나는 것을 막는다 -->
+	<sql id="distanceKm">
+		<choose>
+			<when test="baseLat != null and baseLng != null">
+				round(6371 * acos(least(1,
+					cos(#{baseLat} * 0.0174532925) * cos(e.service_latitude * 0.0174532925)
+					* cos(e.service_longitude * 0.0174532925 - #{baseLng} * 0.0174532925)
+					+ sin(#{baseLat} * 0.0174532925) * sin(e.service_latitude * 0.0174532925)
+				)), 1)
+			</when>
+			<otherwise>
+				null
+			</otherwise>
+		</choose>
+	</sql>
+
+	<!-- 검색 대상과 조건. 목록과 개수 세기에서 같이 쓴다 -->
+	<sql id="searchFrom">
+		from tbl_expert_profile e
+			join tbl_member m on m.member_seq = e.expert_seq
+
+			<!-- 리뷰 수 · 평균 평점 (정렬용) -->
+			left join (select expert_seq, count(*) as review_count, round(avg(rating), 1) as avg_rating
+							from tbl_review
+								group by expert_seq) rv on rv.expert_seq = e.expert_seq
+
+			<!-- 구매 확정된 거래 수 = 고용순 (정렬용) -->
+			left join (select expert_seq, count(*) as hire_count
+							from tbl_trade
+								where status = 'CONFIRMED'
+									group by expert_seq) tr on tr.expert_seq = e.expert_seq
+
+			<!-- 대표 서비스 한 개 (가장 먼저 등록한 것) -->
+			left join (select expert_seq, min(talent_seq) as talent_seq
+							from tbl_talent
+								where enabled = 'Y'
+									group by expert_seq) tmin on tmin.expert_seq = e.expert_seq
+			left join tbl_talent tl on tl.talent_seq = tmin.talent_seq
+		<where>
+			<!-- 신고로 숨긴 고수는 검색에서 뺀다 (B-04-12) -->
+			e.hidden = 'N'
+			and m.enabled = 'Y'
+
+			<if test="keyword != null and keyword != ''">
+				and (m.name like '%' || #{keyword} || '%'
+						or e.intro like '%' || #{keyword} || '%'
+						<!-- 등록한 서비스 이름으로도 찾는다. "레슨", "청소" 같은 말로 검색한다 -->
+						or exists (select 1 from tbl_talent t3
+										where t3.expert_seq = e.expert_seq
+											and t3.enabled = 'Y'
+											and t3.title like '%' || #{keyword} || '%'))
+			</if>
+
+			<!-- 활동 가능 지역 (내 tbl_expert_region) -->
+			<if test="regionSeq != null">
+				and exists (select 1
+								from tbl_expert_region er
+									where er.expert_seq = e.expert_seq
+										and er.region_seq = #{regionSeq})
+			</if>
+
+			<!-- 카테고리는 고수가 등록한 서비스로 찾는다 (고수 1 : 서비스 N) -->
+			<if test="categorySeq != null">
+				and exists (select 1
+								from tbl_talent t2
+									where t2.expert_seq = e.expert_seq
+										and t2.enabled = 'Y'
+										and t2.category_seq = #{categorySeq})
+			</if>
+		</where>
+	</sql>
+
+	<!-- 검색 결과 목록 -->
+	<select id="searchExperts" parameterType="SearchDto" resultType="ExpertSearchDto">
+		select *
+			from (
+				select e.expert_seq, m.name, e.intro,
+						e.service_address, e.service_latitude, e.service_longitude,
+						nvl(rv.review_count, 0) as review_count,
+						nvl(rv.avg_rating, 0) as avg_rating,
+						nvl(tr.hire_count, 0) as hire_count,
+						to_char(m.last_login_date, 'YYYY-MM-DD HH24:MI') as last_login_date,
+						tl.title as talent_title,
+						tl.price,
+						<include refid="distanceKm" /> as distance_km
+					<include refid="searchFrom" />
+			)
+		<where>
+			<!-- 거리 필터 (B-04-03). 기준 위치가 없으면 거리 조건 없이 검색한다 (B-04-11) -->
+			<if test="radiusKm != null and baseLat != null">
+				distance_km &lt;= #{radiusKm}
+			</if>
+		</where>
+			order by
+			<choose>
+				<when test='sort == "review"'>review_count desc, expert_seq</when>
+				<when test='sort == "rating"'>avg_rating desc, review_count desc, expert_seq</when>
+				<when test='sort == "recent"'>last_login_date desc nulls last, expert_seq</when>
+				<when test='sort == "hire"'>hire_count desc, expert_seq</when>
+				<otherwise>distance_km nulls last, expert_seq</otherwise>
+			</choose>
+			offset #{offset} rows fetch next #{size} rows only
+	</select>
+
+	<!-- 검색 결과 전체 개수 ("총 N명", 더보기 버튼을 보일지 판단할 때 쓴다) -->
+	<select id="countExperts" parameterType="SearchDto" resultType="int">
+		select count(*)
+			from (
+				select e.expert_seq,
+						<include refid="distanceKm" /> as distance_km
+					<include refid="searchFrom" />
+			)
+		<where>
+			<if test="radiusKm != null and baseLat != null">
+				distance_km &lt;= #{radiusKm}
+			</if>
+		</where>
+	</select>
+	
+</mapper>
