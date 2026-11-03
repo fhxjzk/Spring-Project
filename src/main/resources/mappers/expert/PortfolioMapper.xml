@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper 인터페이스의 전체 이름과 같아야 한다 -->
+<mapper namespace="com.project.app.expert.mapper.PortfolioMapper">
+
+	<!-- TODO 포트폴리오 글 하나 (resultType="ExpertPortfolioDto")
+	     tbl_portfolio where portfolio_seq = #{portfolioSeq} -->
+
+	<!-- TODO 사진 목록 (resultType="PortfolioImageDto")
+	     tbl_portfolio_image where portfolio_seq = #{portfolioSeq} order by slot -->
+
+	<!-- TODO 글 INSERT
+	     seq_portfolio.nextval 로 번호를 만들고, 그 번호를 Dto 에 다시 넣어야 사진 INSERT 에 쓸 수 있다 (selectKey) -->
+
+	<!-- TODO 사진 INSERT
+	     seq_portfolio_image.nextval -->
+
+</mapper>
