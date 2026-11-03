@@ -15,10 +15,34 @@
 			where portfolio_seq = #{portfolioSeq}
 				order by slot
 	</select>
-	<!-- TODO 글 INSERT
-	     seq_portfolio.nextval 로 번호를 만들고, 그 번호를 Dto 에 다시 넣어야 사진 INSERT 에 쓸 수 있다 (selectKey) -->
+	<!-- 글 INSERT
+	     selectKey: INSERT 전에(BEFORE) 번호를 먼저 뽑아 dto.portfolioSeq 에 넣는다 → 사진 INSERT, redirect 에 쓴다 -->
+	<insert id="addPortfolio" parameterType="ExpertPortfolioDto">
+		<selectKey keyProperty="portfolioSeq" resultType="Long" order="BEFORE">
+			select seq_portfolio.nextval from dual
+		</selectKey>
+		insert into tbl_portfolio (portfolio_seq, expert_seq, title, content)
+			values (#{portfolioSeq}, #{expertSeq}, #{title}, #{content})
+	</insert>
 
-	<!-- TODO 사진 INSERT
-	     seq_portfolio_image.nextval -->
+	<!-- 사진 INSERT -->
+	<insert id="addPortfolioImage" parameterType="PortfolioImageDto">
+		insert into tbl_portfolio_image (image_seq, portfolio_seq, file_name, origin_name, slot)
+			values (seq_portfolio_image.nextval, #{portfolioSeq}, #{fileName}, #{originName}, #{slot})
+	</insert>
+
+	<!-- 글 UPDATE: expert_seq 까지 조건에 넣어서, 남의 글 번호를 보내도 바뀌지 않게 한다 -->
+	<update id="editPortfolio" parameterType="ExpertPortfolioDto">
+		update tbl_portfolio
+			set title = #{title}, content = #{content}
+			where portfolio_seq = #{portfolioSeq}
+				and expert_seq = #{expertSeq}
+	</update>
+
+	<!-- 수정에서 사진을 새로 올렸을 때, 기존 사진 행을 전부 지운다 -->
+	<delete id="deletePortfolioImages" parameterType="Long">
+		delete from tbl_portfolio_image
+			where portfolio_seq = #{portfolioSeq}
+	</delete>
 
 </mapper>

@@ -25,6 +25,24 @@ public class PortfolioDao {
 		return portfolioMapper.getPortfolioImages(portfolioSeq);
 	}
 
-	// TODO PortfolioMapper 메서드를 하나씩 감싸서 부른다 (ExpertDao 와 같은 모양)
+	public int addPortfolio(ExpertPortfolioDto dto) {
+
+		return portfolioMapper.addPortfolio(dto);
+	}
+
+	public int addPortfolioImage(PortfolioImageDto dto) {
+
+		return portfolioMapper.addPortfolioImage(dto);
+	}
+
+	public int editPortfolio(ExpertPortfolioDto dto) {
+
+		return portfolioMapper.editPortfolio(dto);
+	}
+
+	public int deletePortfolioImages(Long portfolioSeq) {
+
+		return portfolioMapper.deletePortfolioImages(portfolioSeq);
+	}
 
 }

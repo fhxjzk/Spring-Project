@@ -17,13 +17,13 @@ public interface PortfolioMapper {
 
 	List<PortfolioImageDto> getPortfolioImages(Long portfolioSeq);
 
-	// TODO 포트폴리오 글 하나 조회  (tbl_portfolio, 결과 1줄 → 단일 Dto)
-	
-	// TODO 사진 목록 조회  (tbl_portfolio_image, 결과 N줄 → List)
+	// 글 INSERT (selectKey 로 dto.portfolioSeq 가 채워진다)
+	int addPortfolio(ExpertPortfolioDto dto);
 
-	// TODO 포트폴리오 글 INSERT  (seq_portfolio)
-	//  - 사진 INSERT 할 때 방금 만든 portfolio_seq 가 필요하다 → <selectKey> 찾아보기
+	int addPortfolioImage(PortfolioImageDto dto);
 
-	// TODO 사진 INSERT  (seq_portfolio_image)
+	int editPortfolio(ExpertPortfolioDto dto);
+
+	int deletePortfolioImages(Long portfolioSeq);
 
 }

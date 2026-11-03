@@ -127,7 +127,7 @@
 			<%-- isOwner: 컨트롤러에서 본인 확인 결과를 넘겨야 보인다 --%>
 			<c:if test="${isOwner}">
 				<div class="portfolio-buttons">
-					<a class="btn" href="#">수정하기</a>
+					<a class="btn" href="${path}/expert/portfolio/edit.do?portfolioSeq=${pdto.portfolioSeq}">수정하기</a>
 					<a class="btn btn-danger" href="#">삭제하기</a>
 				</div>
 			</c:if>
