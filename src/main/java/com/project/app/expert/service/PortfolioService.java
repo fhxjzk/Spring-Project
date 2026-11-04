@@ -106,11 +106,37 @@ public class PortfolioService {
 		saveImages(dto.getPortfolioSeq(), images, uploadPath);
 
 		//DB 작업이 다 끝난 뒤에 기존 파일을 지운다 (중간에 실패하면 DB는 되돌아가는데 파일만 사라지는 걸 막는다)
-		for (PortfolioImageDto old : oldImages) {
-			new File(uploadPath, old.getFileName()).delete();
-		}
+		deleteFiles(oldImages, uploadPath);
 
 		return 1;
+	}
+
+	/**
+	 * 포트폴리오 삭제
+	 * 사진 행과 서비스 연결은 CASCADE 로 같이 지워지지만, 서버의 파일은 남아서 직접 지운다.
+	 * @return 1: 성공, 0: 지운 글 없음 (없는 글이거나 내 글이 아님)
+	 */
+	@Transactional
+	public int delete(ExpertPortfolioDto dto, String uploadPath) {
+
+		//CASCADE 로 행이 사라지기 전에 파일 이름을 받아 둔다
+		List<PortfolioImageDto> images = portfolioDao.getPortfolioImages(dto.getPortfolioSeq());
+
+		if (portfolioDao.deletePortfolio(dto) == 0) {
+			return 0;
+		}
+
+		deleteFiles(images, uploadPath);
+
+		return 1;
+	}
+
+	//서버에 저장한 사진 파일 지우기 (수정, 삭제에서 같이 쓴다)
+	private void deleteFiles(List<PortfolioImageDto> images, String uploadPath) {
+
+		for (PortfolioImageDto image : images) {
+			new File(uploadPath, image.getFileName()).delete();
+		}
 	}
 
 	/**

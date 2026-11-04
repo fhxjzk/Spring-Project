@@ -27,7 +27,7 @@ import lombok.RequiredArgsConstructor;
  *
  * URL은 /expert/portfolio/동작.do
  *   - view.do 는 security-context.xml 에서 누구나 (비로그인 포함)
- *   - add.do, addok.do, edit.do, editok.do 는 로그인한 회원만 (security-context.xml)
+ *   - add.do, addok.do, edit.do, editok.do, delok.do 는 로그인한 회원만 (security-context.xml)
  *     고수인지, 내 글인지는 여기서 직접 확인한다
  */
 @Controller
@@ -166,7 +166,26 @@ public class PortfolioController {
 		return "expert/portfolio/editok";
 	}
 
-	//고수 프로필이 있고 숨김 처리되지 않았으면 작성·수정할 수 있다 (고수 프로필 번호 = 회원 번호)
+	// 삭제 처리  POST /expert/portfolio/delok.do
+	// 확인 창은 상세 화면의 confirm 으로 띄워서 del.do 화면은 따로 없다
+	@PostMapping(value="/delok.do")
+	public String delok(@RequestParam("portfolioSeq") Long portfolioSeq, Authentication auth, HttpServletRequest req) {
+
+		Long memberSeq = ((CustomUser) auth.getPrincipal()).getMemberSeq();
+
+		ExpertPortfolioDto pdto = portfolioService.getPortfolio(portfolioSeq);
+
+		//없는 글이거나 내 글이 아니면 못 지운다
+		if (pdto == null || !expertService.ownerCheck(memberSeq, pdto.getExpertSeq()) || !canWrite(memberSeq)) {
+			return "redirect:/index.do";
+		}
+
+		portfolioService.delete(pdto, getUploadPath(req));
+
+		return "redirect:/expert/view.do?expertSeq=" + memberSeq;
+	}
+
+	//고수 프로필이 있고 숨김 처리되지 않았으면 작성·수정·삭제할 수 있다 (고수 프로필 번호 = 회원 번호)
 	private boolean canWrite(Long memberSeq) {
 
 		ExpertProfileDto edto = expertService.getProfile(memberSeq);

@@ -45,4 +45,11 @@
 			where portfolio_seq = #{portfolioSeq}
 	</delete>
 
+	<!-- 글 DELETE: 사진 행, 서비스 연결은 ON DELETE CASCADE 로 같이 지워진다 (서버의 파일은 Service 에서 지운다) -->
+	<delete id="deletePortfolio" parameterType="ExpertPortfolioDto">
+		delete from tbl_portfolio
+			where portfolio_seq = #{portfolioSeq}
+				and expert_seq = #{expertSeq}
+	</delete>
+
 </mapper>

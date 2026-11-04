@@ -26,4 +26,6 @@ public interface PortfolioMapper {
 
 	int deletePortfolioImages(Long portfolioSeq);
 
+	int deletePortfolio(ExpertPortfolioDto dto);
+
 }

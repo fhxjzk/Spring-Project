@@ -73,6 +73,11 @@
 			text-align: right;
 		}
 
+		/* form 은 줄을 바꾸니까 수정하기 버튼 옆에 나란히 놓는다 */
+		.portfolio-del {
+			display: inline-block;
+		}
+
 		.small {
 			font-size: 14px;
 		}
@@ -128,7 +133,13 @@
 			<c:if test="${isOwner}">
 				<div class="portfolio-buttons">
 					<a class="btn" href="${path}/expert/portfolio/edit.do?portfolioSeq=${pdto.portfolioSeq}">수정하기</a>
-					<a class="btn btn-danger" href="#">삭제하기</a>
+					<%-- 지우는 동작이라 링크(GET)가 아니라 POST form 으로 보낸다 --%>
+					<form class="portfolio-del" method="POST" action="${path}/expert/portfolio/delok.do"
+						onsubmit="return confirm('이 포트폴리오를 삭제할까요? 사진도 함께 지워지고, 되돌릴 수 없어요.');">
+						<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+						<input type="hidden" name="portfolioSeq" value="${pdto.portfolioSeq}">
+						<button class="btn btn-danger">삭제하기</button>
+					</form>
 				</div>
 			</c:if>
 

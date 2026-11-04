@@ -45,4 +45,9 @@ public class PortfolioDao {
 		return portfolioMapper.deletePortfolioImages(portfolioSeq);
 	}
 
+	public int deletePortfolio(ExpertPortfolioDto dto) {
+
+		return portfolioMapper.deletePortfolio(dto);
+	}
+
 }
