@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 견적 전달 (D-02): 고수가 요청서를 보고 견적을 보내거나 지정 요청을 거절한다 -->
+<mapper namespace="com.project.app.quote.mapper.QuoteMapper">
+
+	<!--
+		견적을 보낼 수 있는 요청서 목록 (최신순)
+		type이 designated면 나를 지정한 요청서, 아니면 내 서비스 카테고리의 공개 요청서 중 아직 견적을 안 보낸 것.
+		모집 중이고, 비공개가 아니고, 견적 마감 시간이 지나지 않은 것만.
+	-->
+	<select id="requestList" parameterType="hashmap" resultType="RequestDto">
+		select r.request_seq, r.expert_seq, r.category_seq, c.name as category_name,
+				r.address, to_char(r.wish_date, 'YYYY-MM-DD') as wish_date, r.budget, r.quote_count,
+				to_char(r.quote_deadline, 'YYYY-MM-DD HH24:MI') as quote_deadline,
+				to_char(r.regdate, 'YYYY-MM-DD') as regdate
+			from tbl_request r
+				join tbl_category c on c.category_seq = r.category_seq
+					where r.status = 'OPEN' and r.hidden = 'N' and r.quote_deadline > sysdate
+					<choose>
+						<when test="type == 'designated'">
+							and r.expert_seq = #{expertSeq}
+						</when>
+						<otherwise>
+							and r.expert_seq is null
+							and r.category_seq in (select category_seq from tbl_talent where expert_seq = #{expertSeq} and enabled = 'Y')
+							and r.request_seq not in (select request_seq from tbl_quote where expert_seq = #{expertSeq})
+						</otherwise>
+					</choose>
+						order by r.request_seq desc
+	</select>
+
+	<!--
+		요청서 하나 (고수가 보는 상세)
+		비공개가 아니고, 나를 지정했거나 / 내가 견적을 보낸 요청서이거나 / 내 서비스 카테고리에서 아직 모집 중인 공개 요청만. 아니면 null
+		(견적을 보낼 수 없는 남의 공개 요청서는 끝난 뒤에 보여 주지 않는다)
+	-->
+	<select id="getRequest" parameterType="hashmap" resultType="RequestDto">
+		select r.request_seq, r.expert_seq, r.category_seq, c.name as category_name,
+				r.address, to_char(r.wish_date, 'YYYY-MM-DD') as wish_date, r.budget,
+				r.status, r.quote_count,
+				to_char(r.quote_deadline, 'YYYY-MM-DD HH24:MI') as quote_deadline,
+				to_char(r.regdate, 'YYYY-MM-DD HH24:MI') as regdate,
+				floor((r.quote_deadline - sysdate) * 24 * 60) as remain_minutes
+			from tbl_request r
+				join tbl_category c on c.category_seq = r.category_seq
+					where r.request_seq = #{requestSeq} and r.hidden = 'N'
+						and (r.expert_seq = #{expertSeq}
+							or r.request_seq in (select request_seq from tbl_quote where expert_seq = #{expertSeq})
+							or (r.expert_seq is null and r.status = 'OPEN' and r.quote_deadline > sysdate
+								and r.category_seq in (select category_seq from tbl_talent where expert_seq = #{expertSeq} and enabled = 'Y')))
+	</select>
+
+	<!-- 이 요청서에 내가 보낸 견적. 없으면 null -->
+	<select id="getMyQuote" parameterType="hashmap" resultType="QuoteDto">
+		select quote_seq, request_seq, expert_seq, price, work_days, content, status,
+				to_char(regdate, 'YYYY-MM-DD HH24:MI') as regdate
+			from tbl_quote
+				where request_seq = #{requestSeq} and expert_seq = #{expertSeq}
+	</select>
+
+	<!-- 견적을 보낼 수 있는 고수인지: 탈퇴하지 않았고, 신고로 숨김 처리되지 않았으면 1 -->
+	<select id="activeExpert" parameterType="Long" resultType="int">
+		select count(*)
+			from tbl_member m
+				join tbl_expert_profile p on p.expert_seq = m.member_seq
+					where m.member_seq = #{expertSeq}
+						and m.role = 'ROLE_EXPERT' and m.enabled = 'Y' and p.hidden = 'N'
+	</select>
+
+	<!--
+		견적 수 늘리기: 조건에 맞을 때만 1줄이 바뀐다. 0이면 견적을 보낼 수 없는 요청서다.
+		조건을 UPDATE 문에 넣었기 때문에, 여러 고수가 동시에 보내도 5개를 넘지 않는다.
+		지정 요청이거나 5번째 견적이면 견적 마감(CLOSED)으로 바꾸고, 고객이 고를 기간 7일을 준다.
+		(SET 오른쪽의 quote_count 는 바뀌기 전 값이다)
+	-->
+	<update id="increaseQuoteCount" parameterType="hashmap">
+		update tbl_request
+			set quote_count = quote_count + 1,
+				status = case when expert_seq is not null or quote_count + 1 >= 5 then 'CLOSED' else status end,
+				select_deadline = case when expert_seq is not null or quote_count + 1 >= 5 then sysdate + 7 else select_deadline end
+					where request_seq = #{requestSeq}
+						and status = 'OPEN' and hidden = 'N' and quote_deadline > sysdate and quote_count &lt; 5
+						and (expert_seq = #{expertSeq}
+							or (expert_seq is null and category_seq in (select category_seq from tbl_talent where expert_seq = #{expertSeq} and enabled = 'Y')))
+	</update>
+
+	<!-- 견적 저장 -->
+	<insert id="add" parameterType="QuoteDto">
+		insert into tbl_quote (quote_seq, request_seq, expert_seq, price, work_days, content)
+			values (seq_quote.nextval, #{requestSeq}, #{expertSeq}, #{price}, #{workDays}, #{content})
+	</insert>
+
+	<!-- 지정 요청 거절: 나를 지정한 모집 중 요청서만 바뀐다 -->
+	<update id="reject" parameterType="hashmap">
+		update tbl_request
+			set status = 'REJECTED'
+				where request_seq = #{requestSeq}
+					and expert_seq = #{expertSeq}
+					and status = 'OPEN'
+	</update>
+
+	<!-- 내가 보낸 견적 목록 (최신순) -->
+	<select id="myList" parameterType="Long" resultType="QuoteDto">
+		select q.quote_seq, q.request_seq, q.price, q.work_days, q.status,
+				to_char(q.regdate, 'YYYY-MM-DD HH24:MI') as regdate,
+				c.name as category_name, r.address, r.status as request_status,
+				case when r.expert_seq is null then 'N' else 'Y' end as designated
+			from tbl_quote q
+				join tbl_request r on r.request_seq = q.request_seq
+				join tbl_category c on c.category_seq = r.category_seq
+					where q.expert_seq = #{expertSeq}
+						order by q.quote_seq desc
+	</select>
+
+</mapper>

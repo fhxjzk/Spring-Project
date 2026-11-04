@@ -28,6 +28,7 @@ import lombok.RequiredArgsConstructor;
  * 요청서 (③ 요청서·견적)
  *
  * /request/add*.do 는 고객만 들어올 수 있다. (security-context.xml)
+ * 로그인하지 않고 고수 상세에서 '요청하기'를 누르면, 로그인한 뒤 다시 이 주소로 돌아온다.
  */
 @Controller
 @RequiredArgsConstructor
@@ -36,19 +37,50 @@ public class RequestController {
 
 	private final RequestService requestService;
 
-	//공개 요청서 작성 화면 (C-01-a)
+	/**
+	 * 요청서 작성 화면
+	 *
+	 * add.do                  : 공개 요청서 (C-01-a). 대분류 → 소분류를 고른다.
+	 * add.do?expertSeq=고수번호 : 지정 요청서 (C-01-b). 고수 상세의 '요청하기'로 들어온다. 그 고수의 서비스 중에서 고른다.
+	 */
 	@GetMapping(value = "/add.do")
-	public String add(Model model, Authentication auth) {
+	public String add(Model model, Authentication auth,
+			@RequestParam(value = "expertSeq", required = false) Long expertSeq) {
 
 		Long memberSeq = ((CustomUser) auth.getPrincipal()).getMemberSeq();
 
-		model.addAttribute("parentList", requestService.parentCategoryList());
+		if (expertSeq != null) {
+
+			String expertName = requestService.getExpertName(expertSeq);
+
+			//없는 고수, 탈퇴한 고수, 숨김 처리된 고수
+			if (expertName == null) {
+				model.addAttribute("result", -3);
+				return "request/addok";
+			}
+
+			List<RequestCategoryDto> categoryList = requestService.expertCategoryList(expertSeq);
+
+			//아직 등록한 서비스가 없는 고수
+			if (categoryList.isEmpty()) {
+				model.addAttribute("result", -5);
+				return "request/addok";
+			}
+
+			model.addAttribute("expertSeq", expertSeq);
+			model.addAttribute("expertName", expertName);
+			model.addAttribute("categoryList", categoryList);
+
+		} else {
+			model.addAttribute("parentList", requestService.parentCategoryList());
+		}
+
 		model.addAttribute("address", requestService.getDefaultAddress(memberSeq));
 
 		return "request/add";
 	}
 
-	//공개 요청서 등록 처리
+	//요청서 등록 처리 (공개·지정 모두)
 	@PostMapping(value = "/addok.do")
 	public String addok(Model model, RequestDto dto,
 			@RequestParam MultiValueMap<String, String> params,
@@ -62,6 +94,7 @@ public class RequestController {
 		int result = requestService.add(dto, params, files, uploadPath);
 
 		model.addAttribute("result", result);
+		model.addAttribute("expertSeq", dto.getExpertSeq());
 
 		return "request/addok";
 	}

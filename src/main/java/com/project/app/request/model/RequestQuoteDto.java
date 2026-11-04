@@ -23,5 +23,6 @@ public class RequestQuoteDto {
 	private String content;
 	private String status;
 	private String regdate;
+	private String expertHidden;	//Y: 신고 처리로 숨김 상태인 고수 (선택 불가)
 
 }
