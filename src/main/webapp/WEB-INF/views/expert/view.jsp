@@ -329,7 +329,8 @@
 										</c:if>
 									</div>
 									<div class="thumb-info">
-										<strong>${portfolio.title}</strong>
+										<%-- 제목에 넣은 태그나 스크립트가 실행되지 않도록(XSS) c:out 으로 이스케이프한다 --%>
+										<strong><c:out value="${portfolio.title}" /></strong>
 										<span class="message-info small">사진 ${portfolio.imageCount}장</span>
 									</div>
 								</a>

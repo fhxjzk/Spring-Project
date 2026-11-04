@@ -93,7 +93,8 @@
 			<a class="portfolio-back" href="${path}/expert/view.do?expertSeq=${pdto.expertSeq}">← ${pdto.name} 고수 프로필로</a>
 
 			<section class="card portfolio-head">
-				<h2>${pdto.title}</h2>
+				<%-- 제목에 넣은 태그나 스크립트가 실행되지 않도록(XSS) c:out 으로 이스케이프한다 --%>
+				<h2><c:out value="${pdto.title}" /></h2>
 				<span class="message-info small">
 					${pdto.name} · <fmt:formatDate value="${pdto.regdate}" pattern="yyyy.MM.dd" />
 				</span>
@@ -107,7 +108,8 @@
 					<c:otherwise>
 						<%-- 처음에는 slot 1 (대표 사진)을 크게 보여 준다 --%>
 						<div class="photo-main">
-							<img id="photoMain" src="${path}/resources/upload/portfolio/${imgList[0].fileName}" alt="${imgList[0].originName}" onerror="this.remove()">
+							<%-- 원본 파일 이름에 큰따옴표가 있으면 alt 속성이 끊기므로 c:out 으로 이스케이프한다 --%>
+							<img id="photoMain" src="${path}/resources/upload/portfolio/${imgList[0].fileName}" alt="<c:out value='${imgList[0].originName}' />" onerror="this.remove()">
 						</div>
 
 						<%-- 사진이 2장 이상일 때만 아래 줄을 만든다. 누르면 위 큰 사진이 바뀐다 --%>
@@ -116,7 +118,8 @@
 								<c:forEach items="${imgList}" var="img" varStatus="status">
 									<button type="button" class="${status.first ? 'active' : ''}"
 										data-src="${path}/resources/upload/portfolio/${img.fileName}">
-										<img src="${path}/resources/upload/portfolio/${img.fileName}" alt="${img.originName}" onerror="this.remove()">
+										<%-- 원본 파일 이름에 큰따옴표가 있으면 alt 속성이 끊기므로 c:out 으로 이스케이프한다 --%>
+										<img src="${path}/resources/upload/portfolio/${img.fileName}" alt="<c:out value='${img.originName}' />" onerror="this.remove()">
 									</button>
 								</c:forEach>
 							</div>
@@ -126,7 +129,8 @@
 			</section>
 
 			<section class="card">
-				<p class="portfolio-content">${pdto.content}</p>
+				<%-- 내용에 넣은 태그나 스크립트가 실행되지 않도록(XSS) c:out 으로 이스케이프한다 --%>
+				<p class="portfolio-content"><c:out value="${pdto.content}" /></p>
 			</section>
 
 			<%-- isOwner: 컨트롤러에서 본인 확인 결과를 넘겨야 보인다 --%>

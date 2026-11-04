@@ -73,13 +73,15 @@
 
 				<div class="form-group">
 					<label for="title">제목</label>
-					<input type="text" id="title" name="title" maxlength="100" value="${pdto.title}" required>
+					<%-- 제목에 큰따옴표가 있으면 value 속성이 거기서 끊겨 제목칸이 비거나 잘린다. c:out 으로 이스케이프한다 --%>
+					<input type="text" id="title" name="title" maxlength="100" value="<c:out value='${pdto.title}' />" required>
 				</div>
 
 				<div class="form-group">
 					<label for="content">내용</label>
 					<%-- textarea 는 value 속성이 없어서 태그 사이에 넣는다 (사이에 공백, 줄바꿈이 있으면 그대로 들어간다) --%>
-					<textarea id="content" name="content" rows="10" maxlength="4000" required>${pdto.content}</textarea>
+					<%-- 내용에 </textarea> 가 있으면 입력칸이 거기서 닫혀 폼이 깨진다. c:out 으로 이스케이프한다 --%>
+					<textarea id="content" name="content" rows="10" maxlength="4000" required><c:out value="${pdto.content}" /></textarea>
 				</div>
 
 				<div class="form-group">
@@ -94,7 +96,8 @@
 					<div class="preview" id="preview">
 						<c:forEach items="${imgList}" var="img" varStatus="status">
 							<div class="preview-item">
-								<img src="${path}/resources/upload/portfolio/${img.fileName}" alt="${img.originName}" onerror="this.remove()">
+								<%-- 원본 파일 이름에 큰따옴표가 있으면 alt 속성이 끊기므로 c:out 으로 이스케이프한다 --%>
+								<img src="${path}/resources/upload/portfolio/${img.fileName}" alt="<c:out value='${img.originName}' />" onerror="this.remove()">
 								<c:if test="${status.first}"><span>대표</span></c:if>
 							</div>
 						</c:forEach>
