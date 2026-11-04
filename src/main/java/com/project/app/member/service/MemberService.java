@@ -74,4 +74,23 @@ public class MemberService {
 		
 		return memberDao.getBySeq(memberSeq);
 	}
+	//사용 중지(N) / 재개(Y). 관리자 계정과 탈퇴한 회원은 바꾸지 않는다
+	public int updateEnabled(Long memberSeq, String enabled) {
+		
+		MemberDto member = memberDao.getBySeq(memberSeq);
+		
+		if (member == null) {
+			return 0;
+		}
+		
+		if ("ROLE_ADMIN".equals(member.getRole())) {
+			return -1;
+		}
+		
+		if (member.getWithdrawDate() != null) {
+			return -2;
+		}
+		
+		return memberDao.updateEnabled(memberSeq, enabled);
+	}
 }

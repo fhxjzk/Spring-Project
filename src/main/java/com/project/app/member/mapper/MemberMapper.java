@@ -24,4 +24,6 @@ public interface MemberMapper {
 	List<MemberDto> getList(HashMap<String, Object> map);
 	
 	MemberDto getBySeq(Long memberSeq);
+	
+	int updateEnabled(HashMap<String, Object> map);
 }

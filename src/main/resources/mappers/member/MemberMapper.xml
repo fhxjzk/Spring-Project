@@ -65,4 +65,12 @@
 			from tbl_member
 				where member_seq = #{memberSeq}
 	</select>
+	<!-- 관리자 회원 사용 중지/재개 (E-01) : 탈퇴한 회원은 바꾸지 않는다 -->
+	<update id="updateEnabled" parameterType="hashmap">
+		update tbl_member
+			set enabled = #{enabled},
+				moddate = sysdate
+			where member_seq = #{memberSeq}
+				and withdraw_date is null
+	</update>
 </mapper>

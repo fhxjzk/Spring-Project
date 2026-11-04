@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -57,6 +58,45 @@ public class MemberAdminController {
 		model.addAttribute("member", member);
 
 		return "admin/member/view";
+	}
+	
+	//사용 중지
+	@PostMapping(value = "/stop.do")
+	public String stop(RedirectAttributes rttr,
+	@RequestParam(value = "memberSeq") Long memberSeq) {
+		int result = memberService.updateEnabled(memberSeq, "N");
+		
+		rttr.addFlashAttribute("msg", getMessage(result, "사용을 중지했습니다."));
+
+		return "redirect:/admin/member/view.do?memberSeq=" + memberSeq;
+	}
+	
+	//사용 재개
+		@PostMapping(value = "/resume.do")
+		public String resume(RedirectAttributes rttr, @RequestParam(value = "memberSeq") Long memberSeq) {
+
+			int result = memberService.updateEnabled(memberSeq, "Y");
+
+			rttr.addFlashAttribute("msg", getMessage(result, "사용을 재개했습니다."));
+
+			return "redirect:/admin/member/view.do?memberSeq=" + memberSeq;
+		}
+		
+	//MemberService.updateEnabled()가 돌려준 숫자를 화면에 보여줄 말로 바꾼다.
+	private String getMessage(int result, String success) {
+		
+		if (result > 0) {
+			return success;
+		}
+		
+		if (result == -1) {
+			return "관리자 계정은 바꿀 수 없습니다.";
+		}
+		
+		if (result == -2) {
+			return "탈퇴한 회원은 바꿀 수 없습니다.";
+		}
+		return "변경하지 못했습니다.";
 	}
 
 }

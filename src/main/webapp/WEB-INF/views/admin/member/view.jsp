@@ -17,7 +17,13 @@
 			overflow-x: auto;
 		}
 		.btn-area {
+			display: flex;
+			gap: 8px;
 			margin-top: 16px;
+		}
+		.btn-stop {
+			color: var(--color-danger);
+			border-color: var(--color-danger);
 		}
 	</style>
 </head>
@@ -30,6 +36,11 @@
 
 		<main class="admin-content">
 			<h2>회원 상세 <small>Member</small></h2>
+
+			<%-- 사용 중지/재개 후 결과 문구 --%>
+			<c:if test="${not empty msg}">
+				<p class="message-info">${msg}</p>
+			</c:if>
 
 			<div class="card table-card">
 				<table class="table">
@@ -70,10 +81,36 @@
 				</table>
 
 				<div class="btn-area">
+					<%-- 관리자 계정과 탈퇴한 회원은 버튼을 보여주지 않는다 --%>
+					<c:if test="${member.role ne 'ROLE_ADMIN' and empty member.withdrawDate}">
+						<c:choose>
+							<c:when test="${member.enabled eq 'Y'}">
+								<form id="stopForm" method="POST" action="${path}/admin/member/stop.do">
+									<input type="hidden" name="memberSeq" value="${member.memberSeq}">
+									<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+									<button class="btn btn-stop">사용 중지</button>
+								</form>
+							</c:when>
+							<c:otherwise>
+								<form method="POST" action="${path}/admin/member/resume.do">
+									<input type="hidden" name="memberSeq" value="${member.memberSeq}">
+									<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+									<button class="btn btn-primary">사용 재개</button>
+								</form>
+							</c:otherwise>
+						</c:choose>
+					</c:if>
 					<a class="btn" href="${path}/admin/member/list.do">목록으로</a>
 				</div>
 			</div>
 		</main>
 	</div>
+
+	<script>
+		$('#stopForm').on('submit', function() {
+
+			return confirm('이 회원의 사용을 중지하시겠습니까?');
+		});
+	</script>
 </body>
 </html>

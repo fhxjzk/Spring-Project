@@ -48,4 +48,12 @@ public class MemberDao {
 		
 		return memberMapper.getBySeq(memberSeq);
 	}
+	public int updateEnabled(Long memberSeq, String enabled) {
+		
+		HashMap<String, Object> map = new HashMap<>();
+		map.put("memberSeq", memberSeq);	
+		map.put("enabled", enabled);
+		
+		return memberMapper.updateEnabled(map);
+	}
 }
