@@ -54,30 +54,7 @@ public class ChatController {
         return messageFilterService.filter(message);
     }
 
-    // 2. 채팅 테스트 화면
-    @GetMapping("/chat-test")
-    public String chatTest(
-            Authentication authentication,
-            Model model) {
-
-        if (authentication == null ||
-                !(authentication.getPrincipal() instanceof CustomUser)) {
-            return "redirect:/login";
-        }
-
-        CustomUser user =
-                (CustomUser) authentication.getPrincipal();
-
-        Long memberSeq = user.getMemberSeq();
-
-        if (memberSeq == null) {
-            return "redirect:/login";
-        }
-
-        model.addAttribute("loginMemberSeq", memberSeq);
-
-        return "chat-test";
-    }
+    
 
     // 3. 거래 상세 화면에서 채팅방 입장
     @GetMapping("/chat/enter")
@@ -156,7 +133,7 @@ public class ChatController {
         model.addAttribute("roomSeq", roomSeq);
         model.addAttribute("opponentName", opponentName);
 
-        return "chat-test";
+        return "chat";
 
     }
 

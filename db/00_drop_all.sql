@@ -15,7 +15,18 @@ DROP TABLE tbl_expert_region CASCADE CONSTRAINTS PURGE;
 DROP TABLE tbl_region CASCADE CONSTRAINTS PURGE;
 DROP SEQUENCE seq_report;
 
--- 05 ⑤ 채팅·알림
+-- ============================================================
+-- 05 채팅 및 알림 테이블 삭제
+-- 반드시 전체 DB 초기화 시에만 실행
+-- ============================================================
+
+DROP TABLE tbl_notice CASCADE CONSTRAINTS PURGE;
+DROP TABLE tbl_chat_message CASCADE CONSTRAINTS PURGE;
+DROP TABLE tbl_chat_room CASCADE CONSTRAINTS PURGE;
+
+DROP SEQUENCE seq_notice;
+DROP SEQUENCE seq_chat_message;
+DROP SEQUENCE seq_chat_room;
 
 -- 04 ④ 결제·거래·포인트 (tbl_member.point 칼럼은 tbl_member와 같이 지워진다)
 DROP TABLE tbl_point_history CASCADE CONSTRAINTS PURGE;
