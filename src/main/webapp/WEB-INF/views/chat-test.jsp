@@ -5,17 +5,21 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>ProLink 채팅방 테스트</title>
+    <title>ProLink 채팅방</title>
 </head>
 <body>
-    <h2>ProLink 채팅방 테스트</h2>
+    <h2>ProLink 채팅방</h2>
 
-    <label>채팅방 번호:</label>
-    <input type="number" id="roomId" value="101" min="1">
+    <label for="roomId">채팅방 번호:</label>
+    <input type="number" id="roomId"
+           value="${empty roomSeq ? '1' : roomSeq}"
+           min="1">
 
-    <button onclick="joinRoom()">채팅방 입장</button>
+    <button type="button" onclick="joinRoom()">
+        채팅방 입장
+    </button>
 
-    <p id="status">연결 중...</p>
+    <p id="status">서버 연결 중...</p>
 
     <div id="messages"
          style="border:1px solid #ccc; height:250px;
@@ -29,12 +33,18 @@
            placeholder="메시지를 입력하세요"
            style="width:300px;">
 
-    <button onclick="sendMessage()">전송</button>
+    <button type="button" onclick="sendMessage()">
+        전송
+    </button>
 
     <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.2.1/bundles/stomp.umd.min.js"></script>
 
     <script>
-        const contextPath = '${pageContext.request.contextPath}';
+        const contextPath =
+            '${pageContext.request.contextPath}';
+
+        const initialRoomSeq = '${empty roomSeq ? "" : roomSeq}';
+
         const protocol =
             location.protocol === 'https:' ? 'wss:' : 'ws:';
 
@@ -54,11 +64,22 @@
 
             onConnect: function () {
                 document.getElementById('status').textContent =
-                    '서버 연결 성공 - 채팅방에 입장하세요';
+                    '서버 연결 성공';
 
                 if (currentRoom !== null) {
                     subscribeRoom();
                     loadHistory(currentRoom, roomVersion);
+
+                } else if (/^[0-9]{1,18}$/.test(initialRoomSeq)) {
+                    // 거래 상세 화면에서 들어온 경우 자동 입장
+                    document.getElementById('roomId').value =
+                        initialRoomSeq;
+
+                    joinRoom();
+
+                } else {
+                    document.getElementById('status').textContent =
+                        '서버 연결 성공 - 채팅방에 입장하세요';
                 }
             },
 
@@ -178,7 +199,7 @@
             );
 
             document.getElementById('status').textContent =
-                '채팅방 ' + currentRoom + ' 입장 완료';
+                '채팅방 ' + currentRoom + ' 입장 요청 완료';
         }
 
         async function loadHistory(roomId, version) {
@@ -277,4 +298,3 @@
     </script>
 </body>
 </html>
-

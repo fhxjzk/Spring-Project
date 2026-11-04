@@ -3,10 +3,19 @@ package com.project.app.chat.model;
 
 public class ChatMessage {
 
+    // 채팅 메시지 고유번호
     private Long messageId;
-    private String roomId;
-    private String sender;
+
+    // 채팅방 고유번호
+    private Long chatRoomSeq;
+
+    // 메시지를 보낸 로그인 회원번호
+    private Long senderSeq;
+
+    // 메시지 내용
     private String content;
+
+    // 메시지 작성일
     private String createdAt;
 
     public ChatMessage() {
@@ -20,20 +29,20 @@ public class ChatMessage {
         this.messageId = messageId;
     }
 
-    public String getRoomId() {
-        return roomId;
+    public Long getChatRoomSeq() {
+        return chatRoomSeq;
     }
 
-    public void setRoomId(String roomId) {
-        this.roomId = roomId;
+    public void setChatRoomSeq(Long chatRoomSeq) {
+        this.chatRoomSeq = chatRoomSeq;
     }
 
-    public String getSender() {
-        return sender;
+    public Long getSenderSeq() {
+        return senderSeq;
     }
 
-    public void setSender(String sender) {
-        this.sender = sender;
+    public void setSenderSeq(Long senderSeq) {
+        this.senderSeq = senderSeq;
     }
 
     public String getContent() {
@@ -52,4 +61,3 @@ public class ChatMessage {
         this.createdAt = createdAt;
     }
 }
-

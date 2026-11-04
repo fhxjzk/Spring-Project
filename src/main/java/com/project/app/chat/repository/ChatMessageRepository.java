@@ -20,13 +20,20 @@ public class ChatMessageRepository {
         this.chatMapper = chatMapper;
     }
 
-    // 1. 메시지 저장 후 저장된 메시지 반환
+    // 메시지 저장
     @Transactional(rollbackFor = Exception.class)
-    public ChatMessage save(String roomId, String sender, String content)
-            throws SQLException {
+    public ChatMessage save(
+            Long chatRoomSeq,
+            Long senderSeq,
+            String content) throws SQLException {
 
-        if (roomId == null || !roomId.matches("[0-9]{1,18}")) {
-            throw new SQLException("올바르지 않은 채팅방 번호입니다.");
+        if (chatRoomSeq == null || chatRoomSeq <= 0
+                || senderSeq == null || senderSeq <= 0) {
+            throw new SQLException("채팅방 또는 회원번호가 올바르지 않습니다.");
+        }
+
+        if (content == null || content.trim().isEmpty()) {
+            throw new SQLException("메시지 내용이 없습니다.");
         }
 
         Long messageId = chatMapper.nextMessageSeq();
@@ -37,8 +44,8 @@ public class ChatMessageRepository {
 
         ChatMessage message = new ChatMessage();
         message.setMessageId(messageId);
-        message.setRoomId(roomId);
-        message.setSender(sender);
+        message.setChatRoomSeq(chatRoomSeq);
+        message.setSenderSeq(senderSeq);
         message.setContent(content);
 
         int result = chatMapper.insert(message);
@@ -56,12 +63,12 @@ public class ChatMessageRepository {
         return savedMessage;
     }
 
-    // 2. 기존 방식: 메시지 내용만 조회
-    public List<String> findByRoomId(String roomId)
+    // 채팅 메시지 내용만 조회
+    public List<String> findByRoomId(Long chatRoomSeq)
             throws SQLException {
 
         List<ChatMessage> messages =
-                chatMapper.findByRoomId(roomId);
+                chatMapper.findByRoomId(chatRoomSeq);
 
         List<String> contents = new ArrayList<>();
 
@@ -72,10 +79,10 @@ public class ChatMessageRepository {
         return contents;
     }
 
-    // 3. 채팅 내역 조회
-    public List<ChatMessage> findMessagesByRoomId(String roomId)
+    // 채팅방 전체 메시지 조회
+    public List<ChatMessage> findMessagesByRoomId(Long chatRoomSeq)
             throws SQLException {
 
-        return chatMapper.findByRoomId(roomId);
+        return chatMapper.findByRoomId(chatRoomSeq);
     }
 }

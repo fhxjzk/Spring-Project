@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.project.app.auth.CustomUser;
@@ -21,22 +22,26 @@ import com.project.app.chat.filter.MessageFilterService;
 import com.project.app.chat.mapper.ChatRoomMapper;
 import com.project.app.chat.model.ChatMessage;
 import com.project.app.chat.repository.ChatMessageRepository;
-
+import com.project.app.chat.service.ChatRoomService;
+import com.project.app.chat.model.ChatRoomListDto;
 @Controller
 public class ChatController {
 
     private final MessageFilterService messageFilterService;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomMapper chatRoomMapper;
+    private final ChatRoomService chatRoomService;
 
     public ChatController(
             MessageFilterService messageFilterService,
             ChatMessageRepository chatMessageRepository,
-            ChatRoomMapper chatRoomMapper) {
+            ChatRoomMapper chatRoomMapper,
+            ChatRoomService chatRoomService) {
 
         this.messageFilterService = messageFilterService;
         this.chatMessageRepository = chatMessageRepository;
         this.chatRoomMapper = chatRoomMapper;
+        this.chatRoomService = chatRoomService;
     }
 
     // 1. 채팅 메시지 필터링
@@ -74,7 +79,61 @@ public class ChatController {
         return "chat-test";
     }
 
-    // 3. 이전 채팅 내역 조회
+    // 3. 거래 상세 화면에서 채팅방 입장
+    @GetMapping("/chat/enter")
+    public String enterChat(
+            @RequestParam("tradeSeq") Long tradeSeq,
+            Authentication authentication,
+            Model model) {
+
+        // 로그인 확인
+        if (authentication == null ||
+                !(authentication.getPrincipal() instanceof CustomUser)) {
+            return "redirect:/login";
+        }
+
+        CustomUser user =
+                (CustomUser) authentication.getPrincipal();
+
+        Long memberSeq = user.getMemberSeq();
+
+        if (memberSeq == null) {
+            return "redirect:/login";
+        }
+
+        // 거래번호 검증
+        if (tradeSeq == null || tradeSeq <= 0) {
+            return "redirect:/trade/mylist.do";
+        }
+
+        // 중요: 채팅방 생성 전에 거래 참여자 확인
+        int membership =
+                chatRoomMapper.countTradeMembership(
+                        tradeSeq, memberSeq);
+
+        if (membership == 0) {
+            return "redirect:/trade/mylist.do";
+        }
+
+        // 권한이 확인된 거래만 채팅방 조회 또는 생성
+        Long roomSeq =
+                chatRoomService.getOrCreateRoom(tradeSeq);
+
+        // 채팅방 참여 권한 재확인
+        if (chatRoomMapper.countMembership(
+                roomSeq, memberSeq) == 0) {
+
+            return "redirect:/trade/mylist.do";
+        }
+
+        // 채팅 화면에 정보 전달
+        model.addAttribute("loginMemberSeq", memberSeq);
+        model.addAttribute("roomSeq", roomSeq);
+
+        return "chat-test";
+    }
+
+    // 4. 이전 채팅 내역 조회
     @GetMapping("/chat/history/{roomId}")
     @ResponseBody
     public ResponseEntity<?> getChatHistory(
@@ -125,9 +184,9 @@ public class ChatController {
 
         // 이전 대화 조회
         try {
-        	List<ChatMessage> messages =
-        	        chatMessageRepository.findMessagesByRoomId(
-        	                roomId);
+            List<ChatMessage> messages =
+                    chatMessageRepository
+                        .findMessagesByRoomId(chatRoomSeq);
 
             return ResponseEntity.ok(messages);
 
@@ -138,4 +197,36 @@ public class ChatController {
                     .body("채팅 내역 조회 중 오류가 발생했습니다.");
         }
     }
+
+    // 5. 내 채팅방 목록 화면
+    @GetMapping("/chat/list")
+    public String chatList(
+            Authentication authentication,
+            Model model) {
+
+        // 로그인 확인
+        if (authentication == null ||
+                !(authentication.getPrincipal() instanceof CustomUser)) {
+            return "redirect:/login";
+        }
+
+        CustomUser user =
+                (CustomUser) authentication.getPrincipal();
+
+        Long memberSeq = user.getMemberSeq();
+
+        if (memberSeq == null || memberSeq <= 0) {
+            return "redirect:/login";
+        }
+
+        // 로그인 회원의 채팅방 목록 조회
+        List<ChatRoomListDto> rooms =
+                chatRoomService.getChatRoomList(memberSeq);
+
+        model.addAttribute("chatRooms", rooms);
+        model.addAttribute("loginMemberSeq", memberSeq);
+
+        return "chat-list";
+    }
+
 }

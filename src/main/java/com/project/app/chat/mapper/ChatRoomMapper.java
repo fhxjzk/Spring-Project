@@ -5,7 +5,8 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
-
+import java.util.List;
+import com.project.app.chat.model.ChatRoomListDto;
 @Mapper
 public interface ChatRoomMapper {
 
@@ -59,7 +60,6 @@ public interface ChatRoomMapper {
     );
 
     // 5. 거래 행 잠금
-    // 동시 생성 요청을 순서대로 처리
     @Select(
         "SELECT trade_seq " +
         "FROM tbl_trade " +
@@ -83,4 +83,56 @@ public interface ChatRoomMapper {
     int createRoomByTradeSeq(
         @Param("tradeSeq") Long tradeSeq
     );
+
+    // 7. 거래 참여자 권한 확인 (신규 추가)
+    @Select(
+        "SELECT COUNT(*) " +
+        "FROM tbl_trade " +
+        "WHERE trade_seq = #{tradeSeq} " +
+        "AND (customer_seq = #{memberSeq} " +
+        "OR expert_seq = #{memberSeq})"
+    )
+    int countTradeMembership(
+        @Param("tradeSeq") Long tradeSeq,
+        @Param("memberSeq") Long memberSeq
+    );
+
+    // 8. 로그인 회원의 채팅방 목록 조회
+    @Select(
+        "SELECT chat_room_seq " +
+        "FROM tbl_chat_room " +
+        "WHERE customer_seq = #{memberSeq} " +
+        "OR expert_seq = #{memberSeq} " +
+        "ORDER BY chat_room_seq DESC"
+    )
+    java.util.List<Long> findRoomSeqsByMemberSeq(
+        @Param("memberSeq") Long memberSeq
+    );
+
+    // 9. 로그인 회원의 채팅방 상세 목록 조회
+    @Select(
+        "SELECT " +
+        "r.chat_room_seq AS \"chatRoomSeq\", " +
+        "r.trade_seq AS \"tradeSeq\", " +
+        "CASE WHEN r.customer_seq = #{memberSeq} " +
+        "THEN r.expert_seq ELSE r.customer_seq END AS \"opponentSeq\", " +
+        "m.name AS \"opponentName\", " +
+        "msg.content AS \"lastMessage\", " +
+        "TO_CHAR(msg.regdate, 'YYYY-MM-DD HH24:MI') AS \"lastMessageTime\" " +
+        "FROM tbl_chat_room r " +
+        "JOIN tbl_member m ON m.member_seq = " +
+        "(CASE WHEN r.customer_seq = #{memberSeq} " +
+        "THEN r.expert_seq ELSE r.customer_seq END) " +
+        "LEFT JOIN tbl_chat_message msg ON msg.chat_message_seq = " +
+        "(SELECT MAX(cm.chat_message_seq) " +
+        "FROM tbl_chat_message cm " +
+        "WHERE cm.chat_room_seq = r.chat_room_seq) " +
+        "WHERE r.customer_seq = #{memberSeq} " +
+        "OR r.expert_seq = #{memberSeq} " +
+        "ORDER BY msg.regdate DESC NULLS LAST, r.chat_room_seq DESC"
+    )
+    List<ChatRoomListDto> findChatRoomList(
+        @Param("memberSeq") Long memberSeq
+    );
+
 }
