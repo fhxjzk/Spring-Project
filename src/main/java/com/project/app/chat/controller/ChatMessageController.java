@@ -55,7 +55,8 @@ public class ChatMessageController {
 
         Authentication authentication = (Authentication) principal;
 
-        if (!(authentication.getPrincipal() instanceof CustomUser)) {
+        if (!authentication.isAuthenticated()
+                || !(authentication.getPrincipal() instanceof CustomUser)) {
             return;
         }
 

@@ -126,11 +126,38 @@ public class ChatController {
             return "redirect:/trade/mylist.do";
         }
 
+
+        // 채팅 상대방 정보 조회
+        Long opponentSeq =
+                chatRoomMapper.findReceiverSeq(roomSeq, memberSeq);
+
+        if (opponentSeq == null) {
+            return "redirect:/trade/mylist.do";
+        }
+
+        String opponentName = null;
+
+        List<ChatRoomListDto> chatRooms =
+                chatRoomMapper.findChatRoomList(memberSeq);
+
+        for (ChatRoomListDto room : chatRooms) {
+            if (roomSeq.equals(room.getChatRoomSeq())) {
+                opponentName = room.getOpponentName();
+                break;
+            }
+        }
+
+        if (opponentName == null || opponentName.trim().isEmpty()) {
+            opponentName = "상대방";
+        }
+
         // 채팅 화면에 정보 전달
         model.addAttribute("loginMemberSeq", memberSeq);
         model.addAttribute("roomSeq", roomSeq);
+        model.addAttribute("opponentName", opponentName);
 
         return "chat-test";
+
     }
 
     // 4. 이전 채팅 내역 조회
