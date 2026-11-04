@@ -22,4 +22,6 @@ public interface MemberMapper {
 	int updateLastLogin(Long memberSeq);
 
 	List<MemberDto> getList(HashMap<String, Object> map);
+	
+	MemberDto getBySeq(Long memberSeq);
 }

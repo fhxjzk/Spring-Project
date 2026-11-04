@@ -42,6 +42,11 @@
 		<main class="admin-content">
 			<h2>회원 관리 <small>Member</small></h2>
 
+			<%-- 상세에서 돌아왔을 때 안내 문구 --%>
+			<c:if test="${not empty msg}">
+				<p class="message-info">${msg}</p>
+			</c:if>
+
 			<%-- 검색어는 Enter로, 권한과 상태는 고르면 바로 다시 불러온다 --%>
 			<form id="searchForm" class="card filter" method="get" action="${path}/admin/member/list.do">
 				<div class="form-group">

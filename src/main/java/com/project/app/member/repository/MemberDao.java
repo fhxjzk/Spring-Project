@@ -44,4 +44,8 @@ public class MemberDao {
 
 		return memberMapper.getList(map);
 	}
+	public MemberDto getBySeq(Long memberSeq) {
+		
+		return memberMapper.getBySeq(memberSeq);
+	}
 }

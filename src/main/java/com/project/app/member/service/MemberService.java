@@ -69,4 +69,9 @@ public class MemberService {
 
 		return memberDao.getList(word, role, status);
 	}
+	
+	public MemberDto getBySeq(Long memberSeq) {
+		
+		return memberDao.getBySeq(memberSeq);
+	}
 }

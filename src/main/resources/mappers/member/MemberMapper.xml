@@ -55,5 +55,14 @@
 		</if>
 	</where>
 		order by member_seq
-</select>
+	</select>
+
+	<!-- 관리자 회원 상세 (E-01) -->
+	<select id="getBySeq" parameterType="Long" resultType="MemberDto">
+		select member_seq, id, name, email, role, enabled, address,
+				to_char(regdate, 'YYYY-MM-DD') as regdate,
+				to_char(withdraw_date, 'YYYY-MM-DD') as withdraw_date
+			from tbl_member
+				where member_seq = #{memberSeq}
+	</select>
 </mapper>

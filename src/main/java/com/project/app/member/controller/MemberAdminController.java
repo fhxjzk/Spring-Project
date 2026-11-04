@@ -7,6 +7,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.project.app.member.model.MemberDto;
 import com.project.app.member.service.MemberService;
@@ -40,6 +41,22 @@ public class MemberAdminController {
 		model.addAttribute("status", status);
 
 		return "admin/member/list";
+	}
+
+	//회원 상세. 없는 회원이면 목록으로 돌려보낸다
+	@GetMapping(value = "/view.do")
+	public String view(Model model, RedirectAttributes rttr, @RequestParam(value = "memberSeq") Long memberSeq) {
+
+		MemberDto member = memberService.getBySeq(memberSeq);
+
+		if (member == null) {
+			rttr.addFlashAttribute("msg", "없는 회원입니다.");
+			return "redirect:/admin/member/list.do";
+		}
+
+		model.addAttribute("member", member);
+
+		return "admin/member/view";
 	}
 
 }
