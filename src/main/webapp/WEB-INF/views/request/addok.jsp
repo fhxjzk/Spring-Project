@@ -13,8 +13,7 @@
 
 		<c:if test="${result == 1}">
 		alert('요청서가 등록되었습니다. 48시간 동안 견적을 받을 수 있어요.');
-		//TODO 내 요청서 목록(/request/mylist.do)이 만들어지면 그쪽으로 이동한다
-		location.href = '${path}/index.do';
+		location.href = '${path}/request/mylist.do';
 		</c:if>
 
 		<c:if test="${result == -1}">
