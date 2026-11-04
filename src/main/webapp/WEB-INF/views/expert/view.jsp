@@ -143,6 +143,18 @@
 			display: block;
 		}
 
+		/* 섹션 제목 오른쪽에 버튼 */
+		.section-head {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 12px;
+		}
+
+		.section-head h3 {
+			margin: 0;
+		}
+
 		.btn:disabled {
 			opacity: 0.5;
 			cursor: not-allowed;
@@ -210,7 +222,7 @@
 					</c:choose>
 					<c:if test="${!isOwner}">
 						<div class="expert-side-footer">
-							<a class="message-info" href="#">신고하기</a>
+							<a class="message-info" href="#" onclick="openReportModal('PROFILE', ${edto.expertSeq}); return false;">신고하기</a>
 						</div>
 					</c:if>
 				</div>
@@ -295,7 +307,13 @@
 				</section>
 
 				<section class="card">
-					<h3>포트폴리오 <small>${fn:length(portfolioList)}개</small></h3>
+					<div class="section-head">
+						<h3>포트폴리오 <small>${fn:length(portfolioList)}개</small></h3>
+						<%-- 본인 프로필에서만 보인다. 숨김 고수는 작성도 막는다 (서버 add.do 에서도 한 번 더 막는다) --%>
+						<c:if test="${isOwner and not isHidden}">
+							<a class="btn btn-sm" href="${path}/expert/portfolio/add.do">+ 추가</a>
+						</c:if>
+					</div>
 					<c:choose>
 						<c:when test="${empty portfolioList}">
 							<p class="message-info small">등록된 포트폴리오가 없어요</p>
@@ -311,7 +329,8 @@
 										</c:if>
 									</div>
 									<div class="thumb-info">
-										<strong>${portfolio.title}</strong>
+										<%-- 제목에 넣은 태그나 스크립트가 실행되지 않도록(XSS) c:out 으로 이스케이프한다 --%>
+										<strong><c:out value="${portfolio.title}" /></strong>
 										<span class="message-info small">사진 ${portfolio.imageCount}장</span>
 									</div>
 								</a>
@@ -349,5 +368,6 @@
 
 	<script>
 	</script>
+	<%@ include file="/WEB-INF/views/report/modal.jsp" %>
 </body>
 </html>

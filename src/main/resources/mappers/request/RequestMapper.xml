@@ -73,4 +73,85 @@
 			values (seq_request_file.nextval, #{requestSeq}, #{orgFilename}, #{saveFilename})
 	</insert>
 
+	<!-- ===== 내 요청서 관리 (C-01-d) ===== -->
+
+	<!-- 내 요청서 목록 (최신순). status가 있으면 그 상태만 -->
+	<select id="myList" parameterType="hashmap" resultType="RequestDto">
+		select r.request_seq, r.expert_seq, r.category_seq, c.name as category_name, m.name as expert_name,
+				r.address, r.status, r.hidden, r.quote_count,
+				to_char(r.quote_deadline, 'YYYY-MM-DD HH24:MI') as quote_deadline,
+				to_char(r.regdate, 'YYYY-MM-DD') as regdate
+			from tbl_request r
+				join tbl_category c on c.category_seq = r.category_seq
+				left join tbl_member m on m.member_seq = r.expert_seq
+					where r.customer_seq = #{customerSeq}
+					<if test="status != null">
+						and r.status = #{status}
+					</if>
+						order by r.request_seq desc
+	</select>
+
+	<!-- 내 요청서 하나: 본인이 쓴 것이 아니면 null -->
+	<select id="getMine" parameterType="hashmap" resultType="RequestDto">
+		select r.request_seq, r.customer_seq, r.expert_seq, r.category_seq, c.name as category_name, m.name as expert_name,
+				r.address, to_char(r.wish_date, 'YYYY-MM-DD') as wish_date, r.budget, r.content,
+				r.status, r.hidden, r.quote_count,
+				to_char(r.quote_deadline, 'YYYY-MM-DD HH24:MI') as quote_deadline,
+				to_char(r.select_deadline, 'YYYY-MM-DD HH24:MI') as select_deadline,
+				to_char(r.regdate, 'YYYY-MM-DD HH24:MI') as regdate,
+				case r.status
+					when 'OPEN' then floor((r.quote_deadline - sysdate) * 24 * 60)
+					when 'CLOSED' then floor((r.select_deadline - sysdate) * 24 * 60)
+				end as remain_minutes
+			from tbl_request r
+				join tbl_category c on c.category_seq = r.category_seq
+				left join tbl_member m on m.member_seq = r.expert_seq
+					where r.request_seq = #{requestSeq} and r.customer_seq = #{customerSeq}
+	</select>
+
+	<!-- 질문 답변: 답 하나에 한 줄 (객관식은 보기 내용, 주관식은 쓴 글). 같은 질문끼리 붙어 나오게 정렬한다 -->
+	<select id="answerList" parameterType="Long" resultType="RequestAnswerDto">
+		select q.question_seq, q.content as question, nvl(o.content, a.answer) as answer
+			from tbl_request_answer a
+				join tbl_question q on q.question_seq = a.question_seq
+				left join tbl_question_option o on o.option_seq = a.option_seq
+					where a.request_seq = #{requestSeq}
+						order by q.sort_order, q.question_seq, o.sort_order, a.answer_seq
+	</select>
+
+	<!-- 참고 이미지 목록 -->
+	<select id="fileList" parameterType="Long" resultType="RequestFileDto">
+		select file_seq, request_seq, org_filename, save_filename
+			from tbl_request_file
+				where request_seq = #{requestSeq}
+					order by file_seq
+	</select>
+
+	<!-- 받은 견적 (보낸 순서대로) -->
+	<select id="quoteList" parameterType="Long" resultType="RequestQuoteDto">
+		select q.quote_seq, q.request_seq, q.expert_seq, m.name as expert_name,
+				q.price, q.work_days, q.content, q.status,
+				to_char(q.regdate, 'YYYY-MM-DD HH24:MI') as regdate
+			from tbl_quote q
+				join tbl_member m on m.member_seq = q.expert_seq
+					where q.request_seq = #{requestSeq}
+						order by q.quote_seq
+	</select>
+
+	<!-- 요청서 취소: 본인 것이고, 고수를 고르기 전(모집 중·견적 마감)일 때만 바뀐다 -->
+	<update id="cancel" parameterType="hashmap">
+		update tbl_request
+			set status = 'CANCELED'
+				where request_seq = #{requestSeq}
+					and customer_seq = #{customerSeq}
+					and status in ('OPEN', 'CLOSED')
+	</update>
+
+	<!-- 요청서가 취소되면 대기 중인 견적은 모두 미선택 -->
+	<update id="unselectQuotes" parameterType="Long">
+		update tbl_quote
+			set status = 'UNSELECTED'
+				where request_seq = #{requestSeq} and status = 'WAITING'
+	</update>
+
 </mapper>

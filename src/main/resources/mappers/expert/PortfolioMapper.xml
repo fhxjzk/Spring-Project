@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper 인터페이스의 전체 이름과 같아야 한다 -->
+<mapper namespace="com.project.app.expert.mapper.PortfolioMapper">
+
+	<select id="getPortfolio" parameterType="Long" resultType="ExpertPortfolioDto">
+	     select p.*,m.name from tbl_portfolio p
+	     	inner join tbl_member m on p.expert_seq = m.member_seq
+	     		where p.portfolio_seq = #{portfolioSeq}
+	</select>
+
+	<select id="getPortfolioImages" parameterType="Long" resultType="PortfolioImageDto">
+		select * from tbl_portfolio_image
+			where portfolio_seq = #{portfolioSeq}
+				order by slot
+	</select>
+	<!-- 글 INSERT
+	     selectKey: INSERT 전에(BEFORE) 번호를 먼저 뽑아 dto.portfolioSeq 에 넣는다 → 사진 INSERT, redirect 에 쓴다 -->
+	<insert id="addPortfolio" parameterType="ExpertPortfolioDto">
+		<selectKey keyProperty="portfolioSeq" resultType="Long" order="BEFORE">
+			select seq_portfolio.nextval from dual
+		</selectKey>
+		insert into tbl_portfolio (portfolio_seq, expert_seq, title, content)
+			values (#{portfolioSeq}, #{expertSeq}, #{title}, #{content})
+	</insert>
+
+	<!-- 사진 INSERT -->
+	<insert id="addPortfolioImage" parameterType="PortfolioImageDto">
+		insert into tbl_portfolio_image (image_seq, portfolio_seq, file_name, origin_name, slot)
+			values (seq_portfolio_image.nextval, #{portfolioSeq}, #{fileName}, #{originName}, #{slot})
+	</insert>
+
+	<!-- 글 UPDATE: expert_seq 까지 조건에 넣어서, 남의 글 번호를 보내도 바뀌지 않게 한다 -->
+	<update id="editPortfolio" parameterType="ExpertPortfolioDto">
+		update tbl_portfolio
+			set title = #{title}, content = #{content}
+			where portfolio_seq = #{portfolioSeq}
+				and expert_seq = #{expertSeq}
+	</update>
+
+	<!-- 수정에서 사진을 새로 올렸을 때, 기존 사진 행을 전부 지운다 -->
+	<delete id="deletePortfolioImages" parameterType="Long">
+		delete from tbl_portfolio_image
+			where portfolio_seq = #{portfolioSeq}
+	</delete>
+
+	<!-- 글 DELETE: 사진 행, 서비스 연결은 ON DELETE CASCADE 로 같이 지워진다 (서버의 파일은 Service 에서 지운다) -->
+	<delete id="deletePortfolio" parameterType="ExpertPortfolioDto">
+		delete from tbl_portfolio
+			where portfolio_seq = #{portfolioSeq}
+				and expert_seq = #{expertSeq}
+	</delete>
+
+</mapper>

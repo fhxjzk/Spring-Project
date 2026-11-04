@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.app.point.mapper.PointMapper">
+
+	<!-- 포인트 잔액 (tbl_member.point). 회원이 없으면 null -->
+	<select id="getBalance" parameterType="Long" resultType="Integer">
+		select point from tbl_member where member_seq = #{memberSeq}
+	</select>
+
+	<update id="addPoint">
+		update tbl_member set point = point + #{amount}
+			where member_seq = #{memberSeq}
+	</update>
+
+	<!-- 잔액이 충분할 때만 뺀다. 바뀐 행 수가 0이면 포인트 부족 -->
+	<update id="subtractPoint">
+		update tbl_member set point = point - #{amount}
+			where member_seq = #{memberSeq} and point >= #{amount}
+	</update>
+
+	<insert id="addHistory" parameterType="PointHistoryDto">
+		insert into tbl_point_history (point_history_seq, member_seq, history_type, amount, balance, trade_seq)
+			values (seq_point_history.nextval, #{memberSeq}, #{historyType}, #{amount}, #{balance}, #{tradeSeq})
+	</insert>
+
+	<!--
+		포인트 내역 (최신순). "내용" 칸에 쓸 서비스 이름을 거래 → 요청서 → 서비스·카테고리로 가져온다.
+		충전은 거래가 없어서 서비스 이름이 null이다.
+	-->
+	<select id="listHistory" parameterType="Long" resultType="PointHistoryDto">
+		select h.point_history_seq, h.member_seq, h.history_type, h.amount, h.balance, h.trade_seq,
+				to_char(h.regdate, 'YYYY-MM-DD HH24:MI') as regdate,
+				nvl((select max(tal.title) from tbl_talent tal
+						where tal.expert_seq = t.expert_seq and tal.category_seq = r.category_seq and tal.enabled = 'Y'),
+					cat.name) as service_name
+			from tbl_point_history h
+				left join tbl_trade t on t.trade_seq = h.trade_seq
+				left join tbl_request r on r.request_seq = t.request_seq
+				left join tbl_category cat on cat.category_seq = r.category_seq
+					where h.member_seq = #{memberSeq}
+						order by h.point_history_seq desc
+	</select>
+
+</mapper>

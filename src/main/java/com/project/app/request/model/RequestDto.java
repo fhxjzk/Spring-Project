@@ -30,4 +30,10 @@ public class RequestDto {
 	private String selectDeadline;
 	private String regdate;
 
+	//목록·상세 화면용 (join)
+	private String categoryName;
+	private String expertName;		//지정 요청한 고수 이름
+	private Long remainMinutes;		//모집 중이면 견적 마감, 견적 마감이면 고수 선택 마감까지 남은 분
+	private String remainText;		//remainMinutes를 화면용 글로 바꾼 것 (예: 견적 마감까지 1일 7시간 남음)
+
 }
