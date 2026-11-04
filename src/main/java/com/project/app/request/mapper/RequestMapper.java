@@ -46,6 +46,14 @@ public interface RequestMapper {
 
 	List<RequestQuoteDto> quoteList(Long requestSeq);
 
+	int closeQuoted();
+
+	int expireNoQuote();
+
+	int unselectExpiredQuotes();
+
+	int expireUnselected();
+
 	int cancel(HashMap<String, Object> map);
 
 	int unselectQuotes(Long requestSeq);

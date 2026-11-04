@@ -120,4 +120,26 @@ public class RequestDao {
 		return requestMapper.unselectQuotes(requestSeq);
 	}
 
+	//--- 자동 마감·만료 ---
+
+	public int closeQuoted() {
+
+		return requestMapper.closeQuoted();
+	}
+
+	public int expireNoQuote() {
+
+		return requestMapper.expireNoQuote();
+	}
+
+	public int unselectExpiredQuotes() {
+
+		return requestMapper.unselectExpiredQuotes();
+	}
+
+	public int expireUnselected() {
+
+		return requestMapper.expireUnselected();
+	}
+
 }

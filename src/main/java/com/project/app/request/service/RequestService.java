@@ -360,6 +360,31 @@ public class RequestService {
 	}
 
 	/**
+	 * 요청서 자동 마감·만료 (RequestExpireScheduler가 10분마다 부른다)
+	 *
+	 * 1. 견적 마감(48시간)이 지났고 견적이 있으면 → 견적 마감, 고수 선택 마감 = 견적 마감 + 7일
+	 * 2. 견적 마감이 지났는데 견적이 없으면 → 만료 (응답 없는 지정 요청 포함)
+	 * 3. 고수 선택 마감이 지나도록 결제하지 않았으면 → 대기 중인 견적은 미선택, 요청서는 만료
+	 *
+	 * 1번에서 고수 선택 마감이 이미 지난 요청서(서버가 오래 꺼져 있던 경우)는 3번에서 바로 만료된다.
+	 *
+	 * @return 로그에 남길 처리 건수 (예: 마감 1, 만료 2, 선택 기간 만료 0)
+	 */
+	@Transactional
+	public String expire() {
+
+		int closed = requestDao.closeQuoted();
+		int expired = requestDao.expireNoQuote();
+
+		requestDao.unselectExpiredQuotes();
+		int unselected = requestDao.expireUnselected();
+
+		//TODO 고객·고수에게 마감·만료 알림 (⑤ 공통 알림 기능이 생기면 호출)
+
+		return "마감 " + closed + ", 만료 " + expired + ", 선택 기간 만료 " + unselected;
+	}
+
+	/**
 	 * 질문 답변 만들기
 	 *
 	 * 화면에서 보낸 값을 그대로 믿지 않고, DB의 질문·보기와 맞는지 확인한다.

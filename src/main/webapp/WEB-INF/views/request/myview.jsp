@@ -63,6 +63,13 @@
 			white-space: pre-wrap;
 		}
 
+		.quote-foot {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			margin-top: 12px;
+		}
+
 		.sub {
 			font-size: 13px;
 			color: var(--color-text-light);
@@ -193,9 +200,13 @@
 		</section>
 		</c:if>
 
-		<!-- 받은 견적 (고르기는 C-02에서 붙인다) -->
+		<!-- 받은 견적 + 고수 선택 (C-02). 선택하면 ④ 거래의 결제 화면으로 넘어간다 -->
 		<section>
 			<h3>받은 견적 <span class="sub">${dto.quoteCount}개</span></h3>
+
+			<%-- 고수를 고를 수 있는 때: 모집 중이거나, 견적 마감이고 고수 선택 마감 전 --%>
+			<c:set var="selectable" value="${dto.status eq 'OPEN' or (dto.status eq 'CLOSED' and dto.remainMinutes gt 0)}" />
+
 			<c:choose>
 				<c:when test="${empty quoteList}">
 				<p class="empty">아직 받은 견적이 없습니다.</p>
@@ -204,7 +215,7 @@
 				<c:forEach var="q" items="${quoteList}">
 				<div class="card quote">
 					<div class="quote-head">
-						<span><c:out value="${q.expertName}" /> 고수</span>
+						<a href="${path}/expert/view.do?expertSeq=${q.expertSeq}"><c:out value="${q.expertName}" /> 고수</a>
 						<span>
 							<c:choose>
 								<c:when test="${q.status eq 'SELECTED'}"><span class="badge badge-success">선택됨</span></c:when>
@@ -215,6 +226,21 @@
 					</div>
 					<p><fmt:formatNumber value="${q.price}" />원 · 작업 기간 ${q.workDays}일 <span class="sub">(${q.regdate})</span></p>
 					<p class="quote-content"><c:out value="${q.content}" /></p>
+
+					<c:if test="${selectable and q.status eq 'WAITING'}">
+					<div class="quote-foot">
+						<c:choose>
+							<c:when test="${q.expertHidden eq 'Y'}">
+							<span class="badge">선택 불가</span>
+							<span class="sub">신고 처리로 숨김 상태인 고수예요.</span>
+							</c:when>
+							<c:otherwise>
+							<a class="btn btn-primary btn-sm" href="${path}/trade/pay.do?quoteSeq=${q.quoteSeq}">이 고수 선택</a>
+							<span class="sub">결제 화면으로 넘어가요. 결제해야 선택이 끝나요.</span>
+							</c:otherwise>
+						</c:choose>
+					</div>
+					</c:if>
 				</div>
 				</c:forEach>
 				</c:otherwise>

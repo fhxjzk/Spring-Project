@@ -148,13 +148,15 @@
 					order by file_seq
 	</select>
 
-	<!-- 받은 견적 (보낸 순서대로) -->
+	<!-- 받은 견적 (보낸 순서대로). 신고로 숨김 처리된 고수의 견적은 고를 수 없어서 숨김 여부도 가져온다 -->
 	<select id="quoteList" parameterType="Long" resultType="RequestQuoteDto">
 		select q.quote_seq, q.request_seq, q.expert_seq, m.name as expert_name,
 				q.price, q.work_days, q.content, q.status,
-				to_char(q.regdate, 'YYYY-MM-DD HH24:MI') as regdate
+				to_char(q.regdate, 'YYYY-MM-DD HH24:MI') as regdate,
+				nvl(p.hidden, 'N') as expert_hidden
 			from tbl_quote q
 				join tbl_member m on m.member_seq = q.expert_seq
+				left join tbl_expert_profile p on p.expert_seq = q.expert_seq
 					where q.request_seq = #{requestSeq}
 						order by q.quote_seq
 	</select>
@@ -166,6 +168,37 @@
 				where request_seq = #{requestSeq}
 					and customer_seq = #{customerSeq}
 					and status in ('OPEN', 'CLOSED')
+	</update>
+
+	<!-- ===== 자동 마감·만료 (RequestExpireScheduler) ===== -->
+
+	<!-- 견적 마감 시간이 지났고 견적이 있는 요청서 → 견적 마감. 고객은 견적 마감 + 7일 안에 고른다 -->
+	<update id="closeQuoted">
+		update tbl_request
+			set status = 'CLOSED', select_deadline = quote_deadline + 7
+				where status = 'OPEN' and quote_deadline &lt;= sysdate and quote_count > 0
+	</update>
+
+	<!-- 견적 마감 시간이 지났는데 견적이 하나도 없는 요청서 → 만료 (응답 없는 지정 요청도 여기에 해당) -->
+	<update id="expireNoQuote">
+		update tbl_request
+			set status = 'EXPIRED'
+				where status = 'OPEN' and quote_deadline &lt;= sysdate and quote_count = 0
+	</update>
+
+	<!-- 고수 선택 마감이 지난 요청서의 대기 중인 견적 → 미선택 (요청서를 만료로 바꾸기 전에 먼저 한다) -->
+	<update id="unselectExpiredQuotes">
+		update tbl_quote
+			set status = 'UNSELECTED'
+				where status = 'WAITING'
+					and request_seq in (select request_seq from tbl_request where status = 'CLOSED' and select_deadline &lt;= sysdate)
+	</update>
+
+	<!-- 고수 선택 마감이 지나도록 결제하지 않은 요청서 → 만료 -->
+	<update id="expireUnselected">
+		update tbl_request
+			set status = 'EXPIRED'
+				where status = 'CLOSED' and select_deadline &lt;= sysdate
 	</update>
 
 	<!-- 요청서가 취소되면 대기 중인 견적은 모두 미선택 -->
