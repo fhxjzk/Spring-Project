@@ -29,6 +29,10 @@
 						then (select m2.name
 								from tbl_member m2
 									where m2.member_seq = r.target_seq)
+						when r.target_type = 'BOARD'
+						then (select b.subject
+								from tbl_board b
+									where b.board_seq = r.target_seq)
 						else (select c.name || ' · ' || regexp_substr(rq.address, '^\S+(\s\S+)?')
 								from tbl_request rq
 									join tbl_category c on c.category_seq = rq.category_seq
@@ -56,6 +60,10 @@
 						then (select m2.name
 								from tbl_member m2
 									where m2.member_seq = r.target_seq)
+						when r.target_type = 'BOARD'
+						then (select b.subject
+								from tbl_board b
+									where b.board_seq = r.target_seq)
 						else (select c.name || ' · ' || regexp_substr(rq.address, '^\S+(\s\S+)?')
 								from tbl_request rq
 									join tbl_category c on c.category_seq = rq.category_seq
@@ -72,6 +80,13 @@
 		select customer_seq
 			from tbl_request
 				where request_seq = #{targetSeq}
+	</select>
+
+	<!-- 게시글을 쓴 사람 번호 (본인 신고를 막을 때 쓴다) -->
+	<select id="getBoardOwner" parameterType="Long" resultType="Long">
+		select member_seq
+			from tbl_board
+				where board_seq = #{targetSeq}
 	</select>
 	
 	<!-- 검토중으로 바꾸기 (E-02) : 아직 처리한 게 아니라서 처리일시는 안 넣는다 -->
@@ -106,6 +121,13 @@
 		update tbl_request
 			set hidden = #{hidden}
 				where request_seq = #{targetSeq}
+	</update>
+
+	<!-- 게시글 숨김 / 해제 (E-02) : 게시판은 hidden 이 아니라 enabled 로 관리한다 -->
+	<update id="updateBoardEnabled" parameterType="hashmap">
+		update tbl_board
+			set enabled = #{enabled}
+				where board_seq = #{targetSeq}
 	</update>
 
 </mapper>
