@@ -56,6 +56,19 @@ public class RequestDao {
 		return requestMapper.addFile(dto);
 	}
 
+	//--- 지정 요청서 (C-01-b) ---
+
+	//요청할 수 없는 고수면 null
+	public String getExpertName(Long expertSeq) {
+
+		return requestMapper.getExpertName(expertSeq);
+	}
+
+	public List<RequestCategoryDto> expertCategoryList(Long expertSeq) {
+
+		return requestMapper.expertCategoryList(expertSeq);
+	}
+
 	//--- 내 요청서 관리 (C-01-d) ---
 
 	//status가 null이면 전체

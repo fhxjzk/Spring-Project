@@ -86,19 +86,27 @@
 	</style>
 </head>
 <body>
-	<!-- request/add.jsp: 공개 요청서 작성 (C-01-a) -->
+	<!-- request/add.jsp: 요청서 작성 (C-01-a 공개 요청, C-01-b 지정 요청: expertSeq가 있으면 지정 요청) -->
 	<%@ include file="/WEB-INF/views/inc/header.jsp" %>
 
 	<main class="container">
 		<div class="form-box request-box">
 			<h2>요청서 작성</h2>
+			<c:if test="${empty expertSeq}">
 			<p class="request-guide">등록하면 해당 카테고리 고수들에게 공개되고, 48시간 동안 견적을 받을 수 있어요.</p>
+			</c:if>
+			<c:if test="${not empty expertSeq}">
+			<p class="request-guide"><strong><c:out value="${expertName}" /></strong> 고수에게만 보내는 요청서예요. 48시간 안에 고수가 응답하지 않으면 만료돼요.</p>
+			</c:if>
 
 			<form id="requestForm" method="POST" enctype="multipart/form-data"
 				action="${path}/request/addok.do?${_csrf.parameterName}=${_csrf.token}">
 
 				<div class="form-group">
 					<label>서비스 카테고리<span class="required-mark">*</span></label>
+
+					<%-- 공개 요청: 대분류를 고르면 소분류를 불러온다 --%>
+					<c:if test="${empty expertSeq}">
 					<div class="category-row">
 						<select id="parentSeq">
 							<option value="">대분류 선택</option>
@@ -110,6 +118,18 @@
 							<option value="">소분류 선택</option>
 						</select>
 					</div>
+					</c:if>
+
+					<%-- 지정 요청: 그 고수가 제공하는 서비스 중에서 고른다 --%>
+					<c:if test="${not empty expertSeq}">
+					<input type="hidden" name="expertSeq" value="${expertSeq}">
+					<select id="categorySeq" name="categorySeq">
+						<option value="">서비스 선택</option>
+						<c:forEach items="${categoryList}" var="category">
+						<option value="${category.categorySeq}"><c:out value="${category.name}" /></option>
+						</c:forEach>
+					</select>
+					</c:if>
 				</div>
 
 				<div id="questionList" class="question-list"></div>

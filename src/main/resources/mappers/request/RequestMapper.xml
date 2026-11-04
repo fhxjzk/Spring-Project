@@ -22,6 +22,27 @@
 				where category_seq = #{categorySeq} and enabled = 'Y'
 	</select>
 
+	<!-- ===== 지정 요청서 (C-01-b) ===== -->
+
+	<!-- 지정 요청할 수 있는 고수의 이름: 탈퇴하지 않았고, 신고로 숨김 처리되지 않은 고수만. 아니면 null -->
+	<select id="getExpertName" parameterType="Long" resultType="String">
+		select m.name
+			from tbl_member m
+				join tbl_expert_profile p on p.expert_seq = m.member_seq
+					where m.member_seq = #{expertSeq}
+						and m.role = 'ROLE_EXPERT' and m.enabled = 'Y' and p.hidden = 'N'
+	</select>
+
+	<!-- 고수가 제공하는 서비스의 카테고리 (지정 요청서는 이 중에서만 고른다). 같은 카테고리 서비스가 여러 개면 한 번만 -->
+	<select id="expertCategoryList" parameterType="Long" resultType="RequestCategoryDto">
+		select distinct c.category_seq, c.parent_seq, c.name, c.sort_order
+			from tbl_talent t
+				join tbl_category c on c.category_seq = t.category_seq
+					where t.expert_seq = #{expertSeq} and t.enabled = 'Y'
+						and c.enabled = 'Y' and c.parent_seq is not null
+							order by c.sort_order, c.category_seq
+	</select>
+
 	<!-- 카테고리의 질문 항목과 보기 (사용 중인 것만, 화면에 보이는 순서대로) -->
 	<resultMap id="questionMap" type="QuestionDto">
 		<id property="questionSeq" column="question_seq" />

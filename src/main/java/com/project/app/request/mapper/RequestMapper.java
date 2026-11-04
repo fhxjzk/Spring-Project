@@ -32,6 +32,10 @@ public interface RequestMapper {
 
 	//--- 내 요청서 관리 (C-01-d) ---
 
+	String getExpertName(Long expertSeq);
+
+	List<RequestCategoryDto> expertCategoryList(Long expertSeq);
+
 	List<RequestDto> myList(HashMap<String, Object> map);
 
 	RequestDto getMine(HashMap<String, Object> map);
