@@ -10,6 +10,10 @@
 -- ============================================================
 
 -- 06 ⑥ 검색·신고·커뮤니티
+DROP TABLE tbl_board_comment CASCADE CONSTRAINTS PURGE;
+DROP SEQUENCE seq_board_comment;
+DROP TABLE tbl_board CASCADE CONSTRAINTS PURGE;
+DROP SEQUENCE seq_board;
 DROP TABLE tbl_report CASCADE CONSTRAINTS PURGE;
 DROP TABLE tbl_expert_region CASCADE CONSTRAINTS PURGE;
 DROP TABLE tbl_region CASCADE CONSTRAINTS PURGE;

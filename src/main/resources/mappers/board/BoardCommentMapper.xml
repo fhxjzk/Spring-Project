@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper 인터페이스의 전체 이름과 같아야 한다 -->
+<mapper namespace="com.project.app.board.mapper.BoardCommentMapper">
+
+	<!-- 그 글의 댓글 목록, 등록순 (B-09-12).
+	     지운 댓글(enabled = 'N')은 나오지 않는다 -->
+	<select id="getList" parameterType="Long" resultType="BoardCommentDto">
+		select c.comment_seq, c.board_seq, c.member_seq, c.content,
+				m.name as writer_name,
+				to_char(c.regdate, 'YYYY-MM-DD HH24:MI') as regdate,
+				to_char(c.moddate, 'YYYY-MM-DD HH24:MI') as moddate
+			from tbl_board_comment c
+				join tbl_member m on m.member_seq = c.member_seq
+					where c.board_seq = #{boardSeq}
+						and c.enabled = 'Y'
+							order by c.comment_seq
+	</select>
+
+	<!-- 댓글 하나. 고치거나 지운 뒤 어느 글로 돌아갈지 알아낼 때 쓴다 -->
+	<select id="get" parameterType="Long" resultType="BoardCommentDto">
+		select comment_seq, board_seq, member_seq, content, enabled
+			from tbl_board_comment
+				where comment_seq = #{commentSeq}
+					and enabled = 'Y'
+	</select>
+
+	<!-- 댓글 쓰기 (B-09-11).
+	     숨김 처리되지 않은 글에만 달 수 있다 -->
+	<insert id="add" parameterType="BoardCommentDto">
+		insert into tbl_board_comment (comment_seq, board_seq, member_seq, content)
+			select seq_board_comment.nextval, #{boardSeq}, #{memberSeq}, #{content}
+				from tbl_board b
+					where b.board_seq = #{boardSeq}
+						and b.enabled = 'Y'
+	</insert>
+
+	<!-- 댓글 고치기 (B-09-13).
+	     쓴 사람이 맞을 때만 바뀐다. 화면에서 버튼을 감추는 것으로 끝내지 않는다 -->
+	<update id="edit" parameterType="BoardCommentDto">
+		update tbl_board_comment
+			set content = #{content},
+				moddate = sysdate
+					where comment_seq = #{commentSeq}
+						and member_seq = #{memberSeq}
+						and enabled = 'Y'
+	</update>
+
+	<!-- 댓글 지우기 (B-09-14).
+	     행을 지우지 않고 숨김으로 바꾼다. 쓴 사람이 맞을 때만 -->
+	<update id="remove" parameterType="hashmap">
+		update tbl_board_comment
+			set enabled = 'N'
+				where comment_seq = #{commentSeq}
+					and member_seq = #{memberSeq}
+					and enabled = 'Y'
+	</update>
+
+</mapper>

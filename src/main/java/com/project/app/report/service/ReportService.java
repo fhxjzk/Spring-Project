@@ -51,8 +51,14 @@ public class ReportService {
 			return dto.getTargetSeq().equals(dto.getReporterSeq());
 		}
 
-		//요청서는 쓴 사람을 조회해서 비교한다
-		Long ownerSeq = reportDao.getRequestOwner(dto.getTargetSeq());
+		//게시글과 요청서는 쓴 사람을 조회해서 비교한다
+		Long ownerSeq = null;
+
+		if ("BOARD".equals(dto.getTargetType())) {
+			ownerSeq = reportDao.getBoardOwner(dto.getTargetSeq());
+		} else {
+			ownerSeq = reportDao.getRequestOwner(dto.getTargetSeq());
+		}
 
 		return ownerSeq != null && ownerSeq.equals(dto.getReporterSeq());
 	}
@@ -128,11 +134,15 @@ public class ReportService {
 		return setHidden(report, "N");
 	}
 
-	//신고 대상에 따라 고수 프로필 또는 요청서의 hidden 을 바꾼다
+	//신고 대상에 따라 고수 프로필 · 게시글 · 요청서의 숨김 상태를 바꾼다
 	private int setHidden(ReportDto report, String hidden) {
 
 		if ("PROFILE".equals(report.getTargetType())) {
 			return reportDao.updateExpertHidden(report.getTargetSeq(), hidden);
+		}
+
+		if ("BOARD".equals(report.getTargetType())) {
+			return reportDao.updateBoardHidden(report.getTargetSeq(), hidden);
 		}
 
 		return reportDao.updateRequestHidden(report.getTargetSeq(), hidden);
