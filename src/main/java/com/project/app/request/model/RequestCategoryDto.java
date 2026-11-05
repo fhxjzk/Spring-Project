@@ -19,4 +19,8 @@ public class RequestCategoryDto {
 	private Long parentSeq;
 	private String name;
 
+	//관리자 질문 관리 (E-04) 화면에서만 쓴다
+	private String parentName;	//대분류 이름
+	private String enabled;		//N 이면 사용 안 하는 카테고리
+
 }
