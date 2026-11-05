@@ -217,7 +217,7 @@
 							<a class="btn btn-primary btn-block" href="#">수정하기</a>
 						</c:when>
 						<c:otherwise>
-							<a class="btn btn-primary btn-block" href="#">요청하기</a>
+							<a class="btn btn-primary btn-block" href="${path}/request/add.do?expertSeq=${edto.expertSeq}">요청하기</a>
 						</c:otherwise>
 					</c:choose>
 					<c:if test="${!isOwner}">
