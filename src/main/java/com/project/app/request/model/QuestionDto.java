@@ -25,6 +25,11 @@ public class QuestionDto {
 	private String enabled;
 	private String regdate;
 
-	private List<QuestionOptionDto> options;	//객관식 보기 (사용 중인 것만)
+	private List<QuestionOptionDto> options;	//객관식 보기 (요청서 작성: 사용 중인 것만, 관리자 화면: 전부)
+
+	//관리자 질문 관리 (E-04) 화면에서만 쓴다
+	private String categoryName;	//대분류 > 소분류
+	private Integer answerCount;	//이 질문에 달린 답변 수. 0보다 크면 유형을 바꿀 수 없다
+	private Integer optionCount;	//사용 중인 보기 수
 
 }
