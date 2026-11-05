@@ -135,6 +135,11 @@
 	<main class="container">
 		<h2>동네 이야기 <small>Community</small></h2>
 
+		<%-- 수정하거나 댓글을 남기고 돌아왔을 때 나오는 안내 --%>
+		<c:if test="${not empty msg}">
+			<p class="message-info"><c:out value="${msg}" /></p>
+		</c:if>
+
 		<div class="post">
 			<div class="post-head">
 				<h3><c:out value="${dto.subject}" /></h3>

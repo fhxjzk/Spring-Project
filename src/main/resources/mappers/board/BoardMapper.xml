@@ -47,6 +47,17 @@
 			<include refid="listWhere" />
 	</select>
 
+	<!-- 로그인한 회원이 사는 동네 (B-09-01).
+	     tbl_member 에는 지역 번호가 없고 주소 문자열만 있어서,
+	     주소가 지역 이름으로 시작하는지로 찾는다. (예: '서울 강남구 …' → 서울)
+	     주소가 비어 있거나(관리자) 맞는 지역이 없으면 아무것도 안 나온다 -->
+	<select id="getMemberRegion" parameterType="Long" resultType="Integer">
+		select r.region_seq
+			from tbl_region r
+				join tbl_member m on m.address like r.region_name || '%'
+					where m.member_seq = #{memberSeq}
+	</select>
+
 	<!-- 글 하나 (B-09-04).
 	     숨김 처리된 글은 주소를 직접 쳐도 안 나온다 -->
 	<select id="get" parameterType="Long" resultType="BoardDto">

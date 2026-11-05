@@ -2,6 +2,7 @@
     pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <!DOCTYPE html>
 <html>
 <head>
@@ -92,6 +93,11 @@
 	<main class="container">
 		<h2>동네 이야기 <small>Community</small></h2>
 
+		<%-- 등록·수정·삭제하고 돌아왔을 때, 또는 볼 수 없는 글을 열었을 때 나오는 안내 --%>
+		<c:if test="${not empty msg}">
+			<p class="message-info"><c:out value="${msg}" /></p>
+		</c:if>
+
 		<div class="toprow">
 			<%-- 지역을 바꾸면 그 동네 글만 보인다. 고수 검색과 같은 17개 목록이다 --%>
 			<div class="f">
@@ -104,7 +110,13 @@
 				</select>
 			</div>
 
-			<a class="btn btn-primary" href="${path}/board/add.do">글쓰기</a>
+			<%-- 비회원이 눌렀을 때는 로그인 화면으로 바로 보내지 않고 먼저 안내한다 (신고하기와 같은 방식) --%>
+			<sec:authorize access="isAuthenticated()">
+				<a class="btn btn-primary" href="${path}/board/add.do">글쓰기</a>
+			</sec:authorize>
+			<sec:authorize access="!isAuthenticated()">
+				<button type="button" class="btn btn-primary" onclick="needLogin()">글쓰기</button>
+			</sec:authorize>
 		</div>
 
 		<%-- 검색 (B-09-10). 고른 지역 안에서만 찾는다 --%>
@@ -191,6 +203,14 @@
 	</main>
 
 	<script>
+		//비회원이 글쓰기를 눌렀을 때. 로그인 화면으로 보낸다 (B-09-03)
+		function needLogin() {
+
+			if (confirm('글쓰기는 로그인 후에 할 수 있습니다.\n로그인 화면으로 이동하시겠습니까?')) {
+				location.href = path + '/auth/login.do';
+			}
+		}
+
 		//지역을 바꾸면 1페이지부터 다시 본다
 		function moveRegion(regionSeq) {
 

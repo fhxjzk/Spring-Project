@@ -27,6 +27,12 @@ public class BoardDao {
 		return boardMapper.getCount(page);
 	}
 
+	//로그인한 회원이 사는 동네. 주소로 찾는다. 못 찾으면 null
+	public Integer getMemberRegion(Long memberSeq) {
+
+		return boardMapper.getMemberRegion(memberSeq);
+	}
+
 	public BoardDto get(Long boardSeq) {
 
 		return boardMapper.get(boardSeq);

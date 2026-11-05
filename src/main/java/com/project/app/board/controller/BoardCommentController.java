@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.project.app.auth.CustomUser;
 import com.project.app.board.model.BoardCommentDto;
@@ -30,32 +31,39 @@ public class BoardCommentController {
 
 	//댓글 쓰기 (B-09-11)
 	@PostMapping(value = "/addok.do")
-	public String addok(BoardCommentDto dto, Authentication auth) {
+	public String addok(RedirectAttributes rttr, BoardCommentDto dto, Authentication auth) {
 
 		//쓴 사람은 화면에서 보낸 값을 믿지 않고 로그인한 회원 번호를 쓴다
 		dto.setMemberSeq(getMemberSeq(auth));
 
-		boardCommentService.add(dto);
+		if (boardCommentService.add(dto) == 0) {
+			rttr.addFlashAttribute("msg", "댓글을 남기지 못했습니다. 볼 수 없는 글일 수 있습니다.");
+		}
 
 		return goBack(dto.getBoardSeq());
 	}
 
 	//댓글 고치기 (B-09-13)
 	@PostMapping(value = "/editok.do")
-	public String editok(BoardCommentDto dto, Authentication auth) {
+	public String editok(RedirectAttributes rttr, BoardCommentDto dto, Authentication auth) {
 
 		dto.setMemberSeq(getMemberSeq(auth));
 
-		boardCommentService.edit(dto);
+		if (boardCommentService.edit(dto) == 0) {
+			rttr.addFlashAttribute("msg", "고칠 수 없는 댓글입니다. 본인이 쓴 댓글만 고칠 수 있습니다.");
+		}
 
 		return goBack(dto.getBoardSeq());
 	}
 
 	//댓글 지우기 (B-09-14)
 	@PostMapping(value = "/delok.do")
-	public String delok(@RequestParam Long commentSeq, @RequestParam Long boardSeq, Authentication auth) {
+	public String delok(RedirectAttributes rttr, @RequestParam Long commentSeq,
+			@RequestParam Long boardSeq, Authentication auth) {
 
-		boardCommentService.remove(commentSeq, getMemberSeq(auth));
+		if (boardCommentService.remove(commentSeq, getMemberSeq(auth)) == 0) {
+			rttr.addFlashAttribute("msg", "지울 수 없는 댓글입니다. 본인이 쓴 댓글만 지울 수 있습니다.");
+		}
 
 		return goBack(boardSeq);
 	}

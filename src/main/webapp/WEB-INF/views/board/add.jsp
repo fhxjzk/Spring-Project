@@ -54,9 +54,11 @@
 
 			<div class="form-group">
 				<label for="regionSeq">동네</label>
+				<%-- 내가 사는 동네가 미리 골라져 있다. 가입 주소로 찾는다 --%>
 				<select id="regionSeq" name="regionSeq" required>
 					<c:forEach var="region" items="${regionList}">
-						<option value="${region.regionSeq}">${region.regionName}</option>
+						<option value="${region.regionSeq}"
+							${defaultRegion eq region.regionSeq ? 'selected' : ''}>${region.regionName}</option>
 					</c:forEach>
 				</select>
 			</div>

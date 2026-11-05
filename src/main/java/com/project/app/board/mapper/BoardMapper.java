@@ -22,6 +22,9 @@ public interface BoardMapper {
 	//그 지역 글이 몇 개인지. 페이지 수를 구할 때 쓴다
 	int getCount(BoardPageDto page);
 
+	//로그인한 회원이 사는 동네. 주소로 찾는다. 못 찾으면 null
+	Integer getMemberRegion(Long memberSeq);
+
 	//글 하나 (B-09-04). 숨김 처리된 글은 null 로 돌아온다
 	BoardDto get(Long boardSeq);
 

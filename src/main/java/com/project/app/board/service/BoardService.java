@@ -25,10 +25,32 @@ public class BoardService {
 	private final BoardDao boardDao;
 	private final SearchService searchService;
 
+	//기본으로 보여줄 동네. 못 찾으면 서울
+	private static final int DEFAULT_REGION = 1;
+
 	//지역 드롭다운에 쓸 17개
 	public List<RegionDto> getRegionList() {
 
 		return searchService.getRegionList();
+	}
+
+	/**
+	 * 처음 들어왔을 때 보여줄 동네 (B-09-01)
+	 *
+	 * 로그인한 회원은 가입할 때 적은 주소로 자기 동네를 찾아 준다.
+	 * 비회원이거나 주소가 없으면(관리자) 서울을 보여준다.
+	 *
+	 * @param memberSeq 로그인한 회원 번호. 비회원이면 null
+	 */
+	public int getDefaultRegion(Long memberSeq) {
+
+		if (memberSeq == null) {
+			return DEFAULT_REGION;
+		}
+
+		Integer regionSeq = boardDao.getMemberRegion(memberSeq);
+
+		return regionSeq == null ? DEFAULT_REGION : regionSeq;
 	}
 
 	/**
