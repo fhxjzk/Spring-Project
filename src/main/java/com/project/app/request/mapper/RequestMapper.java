@@ -32,6 +32,10 @@ public interface RequestMapper {
 
 	//--- 내 요청서 관리 (C-01-d) ---
 
+	String getExpertName(Long expertSeq);
+
+	List<RequestCategoryDto> expertCategoryList(Long expertSeq);
+
 	List<RequestDto> myList(HashMap<String, Object> map);
 
 	RequestDto getMine(HashMap<String, Object> map);
@@ -41,6 +45,14 @@ public interface RequestMapper {
 	List<RequestFileDto> fileList(Long requestSeq);
 
 	List<RequestQuoteDto> quoteList(Long requestSeq);
+
+	int closeQuoted();
+
+	int expireNoQuote();
+
+	int unselectExpiredQuotes();
+
+	int expireUnselected();
 
 	int cancel(HashMap<String, Object> map);
 

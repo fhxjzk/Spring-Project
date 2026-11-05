@@ -81,14 +81,46 @@ public class RequestService {
 		return result;
 	}
 
+	//--- 지정 요청서 (C-01-b) ---
+
+	//지정 요청할 수 있는 고수의 이름. 없는 고수, 탈퇴한 고수, 숨김 처리된 고수면 null
+	public String getExpertName(Long expertSeq) {
+
+		if (expertSeq == null) {
+			return null;
+		}
+
+		return requestDao.getExpertName(expertSeq);
+	}
+
+	//고수가 제공하는 서비스의 카테고리 (지정 요청서는 이 중에서만 고른다)
+	public List<RequestCategoryDto> expertCategoryList(Long expertSeq) {
+
+		return requestDao.expertCategoryList(expertSeq);
+	}
+
+	//고수가 이 카테고리의 서비스를 제공하는지
+	private boolean hasExpertCategory(Long expertSeq, Long categorySeq) {
+
+		for (RequestCategoryDto category : requestDao.expertCategoryList(expertSeq)) {
+			if (category.getCategorySeq().equals(categorySeq)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/**
-	 * 공개 요청서 등록 (C-01-a)
+	 * 요청서 등록 (C-01-a 공개 요청, C-01-b 지정 요청)
 	 *
 	 * 요청서, 질문 답변, 참고 이미지를 한 번에 저장한다. 중간에 실패하면 전부 취소하고 저장한 파일도 지운다.
+	 * expertSeq가 있으면 그 고수에게만 보내는 지정 요청서다.
 	 *
 	 * @param params 질문 답변. 이름은 "q" + 질문 번호 (객관식은 보기 번호, 주관식은 글)
 	 * @param uploadPath 참고 이미지를 저장할 폴더
-	 * @return 1: 성공, 0: 잘못된 입력, -1: 필수 질문에 답하지 않음, -2: 이미지가 아닌 파일
+	 * @return 1: 성공, 0: 잘못된 입력, -1: 필수 질문에 답하지 않음, -2: 이미지가 아닌 파일,
+	 *         -3: 요청할 수 없는 고수, -4: 고수가 제공하지 않는 서비스
 	 */
 	@Transactional
 	public int add(RequestDto dto, MultiValueMap<String, String> params, List<MultipartFile> files, String uploadPath) {
@@ -99,6 +131,18 @@ public class RequestService {
 		//요청서는 소분류로만 쓴다
 		if (category == null || category.getParentSeq() == null) {
 			return 0;
+		}
+
+		//지정 요청이면 요청할 수 있는 고수인지, 그 고수가 하는 서비스인지 다시 확인한다 (화면 값은 바꿀 수 있어서)
+		if (dto.getExpertSeq() != null) {
+
+			if (getExpertName(dto.getExpertSeq()) == null) {
+				return -3;
+			}
+
+			if (!hasExpertCategory(dto.getExpertSeq(), dto.getCategorySeq())) {
+				return -4;
+			}
 		}
 
 		dto.setAddress(dto.getAddress() == null ? "" : dto.getAddress().trim());
@@ -136,8 +180,7 @@ public class RequestService {
 			}
 		}
 
-		//2. 요청서 저장 (화면에서 보낸 값이 아니라 공개 요청 기준으로 채운다)
-		dto.setExpertSeq(null);
+		//2. 요청서 저장 (추가 요청 사항은 질문 답변으로 받아서 content는 쓰지 않는다)
 		dto.setContent(null);
 		dto.setWishDate(dto.getWishDate() == null || dto.getWishDate().isBlank() ? null : dto.getWishDate());
 
@@ -219,7 +262,9 @@ public class RequestService {
 
 			String label = "고수 선택 마감";
 
-			if ("OPEN".equals(dto.getStatus())) {
+			if ("OPEN".equals(dto.getStatus()) && dto.getExpertSeq() != null) {
+				label = "고수 응답 마감";
+			} else if ("OPEN".equals(dto.getStatus())) {
 				label = "견적 마감";
 			}
 
@@ -312,6 +357,31 @@ public class RequestService {
 		//TODO 견적을 보낸 고수들에게 취소 알림 (⑤ 공통 알림 기능이 생기면 호출)
 
 		return 1;
+	}
+
+	/**
+	 * 요청서 자동 마감·만료 (RequestExpireScheduler가 10분마다 부른다)
+	 *
+	 * 1. 견적 마감(48시간)이 지났고 견적이 있으면 → 견적 마감, 고수 선택 마감 = 견적 마감 + 7일
+	 * 2. 견적 마감이 지났는데 견적이 없으면 → 만료 (응답 없는 지정 요청 포함)
+	 * 3. 고수 선택 마감이 지나도록 결제하지 않았으면 → 대기 중인 견적은 미선택, 요청서는 만료
+	 *
+	 * 1번에서 고수 선택 마감이 이미 지난 요청서(서버가 오래 꺼져 있던 경우)는 3번에서 바로 만료된다.
+	 *
+	 * @return 로그에 남길 처리 건수 (예: 마감 1, 만료 2, 선택 기간 만료 0)
+	 */
+	@Transactional
+	public String expire() {
+
+		int closed = requestDao.closeQuoted();
+		int expired = requestDao.expireNoQuote();
+
+		requestDao.unselectExpiredQuotes();
+		int unselected = requestDao.expireUnselected();
+
+		//TODO 고객·고수에게 마감·만료 알림 (⑤ 공통 알림 기능이 생기면 호출)
+
+		return "마감 " + closed + ", 만료 " + expired + ", 선택 기간 만료 " + unselected;
 	}
 
 	/**
