@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -19,7 +18,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * 신고 접수 (⑥ B-07)
  *
- * 고수 프로필 화면(②)과 요청서 상세 화면(③)에서 Ajax로 부른다.
+ * 고수 프로필 화면(②), 요청서 상세 화면(③), 게시판 글 상세(⑥)에서 Ajax로 부른다.
  */
 @Controller
 @RequiredArgsConstructor
@@ -44,13 +43,6 @@ public class ReportController {
 		map.put("message", getMessage(result));
 
 		return map;
-	}
-
-	//임시 확인용 화면. ②③번 화면이 생기면 이 메서드와 test.jsp 를 지운다
-	@GetMapping(value = "/test.do")
-	public String test() {
-
-		return "report/test";
 	}
 
 	private String getMessage(int result) {
