@@ -78,7 +78,11 @@
 	<main class="container requestview">
 		<div class="requestview-head">
 			<h2><c:out value="${dto.categoryName}" /> 요청서 <span class="sub">${dto.requestSeq}번</span></h2>
-			<a class="btn btn-sm" href="${path}/quote/request.do<c:if test="${not empty dto.expertSeq}">?type=designated</c:if>">목록</a>
+			<div>
+				<a class="btn btn-sm" href="${path}/quote/request.do<c:if test="${not empty dto.expertSeq}">?type=designated</c:if>">목록</a>
+				<%-- 요청서 신고 (⑥ B-07): 모달과 서버가 로그인·본인·중복 신고를 막는다 --%>
+				<button type="button" class="btn btn-sm" onclick="openReportModal('REQUEST', ${dto.requestSeq});">신고하기</button>
+			</div>
 		</div>
 
 		<c:if test="${not empty msg}">
@@ -260,5 +264,7 @@
 		});
 
 	</script>
+
+	<%@ include file="/WEB-INF/views/report/modal.jsp" %>
 </body>
 </html>
