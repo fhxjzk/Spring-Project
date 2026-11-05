@@ -23,7 +23,9 @@
 					<sec:authorize access="hasRole('ROLE_EXPERT')">
 					<%-- 고수 메뉴 (예: 받은 요청서, 내 견적) --%>
 					</sec:authorize>
-
+					<sec:authorize access="hasAnyRole('ROLE_CUSTOMER', 'ROLE_EXPERT')">
+					<li><a href="${path}/member/mypage.do">마이페이지</a></li>
+					</sec:authorize>
 					<sec:authorize access="hasRole('ROLE_ADMIN')">
 					<li><a href="${path}/admin/index.do">관리자</a></li>
 					</sec:authorize>

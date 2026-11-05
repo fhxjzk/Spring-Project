@@ -1,12 +1,13 @@
 package com.project.app.member.controller;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-
+import com.project.app.auth.CustomUser;
 import com.project.app.member.model.MemberDto;
 import com.project.app.member.service.MemberService;
 
@@ -47,5 +48,15 @@ public class MemberController {
 
 		return "member/addok";
 	}
-
+	
+	//마이페이지. 회원 번호는 로그인 정보에서 꺼내서 본인 정보만 보여준다
+	@GetMapping(value = "/mypage.do")
+	public String mypage(Model model, Authentication auth) {
+		
+		Long memberSeq = ((CustomUser) auth.getPrincipal()).getMemberSeq();
+		
+		model.addAttribute("member", memberService.getBySeq(memberSeq));
+		
+		return "member/mypage";
+	}
 }
