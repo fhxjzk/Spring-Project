@@ -26,4 +26,8 @@ public interface MemberMapper {
 	MemberDto getBySeq(Long memberSeq);
 	
 	int updateEnabled(HashMap<String, Object> map);
+	
+	int countByEmailExceptMe(MemberDto dto);
+
+	int edit(MemberDto dto);
 }

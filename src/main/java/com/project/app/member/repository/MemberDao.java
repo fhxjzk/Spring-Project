@@ -56,4 +56,14 @@ public class MemberDao {
 		
 		return memberMapper.updateEnabled(map);
 	}
+	
+	public int countByEmailExceptMe(MemberDto dto) {
+		
+		return memberMapper.countByEmailExceptMe(dto);
+	}
+	
+	public int edit(MemberDto dto) {
+		
+		return memberMapper.edit(dto);
+	}
 }

@@ -73,4 +73,21 @@
 			where member_seq = #{memberSeq}
 				and withdraw_date is null
 	</update>
+	
+	<!--  이메일 중복 확인 (마이페이지: 내 이메일은 뺀다) -->
+	<select id="countByEmailExceptMe" parameterType="MemberDto" resultType="int">
+		select count(*) from tbl_member
+			where email = #{email}
+				and member_seq != #{memberSeq}
+	</select>
+	
+	<!-- 마이페이지 정보 수정 (B-02-a) -->
+	<update id="edit" parameterType="MemberDto">
+	update tbl_member
+		set name = #{name},
+			email = #{email},
+			moddate = sysdate
+		where member_seq = #{memberSeq}
+	
+	</update>
 </mapper>

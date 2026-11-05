@@ -7,6 +7,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
 import com.project.app.auth.CustomUser;
 import com.project.app.member.model.MemberDto;
 import com.project.app.member.service.MemberService;
@@ -58,5 +60,44 @@ public class MemberController {
 		model.addAttribute("member", memberService.getBySeq(memberSeq));
 		
 		return "member/mypage";
+	}
+
+	//마이페이지 정보 수정. 회원 번호는 폼 값이 아니라 로그인 정보로 정한다
+	@PostMapping(value = "/mypageok.do")
+	public String mypageok(RedirectAttributes rttr, Authentication auth, MemberDto dto) {
+
+		CustomUser user = (CustomUser) auth.getPrincipal();
+
+		dto.setMemberSeq(user.getMemberSeq());
+
+		int result = memberService.edit(dto);
+
+		//헤더는 세션의 로그인 정보를 보여주므로 같이 바꾼다
+		if (result > 0) {
+			user.getDto().setName(dto.getName());
+			user.getDto().setEmail(dto.getEmail());
+		}
+
+		rttr.addFlashAttribute("msg", getEditMessage(result));
+
+		return "redirect:/member/mypage.do";
+	}
+
+	//MemberService.edit() 가 돌려준 숫자를 화면에 보여줄 말로 바꾼다
+	private String getEditMessage(int result) {
+
+		if (result > 0) {
+			return "정보를 수정했습니다.";
+		}
+
+		if (result == -2) {
+			return "이미 사용 중인 이메일입니다.";
+		}
+
+		if (result == -4) {
+			return "입력한 값을 다시 확인해 주세요.";
+		}
+
+		return "수정하지 못했습니다.";
 	}
 }

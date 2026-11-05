@@ -13,6 +13,9 @@
 		.table td, .table th {
 			white-space: nowrap;
 		}
+		.btn-area {
+			margin-top: 16px;
+		}
 	</style>
 </head>
 <body>
@@ -20,6 +23,11 @@
 	<%@ include file="/WEB-INF/views/inc/header.jsp" %>
 
 	<main class="container">
+		<%-- 정보 수정 후 결과 문구 --%>
+		<c:if test="${not empty msg}">
+			<p class="message-info">${msg}</p>
+		</c:if>
+
 		<div class="card table-card">
 			<h2>내 정보</h2>
 
@@ -51,6 +59,28 @@
 					</tr>
 				</tbody>
 			</table>
+		</div>
+
+		<div class="card">
+			<h2>정보 수정</h2>
+
+			<form id="editForm" method="POST" action="${path}/member/mypageok.do">
+				<div class="form-group">
+					<label for="name">이름</label>
+					<input type="text" id="name" name="name" value="<c:out value='${member.name}' />" required maxlength="16">
+				</div>
+
+				<div class="form-group">
+					<label for="email">이메일</label>
+					<input type="email" id="email" name="email" value="<c:out value='${member.email}' />" required maxlength="100">
+				</div>
+
+				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+			</form>
+		</div>
+
+		<div class="btn-area">
+			<button class="btn btn-primary" form="editForm">정보 수정</button>
 		</div>
 	</main>
 </body>

@@ -93,4 +93,27 @@ public class MemberService {
 		
 		return memberDao.updateEnabled(memberSeq, enabled);
 	}
+
+	//마이페이지 정보 수정 (B-02-a)
+	//@return 1: 성공, 0: 실패, -2: 이메일 중복, -4: 입력값 오류
+	public int edit(MemberDto dto) {
+
+		//이름, 이메일은 필수 항목이다
+		if (dto.getName() == null || dto.getName().isBlank()
+				|| dto.getEmail() == null || dto.getEmail().isBlank()) {
+			return -4;
+		}
+
+		//DB 칸 크기를 넘는 값을 막는다 (한글은 1글자에 3바이트)
+		if (dto.getName().length() > 16 || dto.getEmail().length() > 100) {
+			return -4;
+		}
+
+		//내 이메일은 빼고 중복을 확인한다
+		if (memberDao.countByEmailExceptMe(dto) > 0) {
+			return -2;
+		}
+
+		return memberDao.edit(dto);
+	}
 }
