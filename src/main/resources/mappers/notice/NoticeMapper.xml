@@ -1,0 +1,58 @@
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.app.notice.mapper.NoticeMapper">
+
+    <!-- 새 알림 번호 생성 -->
+    <select id="nextNoticeSeq" resultType="long">
+        SELECT seq_notice.NEXTVAL FROM DUAL
+    </select>
+
+    <!-- 알림 저장 -->
+    <insert id="insert"
+            parameterType="com.project.app.notice.model.NotificationDto">
+        INSERT INTO tbl_notice (
+            notice_seq,
+            receiver_seq,
+            notification_type,
+            title,
+            message,
+            reference_id
+        )
+        VALUES (
+            #{notificationId},
+            #{receiverSeq},
+            #{notificationType},
+            #{title},
+            #{message},
+            #{referenceId}
+        )
+    </insert>
+
+    <!-- 특정 회원의 알림 목록 조회 -->
+    <select id="findByReceiverSeq"
+            resultType="com.project.app.notice.model.NotificationDto">
+        SELECT
+            notice_seq AS notificationId,
+            receiver_seq AS receiverSeq,
+            notification_type AS notificationType,
+            title,
+            message,
+            reference_id AS referenceId,
+            is_read AS isRead,
+            created_at AS createdAt
+        FROM tbl_notice
+        WHERE receiver_seq = #{receiverSeq}
+        ORDER BY created_at DESC, notice_seq DESC
+    </select>
+
+    <!-- 본인 알림 읽음 처리 -->
+    <update id="markAsRead">
+        UPDATE tbl_notice
+        SET is_read = 'Y'
+        WHERE notice_seq = #{notificationId}
+          AND receiver_seq = #{receiverSeq}
+          AND is_read = 'N'
+    </update>
+
+</mapper>
