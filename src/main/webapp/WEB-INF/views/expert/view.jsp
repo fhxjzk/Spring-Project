@@ -284,9 +284,8 @@
 						</c:when>
 						<c:otherwise>
 							<div class="grid-3">
-								<%-- TODO: 서비스 상세 화면이 생기면 a 태그로 바꾸고 링크 걸기 --%>
 								<c:forEach items="${talentList}" var="talent">
-								<div class="card card-link">
+								<a class="card card-link" href="${path}/expert/talent/view.do?talentSeq=${talent.talentSeq}">
 									<div class="thumb">
 										<c:if test="${not empty talent.thumbnail}">
 											<img src="${path}/resources/upload/portfolio/${talent.thumbnail}" alt="" onerror="this.remove()">
@@ -299,7 +298,7 @@
 											· <fmt:formatNumber value="${talent.price}" pattern="#,###" />원
 										</span>
 									</div>
-								</div>
+								</a>
 								</c:forEach>
 							</div>
 						</c:otherwise>

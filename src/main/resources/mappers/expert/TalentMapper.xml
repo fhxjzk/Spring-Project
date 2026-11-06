@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- namespace는 Mapper 인터페이스의 전체 이름과 같아야 한다 -->
+<mapper namespace="com.project.app.expert.mapper.TalentMapper">
+	<select id="getTalent" parameterType="Long" resultType="ExpertTalentDto">
+		select t.*,
+				c.name as category_name,
+				pc.name as parent_category_name
+			from tbl_talent t
+				inner join tbl_category c on c.category_seq = t.category_seq
+				left join tbl_category pc on pc.category_seq = c.parent_seq
+			where t.talent_seq = #{talentSeq}
+				and t.enabled = 'Y'
+	</select>
+	
+	<select id="getPortfolioList" parameterType="Long" resultType="ExpertPortfolioDto">
+		select p.*,
+				(select count(*) from tbl_portfolio_image pi
+					where pi.portfolio_seq = p.portfolio_seq) as image_count,
+				(select pi.file_name from tbl_portfolio_image pi
+					where pi.portfolio_seq = p.portfolio_seq and pi.slot = 1) as thumbnail
+			from tbl_talent_portfolio tp
+				inner join tbl_portfolio p on p.portfolio_seq = tp.portfolio_seq
+			where tp.talent_seq = #{talentSeq}
+			order by tp.slot
+	</select>
+</mapper>
