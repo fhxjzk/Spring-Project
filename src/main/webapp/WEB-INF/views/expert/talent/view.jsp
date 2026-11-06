@@ -160,8 +160,7 @@
 							<button type="button" class="btn btn-block" disabled>${isOwner ? '수정할 수 없어요' : '요청할 수 없어요'}</button>
 						</c:when>
 						<c:when test="${isOwner}">
-							<%-- TODO: 서비스 등록·수정(②-03) 화면을 만들면 이 주소로 연결한다 --%>
-							<a class="btn btn-primary btn-block" href="#">수정</a>
+							<a class="btn btn-primary btn-block" href="${path}/expert/talent/edit.do?talentSeq=${tdto.talentSeq}">수정</a>
 						</c:when>
 						<c:otherwise>
 							<a class="btn btn-primary btn-block" href="${path}/request/add.do?expertSeq=${tdto.expertSeq}">요청하기</a>

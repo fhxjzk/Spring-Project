@@ -277,7 +277,13 @@
 				</section>
 
 				<section class="card">
-					<h3>제공 서비스</h3>
+					<div class="section-head">
+						<h3>제공 서비스</h3>
+						<%-- 본인 프로필에서만 보인다. 숨김 고수는 등록도 막는다 (서버 add.do 에서도 한 번 더 막는다) --%>
+						<c:if test="${isOwner and not isHidden}">
+							<a class="btn btn-sm" href="${path}/expert/talent/add.do">+ 추가</a>
+						</c:if>
+					</div>
 					<c:choose>
 						<c:when test="${empty talentList}">
 							<p class="message-info small">등록된 서비스가 없어요</p>

@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 
 import com.project.app.expert.mapper.PortfolioMapper;
 import com.project.app.expert.model.ExpertPortfolioDto;
+import com.project.app.expert.model.ExpertTalentDto;
 import com.project.app.expert.model.PortfolioImageDto;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,11 @@ public class PortfolioDao {
 	public List<PortfolioImageDto> getPortfolioImages(Long portfolioSeq) {
 		
 		return portfolioMapper.getPortfolioImages(portfolioSeq);
+	}
+
+	public List<ExpertTalentDto> getLinkedTalentList(Long portfolioSeq) {
+
+		return portfolioMapper.getLinkedTalentList(portfolioSeq);
 	}
 
 	public int addPortfolio(ExpertPortfolioDto dto) {

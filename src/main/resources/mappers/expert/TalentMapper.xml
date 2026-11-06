@@ -6,7 +6,8 @@
 	<select id="getTalent" parameterType="Long" resultType="ExpertTalentDto">
 		select t.*,
 				c.name as category_name,
-				pc.name as parent_category_name
+				pc.name as parent_category_name,
+				c.parent_seq as parent_category_seq
 			from tbl_talent t
 				inner join tbl_category c on c.category_seq = t.category_seq
 				left join tbl_category pc on pc.category_seq = c.parent_seq
@@ -24,5 +25,63 @@
 				inner join tbl_portfolio p on p.portfolio_seq = tp.portfolio_seq
 			where tp.talent_seq = #{talentSeq}
 			order by tp.slot
+	</select>
+
+	<!-- 서비스 INSERT
+	     selectKey: INSERT 전에(BEFORE) 번호를 먼저 뽑아 dto.talentSeq 에 넣는다 → 포트폴리오 연결 INSERT 에 쓴다 -->
+	<insert id="addTalent" parameterType="ExpertTalentDto">
+		<selectKey keyProperty="talentSeq" resultType="Long" order="BEFORE">
+			select seq_talent.nextval from dual
+		</selectKey>
+		insert into tbl_talent (talent_seq, expert_seq, category_seq, title, content, price)
+			values (#{talentSeq}, #{expertSeq}, #{categorySeq}, #{title}, #{content}, #{price})
+	</insert>
+
+	<!-- 서비스에 포트폴리오 연결. slot 은 고른 순서 (1 ~ 3) -->
+	<insert id="addTalentPortfolio">
+		insert into tbl_talent_portfolio (talent_seq, portfolio_seq, slot)
+			values (#{talentSeq}, #{portfolioSeq}, #{slot})
+	</insert>
+
+	<!-- 서비스 UPDATE: expert_seq 까지 조건에 넣어서, 남의 서비스 번호를 보내도 바뀌지 않게 한다 -->
+	<update id="editTalent" parameterType="ExpertTalentDto">
+		update tbl_talent
+			set category_seq = #{categorySeq}, title = #{title}, content = #{content}, price = #{price}
+			where talent_seq = #{talentSeq}
+				and expert_seq = #{expertSeq}
+				and enabled = 'Y'
+	</update>
+
+	<!-- 수정할 때 기존 포트폴리오 연결을 전부 지운다. 고른 순서대로 다시 넣는다 -->
+	<delete id="deleteTalentPortfolios" parameterType="Long">
+		delete from tbl_talent_portfolio
+			where talent_seq = #{talentSeq}
+	</delete>
+
+	<!-- 서비스 삭제: 행을 지우지 않고 enabled 를 N 으로 바꾼다. 조회 쿼리는 enabled = 'Y' 만 가져와서 화면에서 사라진다 -->
+	<update id="deleteTalent" parameterType="ExpertTalentDto">
+		update tbl_talent
+			set enabled = 'N'
+			where talent_seq = #{talentSeq}
+				and expert_seq = #{expertSeq}
+				and enabled = 'Y'
+	</update>
+
+	<!-- 사용 중인 소분류인지 확인 (parent_seq 가 있으면 소분류). 있으면 1, 없으면 0 -->
+	<select id="countSubCategory" parameterType="Long" resultType="int">
+		select count(*) from tbl_category
+			where category_seq = #{categorySeq}
+				and parent_seq is not null
+				and enabled = 'Y'
+	</select>
+
+	<!-- 고른 번호 중 내 포트폴리오가 몇 개인지. 고른 개수와 다르면 남의 번호가 섞인 것이다 -->
+	<select id="countMyPortfolios" resultType="int">
+		select count(*) from tbl_portfolio
+			where expert_seq = #{expertSeq}
+				and portfolio_seq in
+				<foreach collection="portfolioSeqs" item="portfolioSeq" open="(" separator="," close=")">
+					#{portfolioSeq}
+				</foreach>
 	</select>
 </mapper>

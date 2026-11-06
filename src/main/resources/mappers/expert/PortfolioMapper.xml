@@ -15,6 +15,17 @@
 			where portfolio_seq = #{portfolioSeq}
 				order by slot
 	</select>
+
+	<!-- 이 포트폴리오를 연결한 서비스: 삭제한 서비스(enabled='N')는 연결이 남아 있어도 뺀다, 최근 등록 순 -->
+	<select id="getLinkedTalentList" parameterType="Long" resultType="ExpertTalentDto">
+		select t.talent_seq, t.title, t.price
+			from tbl_talent_portfolio tp
+				inner join tbl_talent t on t.talent_seq = tp.talent_seq
+			where tp.portfolio_seq = #{portfolioSeq}
+				and t.enabled = 'Y'
+			order by t.regdate desc
+	</select>
+
 	<!-- 글 INSERT
 	     selectKey: INSERT 전에(BEFORE) 번호를 먼저 뽑아 dto.portfolioSeq 에 넣는다 → 사진 INSERT, redirect 에 쓴다 -->
 	<insert id="addPortfolio" parameterType="ExpertPortfolioDto">
