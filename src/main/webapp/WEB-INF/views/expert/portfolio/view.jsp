@@ -68,6 +68,13 @@
 			line-height: 1.7;
 		}
 
+		/* 연결된 서비스 버튼. 많으면 다음 줄로 넘어간다 */
+		.talent-links {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 8px;
+		}
+
 		.portfolio-buttons {
 			margin-top: 16px;
 			text-align: right;
@@ -132,6 +139,18 @@
 				<%-- 내용에 넣은 태그나 스크립트가 실행되지 않도록(XSS) c:out 으로 이스케이프한다 --%>
 				<p class="portfolio-content"><c:out value="${pdto.content}" /></p>
 			</section>
+
+			<%-- 연결한 서비스가 없으면 이 칸은 통째로 안 보인다 --%>
+			<c:if test="${not empty talentList}">
+				<section class="card">
+					<h3>이 포트폴리오가 연결된 서비스</h3>
+					<div class="talent-links">
+						<c:forEach items="${talentList}" var="talent">
+							<a class="btn" href="${path}/expert/talent/view.do?talentSeq=${talent.talentSeq}"><c:out value="${talent.title}" /> · <fmt:formatNumber value="${talent.price}" pattern="#,###" />원</a>
+						</c:forEach>
+					</div>
+				</section>
+			</c:if>
 
 			<%-- isOwner: 컨트롤러에서 본인 확인 결과를 넘겨야 보인다 --%>
 			<c:if test="${isOwner}">
