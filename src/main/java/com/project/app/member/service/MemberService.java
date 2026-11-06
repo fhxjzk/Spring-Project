@@ -123,7 +123,16 @@ public class MemberService {
 		if (memberDao.countByEmailExceptMe(dto) > 0) {
 			return -2;
 		}
-
+		
+		//새 비밀번호를 입력한 경우에만 검사하고 BCrypt로 변환한다.
+		if (dto.getPw() != null && !dto.getPw().isEmpty()) {
+			
+			if(dto.getPw().length() < 8) {
+				return -4;
+			}
+			
+			dto.setPw(encoder.encode(dto.getPw()));
+		}
 		return memberDao.edit(dto);
 	}
 }

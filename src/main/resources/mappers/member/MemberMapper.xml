@@ -90,6 +90,9 @@
 				address = #{address},
 				latitude = #{latitude},
 				longitude = #{longitude},
+				<if test="pw != null and pw != ''">
+					pw = #{pw},
+				</if>
 				moddate = sysdate
 			where member_seq = #{memberSeq}
 	</update>

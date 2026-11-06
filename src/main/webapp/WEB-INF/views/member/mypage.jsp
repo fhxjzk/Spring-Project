@@ -7,6 +7,10 @@
 	<meta charset="UTF-8">
 	<%@ include file="/WEB-INF/views/inc/asset.jsp" %>
 	<style>
+	
+		body {
+			background-color: var(--color-bg-light);
+		}
 		.table-card {
 			overflow-x: auto;
 		}
@@ -31,6 +35,7 @@
 		.address-guide {
 			margin-top: 6px;
 			font-size: 14px;
+			color: var(--color-text-light);
 		}
 
 		.btn-area {
@@ -94,7 +99,6 @@
 					<label for="email">이메일</label>
 					<input type="email" id="email" name="email" value="<c:out value='${member.email}' />" required maxlength="100">
 				</div>
-
 				<div class="form-group">
 					<label for="address">활동지역/주소</label>
 
@@ -107,14 +111,14 @@
 							   maxlength="100">
 
 						<button type="button"
-								class="btn btn-primary"
+								class="btn"
 								id="btnAddress">
 							주소 변경
 						</button>
 					</div>
 
 					<p id="addressStatus" class="address-guide" role="status">
-						주소를 변경하지 않으면 기존 위치가 유지됩니다.
+						주소 변경을 누르면 주소 검색 창이 열립니다. 선택한 주소와 위치는 정보 수정을 누르면 함께 저장됩니다.
 					</p>
 
 					<%-- 주소를 변경하지 않아도 기존 좌표를 전송한다 --%>
@@ -127,6 +131,17 @@
 						   id="longitude"
 						   name="longitude"
 						   value="<c:out value='${member.longitude}' />">
+				</div>
+
+				<div class="form-group">
+					<label for="pw">비밀번호 변경 (선택 입력)</label>
+					
+					<input type="password"
+						id="pw"
+						name="pw"
+						minlength="8"
+						autocomplete="new-password">
+						
 				</div>
 
 				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
