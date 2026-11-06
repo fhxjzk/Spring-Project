@@ -13,6 +13,26 @@
 		.table td, .table th {
 			white-space: nowrap;
 		}
+		.address-row {
+			display: flex;
+			gap: 8px;
+		}
+
+		.address-row input {
+			flex: 1;
+			min-width: 0;
+		}
+
+		.address-row .btn {
+			height: 44px;
+			flex-shrink: 0;
+		}
+
+		.address-guide {
+			margin-top: 6px;
+			font-size: 14px;
+		}
+
 		.btn-area {
 			margin-top: 16px;
 		}
@@ -25,7 +45,7 @@
 	<main class="container">
 		<%-- 정보 수정 후 결과 문구 --%>
 		<c:if test="${not empty msg}">
-			<p class="message-info">${msg}</p>
+			<p class="message-info"><c:out value="${msg}" /></p>
 		</c:if>
 
 		<div class="card table-card">
@@ -48,7 +68,7 @@
 						<td><c:out value="${member.name}" /></td>
 						<td><c:out value="${member.email}" /></td>
 						<td><c:out value="${member.address}" default="-" /></td>
-						<td>${member.regdate}</td>
+						<td><c:out value="${member.regdate}" /></td>
 						<td>
 							<c:choose>
 								<c:when test="${member.role eq 'ROLE_ADMIN'}"><span class="badge badge-danger">관리자</span></c:when>
@@ -75,13 +95,148 @@
 					<input type="email" id="email" name="email" value="<c:out value='${member.email}' />" required maxlength="100">
 				</div>
 
+				<div class="form-group">
+					<label for="address">활동지역/주소</label>
+
+					<div class="address-row">
+						<input type="text"
+							   id="address"
+							   name="address"
+							   value="<c:out value='${member.address}' />"
+							   readonly
+							   maxlength="100">
+
+						<button type="button"
+								class="btn btn-primary"
+								id="btnAddress">
+							주소 변경
+						</button>
+					</div>
+
+					<p id="addressStatus" class="address-guide" role="status">
+						주소를 변경하지 않으면 기존 위치가 유지됩니다.
+					</p>
+
+					<%-- 주소를 변경하지 않아도 기존 좌표를 전송한다 --%>
+					<input type="hidden"
+						   id="latitude"
+						   name="latitude"
+						   value="<c:out value='${member.latitude}' />">
+
+					<input type="hidden"
+						   id="longitude"
+						   name="longitude"
+						   value="<c:out value='${member.longitude}' />">
+				</div>
+
 				<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
 			</form>
 		</div>
 
 		<div class="btn-area">
-			<button class="btn btn-primary" form="editForm">정보 수정</button>
+			<button type="submit" class="btn btn-primary" form="editForm">정보 수정</button>
 		</div>
 	</main>
+
+	<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+
+	<c:if test="${not empty kakaoJsKey}">
+		<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoJsKey}&amp;libraries=services"></script>
+	</c:if>
+
+	<script>
+		//주소 변경 버튼 → 주소 검색 창
+		$('#btnAddress').on('click', function() {
+
+			if (typeof daum === 'undefined'
+					|| typeof kakao === 'undefined'
+					|| !kakao.maps
+					|| !kakao.maps.services) {
+
+				$('#addressStatus')
+					.text('주소 검색을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.')
+					.css('color', 'var(--color-danger)');
+
+				return;
+			}
+
+			new daum.Postcode({
+				oncomplete: function(data) {
+
+					const address = data.roadAddress || data.jibunAddress;
+
+					$('#address').val(address);
+					setCoords(address);
+				}
+			}).open();
+		});
+
+		//주소 → 위도·경도
+		function setCoords(address) {
+
+			//새 주소의 좌표를 확인하기 전에 기존 좌표를 비운다
+			$('#latitude, #longitude').val('');
+
+			$('#addressStatus')
+				.text('위치를 확인하고 있습니다.')
+				.css('color', 'var(--color-primary)');
+
+			const geocoder = new kakao.maps.services.Geocoder();
+
+			geocoder.addressSearch(address, function(result, status) {
+
+				//그사이 다른 주소를 선택했다면 이전 응답은 반영하지 않는다
+				if ($('#address').val() !== address) {
+					return;
+				}
+
+				if (status === kakao.maps.services.Status.OK
+						&& result.length > 0) {
+
+					//y: 위도, x: 경도
+					$('#latitude').val(result[0].y);
+					$('#longitude').val(result[0].x);
+
+					$('#addressStatus')
+						.text('위치가 확인되었습니다.')
+						.css('color', 'var(--color-secondary)');
+
+				} else {
+
+					$('#address').val('');
+					$('#latitude, #longitude').val('');
+
+					$('#addressStatus')
+						.text('위치를 찾지 못했습니다. 주소를 다시 선택해 주세요.')
+						.css('color', 'var(--color-danger)');
+				}
+			});
+		}
+		
+		//입력칸의 Enter로 폼이 제출되는 것을 막는다
+		$('#editForm').on('keydown', 'input', function(e) {
+
+			//한글 입력 중 조합을 완료하는 Enter는 방해하지 않는다
+			if (e.originalEvent && e.originalEvent.isComposing) {
+				return;
+			}
+
+			if (e.key === 'Enter') {
+				e.preventDefault();
+			}
+		});
+		
+		//주소와 좌표가 확인돼야 수정 요청을 보낸다
+		$('#editForm').on('submit', function(e) {
+
+			if (!$('#address').val().trim()
+					|| !$('#latitude').val()
+					|| !$('#longitude').val()) {
+
+				e.preventDefault();
+				alert('주소 검색으로 위치를 확인해 주세요.');
+			}
+		});
+	</script>
 </body>
 </html>

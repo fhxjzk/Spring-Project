@@ -52,13 +52,20 @@ public class MemberController {
 	}
 	
 	//마이페이지. 회원 번호는 로그인 정보에서 꺼내서 본인 정보만 보여준다
+	//마이페이지. 고객·고수의 본인 정보만 보여준다
 	@GetMapping(value = "/mypage.do")
 	public String mypage(Model model, Authentication auth) {
-		
-		Long memberSeq = ((CustomUser) auth.getPrincipal()).getMemberSeq();
-		
-		model.addAttribute("member", memberService.getBySeq(memberSeq));
-		
+
+		CustomUser user = (CustomUser) auth.getPrincipal();
+
+		//관리자는 관리자 홈으로 보낸다
+		if ("ROLE_ADMIN".equals(user.getDto().getRole())) {
+			return "redirect:/admin/index.do";
+		}
+
+		model.addAttribute("member", memberService.getBySeq(user.getMemberSeq()));
+		model.addAttribute("kakaoJsKey", kakaoJsKey);
+
 		return "member/mypage";
 	}
 
@@ -67,7 +74,11 @@ public class MemberController {
 	public String mypageok(RedirectAttributes rttr, Authentication auth, MemberDto dto) {
 
 		CustomUser user = (CustomUser) auth.getPrincipal();
-
+		
+		if ("ROLE_ADMIN".equals(user.getDto().getRole())) {
+		    return "redirect:/admin/index.do";
+		}
+		
 		dto.setMemberSeq(user.getMemberSeq());
 
 		int result = memberService.edit(dto);
@@ -93,7 +104,11 @@ public class MemberController {
 		if (result == -2) {
 			return "이미 사용 중인 이메일입니다.";
 		}
-
+		
+		if (result == -3) {
+			return "주소 검색으로 위치를 다시 확인해 주세요.";
+		}
+		
 		if (result == -4) {
 			return "입력한 값을 다시 확인해 주세요.";
 		}

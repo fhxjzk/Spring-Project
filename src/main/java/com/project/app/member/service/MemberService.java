@@ -98,17 +98,27 @@ public class MemberService {
 	//@return 1: 성공, 0: 실패, -2: 이메일 중복, -4: 입력값 오류
 	public int edit(MemberDto dto) {
 
-		//이름, 이메일은 필수 항목이다
+		//이름, 이메일, 주소는 필수 항목이다
 		if (dto.getName() == null || dto.getName().isBlank()
-				|| dto.getEmail() == null || dto.getEmail().isBlank()) {
+				|| dto.getEmail() == null || dto.getEmail().isBlank()
+				|| dto.getAddress() == null || dto.getAddress().isBlank()) {
 			return -4;
 		}
 
-		//DB 칸 크기를 넘는 값을 막는다 (한글은 1글자에 3바이트)
-		if (dto.getName().length() > 16 || dto.getEmail().length() > 100) {
+		//DB 칸 크기를 넘는 값을 막는다
+		if (dto.getName().length() > 16
+				|| dto.getEmail().length() > 100
+				|| dto.getAddress().length() > 100) {
 			return -4;
 		}
-
+		
+		//좌표 필수 여부와 유효 범위를 확인한다
+		if (dto.getLatitude() == null || dto.getLongitude() == null
+				|| !(dto.getLatitude() >= -90 && dto.getLatitude() <= 90)
+				|| !(dto.getLongitude() >= -180 && dto.getLongitude() <= 180)) {
+			return -3;
+		}
+		
 		//내 이메일은 빼고 중복을 확인한다
 		if (memberDao.countByEmailExceptMe(dto) > 0) {
 			return -2;
