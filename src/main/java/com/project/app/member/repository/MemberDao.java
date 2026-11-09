@@ -56,4 +56,33 @@ public class MemberDao {
 		
 		return memberMapper.updateEnabled(map);
 	}
+	
+	public int countByEmailExceptMe(MemberDto dto) {
+		
+		return memberMapper.countByEmailExceptMe(dto);
+	}
+	
+	public int edit(MemberDto dto) {
+		
+		return memberMapper.edit(dto);
+	}
+	public int countActiveRequest(Long memberSeq) {
+
+		return memberMapper.countActiveRequest(memberSeq);
+	}
+
+	public int countWaitingQuote(Long memberSeq) {
+
+		return memberMapper.countWaitingQuote(memberSeq);
+	}
+
+	public int countDesignatedRequest(Long memberSeq) {
+
+		return memberMapper.countDesignatedRequest(memberSeq);
+	}
+
+	public int withdraw(Long memberSeq) {
+
+		return memberMapper.withdraw(memberSeq);
+	}
 }

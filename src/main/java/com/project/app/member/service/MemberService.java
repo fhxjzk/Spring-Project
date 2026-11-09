@@ -1,9 +1,11 @@
 package com.project.app.member.service;
+import java.util.ArrayList;
 import java.util.List;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.project.app.member.model.MemberDto;
+import com.project.app.trade.service.TradeService;
 import com.project.app.member.repository.MemberDao;
 
 import lombok.RequiredArgsConstructor;
@@ -11,8 +13,9 @@ import lombok.RequiredArgsConstructor;
 @Service
 @RequiredArgsConstructor
 public class MemberService {
-
+	
 	private final MemberDao memberDao;
+	private final TradeService tradeService;
 	private final BCryptPasswordEncoder encoder;
 
 	/**
@@ -92,5 +95,107 @@ public class MemberService {
 		}
 		
 		return memberDao.updateEnabled(memberSeq, enabled);
+	}
+
+	//마이페이지 정보 수정 (B-02-a)
+	//@return 1: 성공, 0: 실패, -2: 이메일 중복, -4: 입력값 오류
+	public int edit(MemberDto dto) {
+
+		//이름, 이메일, 주소는 필수 항목이다
+		if (dto.getName() == null || dto.getName().isBlank()
+				|| dto.getEmail() == null || dto.getEmail().isBlank()
+				|| dto.getAddress() == null || dto.getAddress().isBlank()) {
+			return -4;
+		}
+
+		//DB 칸 크기를 넘는 값을 막는다
+		if (dto.getName().length() > 16
+				|| dto.getEmail().length() > 100
+				|| dto.getAddress().length() > 100) {
+			return -4;
+		}
+		
+		//좌표 필수 여부와 유효 범위를 확인한다
+		if (dto.getLatitude() == null || dto.getLongitude() == null
+				|| !(dto.getLatitude() >= -90 && dto.getLatitude() <= 90)
+				|| !(dto.getLongitude() >= -180 && dto.getLongitude() <= 180)) {
+			return -3;
+		}
+		
+		//내 이메일은 빼고 중복을 확인한다
+		if (memberDao.countByEmailExceptMe(dto) > 0) {
+			return -2;
+		}
+		
+		//새 비밀번호를 입력한 경우에만 검사하고 BCrypt로 변환한다.
+		if (dto.getPw() != null && !dto.getPw().isEmpty()) {
+			
+			if(dto.getPw().length() < 8) {
+				return -4;
+			}
+			
+			dto.setPw(encoder.encode(dto.getPw()));
+		}
+		return memberDao.edit(dto);
+	}
+
+	//탈퇴를 막는 항목 (B-02-b). 비어 있으면 탈퇴할 수 있다
+	public List<String> getWithdrawBlocks(Long memberSeq, String role) {
+
+		List<String> blocks = new ArrayList<>();
+
+		if ("ROLE_CUSTOMER".equals(role)) {
+
+			int count = memberDao.countActiveRequest(memberSeq);
+
+			if (count > 0) {
+				blocks.add("모집 중이거나 견적이 마감된 요청서 " + count + "건");
+			}
+		}
+
+		if ("ROLE_EXPERT".equals(role)) {
+
+			int waiting = memberDao.countWaitingQuote(memberSeq);
+			int designated = memberDao.countDesignatedRequest(memberSeq);
+
+			if (waiting > 0) {
+				blocks.add("대기 중인 견적 " + waiting + "건");
+			}
+
+			if (designated > 0) {
+				blocks.add("응답하지 않은 지정 요청 " + designated + "건");
+			}
+		}
+
+		if (tradeService.hasOngoingTrade(memberSeq)) {
+			blocks.add("구매 확정 또는 취소로 끝나지 않은 거래");
+		}
+
+		return blocks;
+	}
+
+	/**
+	 * 회원 탈퇴 (B-02-b)
+	 * @return 1: 성공, 0: 실패, -1: 비밀번호 불일치, -2: 탈퇴 제한 항목 있음
+	 */
+	public int withdraw(String id, String pw) {
+
+		MemberDto member = memberDao.getById(id);
+
+		//없는 회원, 이미 중지·탈퇴한 회원, 관리자는 탈퇴할 수 없다
+		if (member == null || !"Y".equals(member.getEnabled()) || "ROLE_ADMIN".equals(member.getRole())) {
+			return 0;
+		}
+
+		if (pw == null || !encoder.matches(pw, member.getPw())) {
+			return -1;
+		}
+
+		//화면을 거치지 않은 요청도 막도록 처리 직전에 다시 확인한다
+		if (!getWithdrawBlocks(member.getMemberSeq(), member.getRole()).isEmpty()) {
+			return -2;
+		}
+
+		return memberDao.withdraw(member.getMemberSeq());
 	}
 }

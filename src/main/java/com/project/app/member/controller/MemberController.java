@@ -1,12 +1,19 @@
 package com.project.app.member.controller;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.project.app.auth.CustomUser;
 import com.project.app.member.model.MemberDto;
 import com.project.app.member.service.MemberService;
 
@@ -47,5 +54,101 @@ public class MemberController {
 
 		return "member/addok";
 	}
+	
+	//마이페이지. 회원 번호는 로그인 정보에서 꺼내서 본인 정보만 보여준다
+	//마이페이지. 고객·고수의 본인 정보만 보여준다
+	@GetMapping(value = "/mypage.do")
+	public String mypage(Model model, Authentication auth) {
 
+		CustomUser user = (CustomUser) auth.getPrincipal();
+
+		//관리자는 관리자 홈으로 보낸다
+		if ("ROLE_ADMIN".equals(user.getDto().getRole())) {
+			return "redirect:/admin/index.do";
+		}
+
+		model.addAttribute("member", memberService.getBySeq(user.getMemberSeq()));
+		model.addAttribute("kakaoJsKey", kakaoJsKey);
+
+		return "member/mypage";
+	}
+
+	//마이페이지 정보 수정. 회원 번호는 폼 값이 아니라 로그인 정보로 정한다
+	@PostMapping(value = "/mypageok.do")
+	public String mypageok(RedirectAttributes rttr, Authentication auth, MemberDto dto) {
+
+		CustomUser user = (CustomUser) auth.getPrincipal();
+		
+		if ("ROLE_ADMIN".equals(user.getDto().getRole())) {
+		    return "redirect:/admin/index.do";
+		}
+		
+		dto.setMemberSeq(user.getMemberSeq());
+
+		int result = memberService.edit(dto);
+
+		//헤더는 세션의 로그인 정보를 보여주므로 같이 바꾼다
+		if (result > 0) {
+			user.getDto().setName(dto.getName());
+			user.getDto().setEmail(dto.getEmail());
+		}
+
+		rttr.addFlashAttribute("msg", getEditMessage(result));
+
+		return "redirect:/member/mypage.do";
+	}
+
+	//MemberService.edit() 가 돌려준 숫자를 화면에 보여줄 말로 바꾼다
+	private String getEditMessage(int result) {
+
+		if (result > 0) {
+			return "정보를 수정했습니다.";
+		}
+
+		if (result == -2) {
+			return "이미 사용 중인 이메일입니다.";
+		}
+		
+		if (result == -3) {
+			return "주소 검색으로 위치를 다시 확인해 주세요.";
+		}
+		
+		if (result == -4) {
+			return "입력한 값을 다시 확인해 주세요.";
+		}
+
+		return "수정하지 못했습니다.";
+	}
+
+	//회원 탈퇴 확인 화면 (①-04). 탈퇴를 막는 항목이 있으면 함께 보여준다
+	@GetMapping(value = "/withdraw.do")
+	public String withdraw(Model model, Authentication auth) {
+
+		CustomUser user = (CustomUser) auth.getPrincipal();
+
+		if ("ROLE_ADMIN".equals(user.getDto().getRole())) {
+			return "redirect:/admin/index.do";
+		}
+
+		model.addAttribute("blocks", memberService.getWithdrawBlocks(user.getMemberSeq(), user.getDto().getRole()));
+
+		return "member/withdraw";
+	}
+
+	//회원 탈퇴 처리. 성공하면 바로 로그아웃한다
+	@PostMapping(value = "/withdrawok.do")
+	public String withdrawok(Model model, Authentication auth,
+			HttpServletRequest req, HttpServletResponse resp,
+			@RequestParam(value = "pw") String pw) {
+
+		int result = memberService.withdraw(auth.getName(), pw);
+
+		if (result > 0) {
+			new SecurityContextLogoutHandler().logout(req, resp, auth);
+		}
+
+		model.addAttribute("result", result);
+
+		return "member/withdrawok";
+	}
 }
