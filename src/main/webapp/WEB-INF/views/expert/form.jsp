@@ -155,27 +155,30 @@
 		<h3>경력</h3>
 
 		<div id="careerBox">
-			<%-- 수정 화면: 저장된 경력을 한 줄씩 채워서 보여 준다 --%>
-			<c:forEach items="${careerList}" var="career">
+			<%-- 수정 화면: 저장된 경력을 한 줄씩 채워서 보여 준다
+			     name 을 처음부터 careerList[0].title 처럼 붙여 둔다.
+			     예전에는 저장할 때 자바스크립트로만 name 을 붙였는데, 스크립트가 중간에 멈추면 name 없이 전송되어
+			     서버가 "경력 0개"로 알고 기존 경력을 전부 지우는 문제가 있었다 --%>
+			<c:forEach items="${careerList}" var="career" varStatus="status">
 				<div class="career-row">
 					<div class="career-grid">
 						<div>
 							<label>활동/회사명</label>
-							<input type="text" class="career-title" maxlength="100" value="<c:out value='${career.title}' />">
+							<input type="text" class="career-title" name="careerList[${status.index}].title" maxlength="100" value="<c:out value='${career.title}' />">
 						</div>
 						<div>
 							<label>시작</label>
 							<%-- input type="month" 는 2023-01 형식만 받는다. MM 은 대문자 (소문자 mm 은 분) --%>
-							<input type="month" class="career-start" value="<fmt:formatDate value='${career.startDate}' pattern='yyyy-MM' />">
+							<input type="month" class="career-start" name="careerList[${status.index}].startDate" value="<fmt:formatDate value='${career.startDate}' pattern='yyyy-MM' />">
 						</div>
 						<div>
 							<label>종료 (비우면 진행 중)</label>
-							<input type="month" class="career-end" value="<fmt:formatDate value='${career.endDate}' pattern='yyyy-MM' />">
+							<input type="month" class="career-end" name="careerList[${status.index}].endDate" value="<fmt:formatDate value='${career.endDate}' pattern='yyyy-MM' />">
 						</div>
 					</div>
 					<div class="form-group" style="margin: 10px 0 0;">
 						<label>설명</label>
-						<textarea class="career-desc" rows="2" maxlength="1000"><c:out value="${career.description}" /></textarea>
+						<textarea class="career-desc" name="careerList[${status.index}].description" rows="2" maxlength="1000"><c:out value="${career.description}" /></textarea>
 					</div>
 					<div class="career-foot">
 						<button type="button" class="btn btn-sm career-del">이 경력 삭제</button>
@@ -294,6 +297,24 @@
 			$('#careerBox').append($('#careerTemplate').html());
 		}
 
+		//줄을 넣거나 지울 때마다 남은 줄에 0부터 번호를 다시 붙인다 (careerList[0].title ...)
+		//번호가 비거나 겹치면 서버에서 경력이 섞이기 때문이다. 저장할 때도 한 번 더 붙인다
+		function renumberCareers() {
+
+			$('#careerBox .career-row').each(function (index) {
+				const prefix = 'careerList[' + index + '].';
+				$(this).find('.career-title').attr('name', prefix + 'title');
+				$(this).find('.career-start').attr('name', prefix + 'startDate');
+				$(this).find('.career-end').attr('name', prefix + 'endDate');
+				$(this).find('.career-desc').attr('name', prefix + 'description');
+			});
+		}
+
+		$('#btnCareerAdd, #careerBox').on('click', renumberCareers);
+		renumberCareers();
+	</script>
+
+	<script>
 		//===== 주소 =====
 
 		//[주소 검색] → 다음 우편번호 팝업 (회원가입과 같은 방식)
@@ -354,11 +375,20 @@
 		}
 
 		//수정 화면: 저장된 위치를 처음부터 지도에 보여 준다
+		//지도 오류(카카오 키, 네트워크 등)가 나도 다른 기능은 그대로 돌도록 try 로 감싼다
 		if ($('#serviceLatitude').val() && $('#serviceLongitude').val()) {
-			showMap($('#serviceLatitude').val(), $('#serviceLongitude').val());
+			try {
+				showMap($('#serviceLatitude').val(), $('#serviceLongitude').val());
+			} catch (err) {
+				$('#map').text('지도를 불러오지 못했어요. 위치 정보는 그대로 저장됩니다.');
+			}
 		}
+	</script>
 
+	<script>
 		//===== 저장 =====
+		//지도 스크립트와 따로 둔다. 같은 script 안에서 앞부분에 오류가 나면 이 아래가 실행되지 않아서
+		//저장 확인과 경력 번호 붙이기가 빠지기 때문이다
 
 		//한글은 3바이트라서 DB 컬럼 크기(바이트)와 맞춰 본다
 		function byteLength(value) {
