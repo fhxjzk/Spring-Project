@@ -27,6 +27,14 @@
 			background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg));
 		}
 
+		/* 프로필 사진이 있으면 칸을 꽉 채우고, 없거나 파일이 없으면(onerror) 배경색만 남긴다 */
+		.expert-photo img {
+			display: block;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
 		.expert-side-body {
 			padding: 18px;
 		}
@@ -177,7 +185,11 @@
 
 			<!-- 왼쪽: 프로필 요약 -->
 			<aside class="card expert-side">
-				<div class="expert-photo"></div>
+				<div class="expert-photo">
+					<c:if test="${not empty edto.profileImage}">
+						<img src="${path}/resources/upload/profile/<c:out value='${edto.profileImage}' />" alt="" onerror="this.remove()">
+					</c:if>
+				</div>
 
 				<div class="expert-side-body">
 
@@ -213,8 +225,9 @@
 						<c:when test="${isHidden}">
 							<button type="button" class="btn btn-block" disabled>${isOwner ? '수정할 수 없어요' : '요청할 수 없어요'}</button>
 						</c:when>
+						<%-- 본인이면 요청하기 대신 프로필 수정(②-02). 내 프로필만 고치므로 번호를 넘기지 않는다 --%>
 						<c:when test="${isOwner}">
-							<a class="btn btn-primary btn-block" href="#">수정하기</a>
+							<a class="btn btn-primary btn-block" href="${path}/expert/edit.do">프로필 수정</a>
 						</c:when>
 						<c:otherwise>
 							<a class="btn btn-primary btn-block" href="${path}/request/add.do?expertSeq=${edto.expertSeq}">요청하기</a>
@@ -285,6 +298,10 @@
 						</c:if>
 					</div>
 					<c:choose>
+						<%-- 본인에게는 서비스가 있어야 견적을 받을 수 있다고 알려 준다 (서비스 카테고리가 받는 요청서의 기준, D-02) --%>
+						<c:when test="${empty talentList and isOwner}">
+							<p class="message-info small">서비스를 등록해야 견적을 받을 수 있어요</p>
+						</c:when>
 						<c:when test="${empty talentList}">
 							<p class="message-info small">등록된 서비스가 없어요</p>
 						</c:when>

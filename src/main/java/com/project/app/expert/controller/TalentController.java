@@ -166,7 +166,8 @@ public class TalentController {
 	}
 
 	// 삭제 처리  POST /expert/talent/delok.do
-	// 확인 창은 목록의 confirm 으로 띄워서 del.do 화면은 따로 없다
+	// 확인 창은 목록, 서비스 상세의 confirm 으로 띄워서 del.do 화면은 따로 없다
+	// 삭제 후에는 내 고수 상세로 돌아간다 (화면설계서 ②-10). 서비스 등록 화면의 표에서 지워도 같다
 	@PostMapping(value="/delok.do")
 	public String delok(@RequestParam("talentSeq") Long talentSeq, Authentication auth) {
 
@@ -180,7 +181,7 @@ public class TalentController {
 
 		talentService.delete(tdto);
 
-		return "redirect:/expert/talent/add.do";
+		return "redirect:/expert/view.do?expertSeq=" + memberSeq;
 	}
 
 	//등록, 수정 화면이 같이 쓰는 값: 대분류 셀렉트박스, 고를 수 있는 내 포트폴리오 카드

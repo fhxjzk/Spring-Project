@@ -28,7 +28,9 @@
 	</select>
 
 	<!-- 제공 서비스: 사용 중(enabled='Y')인 것만, 최근 등록 순 -->
-	<!-- 대표 사진 = 1번으로 연결한 포트폴리오의 1번 사진 -->
+	<!-- 대표 사진 = 연결한 포트폴리오 중 순서(slot)가 가장 앞인 것의 1번 사진
+	     tp.slot = 1 로 고정하면, 1번 포트폴리오를 지웠을 때(연결도 CASCADE 로 같이 지워짐)
+	     2번 포트폴리오가 남아 있어도 사진이 사라진다 -->
 	<select id="getTalentList" parameterType="Long" resultType="ExpertTalentDto">
 		select t.*,
 				c.name as category_name,
@@ -37,7 +39,9 @@
 					where tp.talent_seq = t.talent_seq) as portfolio_count,
 				(select pi.file_name from tbl_talent_portfolio tp
 					inner join tbl_portfolio_image pi on pi.portfolio_seq = tp.portfolio_seq
-					where tp.talent_seq = t.talent_seq and tp.slot = 1 and pi.slot = 1) as thumbnail
+					where tp.talent_seq = t.talent_seq and pi.slot = 1
+					order by tp.slot
+					fetch first 1 rows only) as thumbnail
 			from tbl_talent t
 				inner join tbl_category c on c.category_seq = t.category_seq
 				left join tbl_category pc on pc.category_seq = c.parent_seq
@@ -72,5 +76,41 @@
 			order by average_rating desc nulls last, review_count desc
 			fetch first 4 rows only
 	</select>
+
+	<!-- ===== 프로필 작성·수정 (②-02) ===== -->
+
+	<!-- 프로필 INSERT. 프로필 번호 = 회원 번호라서 시퀀스를 쓰지 않는다
+	     regdate, hidden 은 DEFAULT 값(sysdate, 'N')이 들어간다 -->
+	<insert id="addProfile" parameterType="ExpertProfileDto">
+		insert into tbl_expert_profile (expert_seq, intro, service_address, service_latitude, service_longitude, profile_image)
+			values (#{expertSeq}, #{intro}, #{serviceAddress}, #{serviceLatitude}, #{serviceLongitude}, #{profileImage})
+	</insert>
+
+	<!-- 프로필 UPDATE
+	     사진은 새로 올렸을 때만(profileImage 가 null 이 아닐 때만) 바꾼다. 안 올렸으면 기존 사진을 그대로 둔다
+	     hidden 은 관리자 신고 처리 값이라 여기서 바꾸지 않는다 -->
+	<update id="editProfile" parameterType="ExpertProfileDto">
+		update tbl_expert_profile
+			set intro = #{intro},
+				service_address = #{serviceAddress},
+				service_latitude = #{serviceLatitude},
+				service_longitude = #{serviceLongitude}
+				<if test="profileImage != null">
+				, profile_image = #{profileImage}
+				</if>
+			where expert_seq = #{expertSeq}
+	</update>
+
+	<!-- 경력 한 줄 INSERT -->
+	<insert id="addCareer" parameterType="ExpertCareerDto">
+		insert into tbl_expert_career (career_seq, expert_seq, title, start_date, end_date, description)
+			values (seq_career.nextval, #{expertSeq}, #{title}, #{startDate}, #{endDate}, #{description})
+	</insert>
+
+	<!-- 수정할 때 기존 경력을 전부 지우고 화면에 있는 줄을 다시 넣는다 -->
+	<delete id="deleteCareers" parameterType="Long">
+		delete from tbl_expert_career
+			where expert_seq = #{expertSeq}
+	</delete>
 
 </mapper>
