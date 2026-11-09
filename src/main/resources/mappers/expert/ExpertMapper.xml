@@ -28,7 +28,9 @@
 	</select>
 
 	<!-- 제공 서비스: 사용 중(enabled='Y')인 것만, 최근 등록 순 -->
-	<!-- 대표 사진 = 1번으로 연결한 포트폴리오의 1번 사진 -->
+	<!-- 대표 사진 = 연결한 포트폴리오 중 순서(slot)가 가장 앞인 것의 1번 사진
+	     tp.slot = 1 로 고정하면, 1번 포트폴리오를 지웠을 때(연결도 CASCADE 로 같이 지워짐)
+	     2번 포트폴리오가 남아 있어도 사진이 사라진다 -->
 	<select id="getTalentList" parameterType="Long" resultType="ExpertTalentDto">
 		select t.*,
 				c.name as category_name,
@@ -37,7 +39,9 @@
 					where tp.talent_seq = t.talent_seq) as portfolio_count,
 				(select pi.file_name from tbl_talent_portfolio tp
 					inner join tbl_portfolio_image pi on pi.portfolio_seq = tp.portfolio_seq
-					where tp.talent_seq = t.talent_seq and tp.slot = 1 and pi.slot = 1) as thumbnail
+					where tp.talent_seq = t.talent_seq and pi.slot = 1
+					order by tp.slot
+					fetch first 1 rows only) as thumbnail
 			from tbl_talent t
 				inner join tbl_category c on c.category_seq = t.category_seq
 				left join tbl_category pc on pc.category_seq = c.parent_seq
