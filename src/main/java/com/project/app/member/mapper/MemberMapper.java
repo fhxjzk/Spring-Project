@@ -30,4 +30,12 @@ public interface MemberMapper {
 	int countByEmailExceptMe(MemberDto dto);
 
 	int edit(MemberDto dto);
+
+	int countActiveRequest(Long memberSeq);
+
+	int countWaitingQuote(Long memberSeq);
+
+	int countDesignatedRequest(Long memberSeq);
+
+	int withdraw(Long memberSeq);
 }

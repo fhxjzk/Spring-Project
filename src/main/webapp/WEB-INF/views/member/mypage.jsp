@@ -39,7 +39,13 @@
 		}
 
 		.btn-area {
+			display: flex;
+			gap: 8px;
 			margin-top: 16px;
+		}
+		.btn-stop {
+			color: var(--color-danger);
+			border-color: var(--color-danger);
 		}
 	</style>
 </head>
@@ -150,6 +156,7 @@
 
 		<div class="btn-area">
 			<button type="submit" class="btn btn-primary" form="editForm">정보 수정</button>
+			<a class="btn btn-stop" href="${path}/member/withdraw.do">회원 탈퇴</a>
 		</div>
 	</main>
 
@@ -213,7 +220,7 @@
 					$('#longitude').val(result[0].x);
 
 					$('#addressStatus')
-						.text('위치가 확인되었습니다.')
+						.text('✓ 위치가 확인되었습니다.')
 						.css('color', 'var(--color-secondary)');
 
 				} else {

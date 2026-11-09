@@ -96,4 +96,35 @@
 				moddate = sysdate
 			where member_seq = #{memberSeq}
 	</update>
+	
+	<!-- 탈퇴 제한 (B-02-b): 고객의 모집 중·견적 마감 요청서 수 -->
+	<select id="countActiveRequest" parameterType="Long" resultType="int">
+		select count(*) from tbl_request
+			where customer_seq = #{memberSeq}
+				and status in ('OPEN', 'CLOSED')
+	</select>
+	
+	<!-- 탈퇴 제한 (B-02-b): 고수의 대기 중인 견적 수 -->
+	<select id="countWaitingQuote" parameterType="Long" resultType="int">
+		select count(*) from tbl_quote
+			where expert_seq = #{memberSeq}
+				and status = 'WAITING'
+	</select>
+	
+	<!-- 탈퇴 제한 (B-02-b): 고수가 응답하지 않은 지정 요청 수 (견적을 보내거나 거절하면 OPEN이 아니게 된다) -->
+	<select id="countDesignatedRequest" parameterType="Long" resultType="int">
+		select count(*) from tbl_request
+			where expert_seq = #{memberSeq}
+				and status = 'OPEN'
+	</select>
+	
+	<!-- 회원 탈퇴 (B-02-b): 지우지 않고 탈퇴 상태로 바꾼다 -->
+	<update id="withdraw" parameterType="Long">
+		update tbl_member
+			set enabled = 'N',
+				withdraw_date = sysdate,
+				moddate = sysdate
+			where member_seq = #{memberSeq}
+				and withdraw_date is null
+	</update>
 </mapper>
