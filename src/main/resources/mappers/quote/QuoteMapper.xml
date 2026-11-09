@@ -51,12 +51,13 @@
 								and r.category_seq in (select category_seq from tbl_talent where expert_seq = #{expertSeq} and enabled = 'Y')))
 	</select>
 
-	<!-- 이 요청서에 내가 보낸 견적. 없으면 null -->
+	<!-- 이 요청서에 내가 보낸 견적. 없으면 null. trade_seq: 고객이 이 견적으로 결제한 거래 번호 (④ tbl_trade, 없으면 null) -->
 	<select id="getMyQuote" parameterType="hashmap" resultType="QuoteDto">
-		select quote_seq, request_seq, expert_seq, price, work_days, content, status,
-				to_char(regdate, 'YYYY-MM-DD HH24:MI') as regdate
-			from tbl_quote
-				where request_seq = #{requestSeq} and expert_seq = #{expertSeq}
+		select q.quote_seq, q.request_seq, q.expert_seq, q.price, q.work_days, q.content, q.status,
+				to_char(q.regdate, 'YYYY-MM-DD HH24:MI') as regdate,
+				(select max(t.trade_seq) from tbl_trade t where t.quote_seq = q.quote_seq) as trade_seq
+			from tbl_quote q
+				where q.request_seq = #{requestSeq} and q.expert_seq = #{expertSeq}
 	</select>
 
 	<!-- 견적을 보낼 수 있는 고수인지: 탈퇴하지 않았고, 신고로 숨김 처리되지 않았으면 1 -->

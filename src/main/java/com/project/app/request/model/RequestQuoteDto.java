@@ -24,5 +24,6 @@ public class RequestQuoteDto {
 	private String status;
 	private String regdate;
 	private String expertHidden;	//Y: 신고 처리로 숨김 상태인 고수 (선택 불가)
+	private Long tradeSeq;			//이 견적으로 결제한 거래 번호 (없으면 null)
 
 }

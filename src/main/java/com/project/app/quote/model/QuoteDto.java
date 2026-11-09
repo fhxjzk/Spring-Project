@@ -22,6 +22,7 @@ public class QuoteDto {
 	private String content;			//견적 설명
 	private String status;
 	private String regdate;
+	private Long tradeSeq;			//고객이 이 견적으로 결제한 거래 번호 (없으면 null)
 
 	//내가 보낸 견적 목록용 (join)
 	private String categoryName;

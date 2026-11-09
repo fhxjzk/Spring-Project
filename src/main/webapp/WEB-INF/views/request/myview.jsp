@@ -227,6 +227,14 @@
 					<p><fmt:formatNumber value="${q.price}" />원 · 작업 기간 ${q.workDays}일 <span class="sub">(${q.regdate})</span></p>
 					<p class="quote-content"><c:out value="${q.content}" /></p>
 
+					<%-- 이 견적으로 결제했으면 거래 화면으로 간다 (진행 상황, 구매 확정, 거래 취소는 거래 화면에서) --%>
+					<c:if test="${not empty q.tradeSeq}">
+					<div class="quote-foot">
+						<a class="btn btn-primary btn-sm" href="${path}/trade/detail.do?tradeSeq=${q.tradeSeq}">거래 보기</a>
+						<span class="sub">진행 상황과 구매 확정은 거래 화면에서 할 수 있어요.</span>
+					</div>
+					</c:if>
+
 					<c:if test="${selectable and q.status eq 'WAITING'}">
 					<div class="quote-foot">
 						<c:choose>
