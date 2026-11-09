@@ -48,5 +48,24 @@ public class ExpertDao {
 		return expertMapper.getPopularExpertList();
 	}
 
-	
+	public int addProfile(ExpertProfileDto dto) {
+
+		return expertMapper.addProfile(dto);
+	}
+
+	public int editProfile(ExpertProfileDto dto) {
+
+		return expertMapper.editProfile(dto);
+	}
+
+	public int addCareer(ExpertCareerDto dto) {
+
+		return expertMapper.addCareer(dto);
+	}
+
+	public int deleteCareers(Long expertSeq) {
+
+		return expertMapper.deleteCareers(expertSeq);
+	}
+
 }

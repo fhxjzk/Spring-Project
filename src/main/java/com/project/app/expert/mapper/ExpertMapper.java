@@ -25,6 +25,12 @@ public interface ExpertMapper {
 
 	List<ExpertCardDto> getPopularExpertList();
 
-	
+	int addProfile(ExpertProfileDto dto);
+
+	int editProfile(ExpertProfileDto dto);
+
+	int addCareer(ExpertCareerDto dto);
+
+	int deleteCareers(Long expertSeq);
 
 }

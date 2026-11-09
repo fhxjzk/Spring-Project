@@ -77,4 +77,40 @@
 			fetch first 4 rows only
 	</select>
 
+	<!-- ===== 프로필 작성·수정 (②-02) ===== -->
+
+	<!-- 프로필 INSERT. 프로필 번호 = 회원 번호라서 시퀀스를 쓰지 않는다
+	     regdate, hidden 은 DEFAULT 값(sysdate, 'N')이 들어간다 -->
+	<insert id="addProfile" parameterType="ExpertProfileDto">
+		insert into tbl_expert_profile (expert_seq, intro, service_address, service_latitude, service_longitude, profile_image)
+			values (#{expertSeq}, #{intro}, #{serviceAddress}, #{serviceLatitude}, #{serviceLongitude}, #{profileImage})
+	</insert>
+
+	<!-- 프로필 UPDATE
+	     사진은 새로 올렸을 때만(profileImage 가 null 이 아닐 때만) 바꾼다. 안 올렸으면 기존 사진을 그대로 둔다
+	     hidden 은 관리자 신고 처리 값이라 여기서 바꾸지 않는다 -->
+	<update id="editProfile" parameterType="ExpertProfileDto">
+		update tbl_expert_profile
+			set intro = #{intro},
+				service_address = #{serviceAddress},
+				service_latitude = #{serviceLatitude},
+				service_longitude = #{serviceLongitude}
+				<if test="profileImage != null">
+				, profile_image = #{profileImage}
+				</if>
+			where expert_seq = #{expertSeq}
+	</update>
+
+	<!-- 경력 한 줄 INSERT -->
+	<insert id="addCareer" parameterType="ExpertCareerDto">
+		insert into tbl_expert_career (career_seq, expert_seq, title, start_date, end_date, description)
+			values (seq_career.nextval, #{expertSeq}, #{title}, #{startDate}, #{endDate}, #{description})
+	</insert>
+
+	<!-- 수정할 때 기존 경력을 전부 지우고 화면에 있는 줄을 다시 넣는다 -->
+	<delete id="deleteCareers" parameterType="Long">
+		delete from tbl_expert_career
+			where expert_seq = #{expertSeq}
+	</delete>
+
 </mapper>
