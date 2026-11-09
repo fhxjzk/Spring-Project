@@ -32,6 +32,19 @@
 			background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg));
 		}
 
+		/* 고수 프로필 사진. 없거나 파일이 없으면(onerror) 배경색만 남긴다 */
+		.talent-photo img {
+			display: block;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+		/* 수정 아래 삭제 버튼 (form 이라 따로 간격을 준다) */
+		.talent-del {
+			margin-top: 8px;
+		}
+
 		.talent-side-body {
 			padding: 18px;
 		}
@@ -139,7 +152,11 @@
 
 			<!-- 왼쪽: 고수 요약 -->
 			<aside class="card talent-side">
-				<div class="talent-photo"></div>
+				<div class="talent-photo">
+					<c:if test="${not empty edto.profileImage}">
+						<img src="${path}/resources/upload/profile/<c:out value='${edto.profileImage}' />" alt="" onerror="this.remove()">
+					</c:if>
+				</div>
 
 				<div class="talent-side-body">
 					<strong class="talent-name"><c:out value="${edto.name}" /></strong>
@@ -161,6 +178,13 @@
 						</c:when>
 						<c:when test="${isOwner}">
 							<a class="btn btn-primary btn-block" href="${path}/expert/talent/edit.do?talentSeq=${tdto.talentSeq}">수정</a>
+							<%-- 지우는 동작이라 링크(GET)가 아니라 POST form 으로 보낸다. 삭제 후 내 고수 상세로 돌아간다 --%>
+							<form class="talent-del" method="POST" action="${path}/expert/talent/delok.do"
+								onsubmit="return confirm('이 서비스를 삭제할까요? 고수 상세와 검색에서 더 이상 보이지 않아요.');">
+								<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+								<input type="hidden" name="talentSeq" value="${tdto.talentSeq}">
+								<button class="btn btn-danger btn-block">삭제</button>
+							</form>
 						</c:when>
 						<c:otherwise>
 							<a class="btn btn-primary btn-block" href="${path}/request/add.do?expertSeq=${tdto.expertSeq}">요청하기</a>
