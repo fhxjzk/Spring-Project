@@ -22,6 +22,7 @@ public class ExpertTalentDto {
 
 	private String categoryName;		// 소분류 이름 (피아노)
 	private String parentCategoryName;	// 대분류 이름 (레슨)
+	private Long parentCategorySeq;		// 대분류 번호 (수정 화면에서 대분류를 미리 골라 둘 때 쓴다)
 	private int portfolioCount;			// 연결한 포트폴리오 수 (최대 3)
 	private String thumbnail;			// 1번 포트폴리오의 1번 사진 파일 이름, 없으면 null
 }

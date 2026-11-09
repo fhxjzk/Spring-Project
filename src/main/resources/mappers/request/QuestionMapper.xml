@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 관리자 요청서 질문 관리 (③ E-04). 질문과 보기는 지우지 않고 enabled = 'N' 으로 바꾼다 -->
+<mapper namespace="com.project.app.request.mapper.QuestionMapper">
+
+	<!-- 질문을 붙일 수 있는 소분류 전부 (사용 안 하는 카테고리도 보여 준다). 대분류 순서대로 -->
+	<select id="subCategoryList" resultType="RequestCategoryDto">
+		select c.category_seq, c.parent_seq, c.name, p.name as parent_name, c.enabled
+			from tbl_category c
+				join tbl_category p on p.category_seq = c.parent_seq
+					order by p.sort_order, p.category_seq, c.sort_order, c.category_seq
+	</select>
+
+	<!-- 소분류 하나. 대분류이거나 없는 번호면 null -->
+	<select id="getSubCategory" parameterType="Long" resultType="RequestCategoryDto">
+		select c.category_seq, c.parent_seq, c.name, p.name as parent_name, c.enabled
+			from tbl_category c
+				join tbl_category p on p.category_seq = c.parent_seq
+					where c.category_seq = #{categorySeq}
+	</select>
+
+	<!-- 카테고리의 질문 목록 (사용 안 함 포함). 답변이 달린 요청서 수와 사용 중인 보기 수를 함께 센다 -->
+	<select id="list" parameterType="Long" resultType="QuestionDto">
+		select q.question_seq, q.category_seq, q.content, q.question_type, q.required, q.sort_order, q.enabled,
+				to_char(q.regdate, 'YYYY-MM-DD') as regdate,
+				(select count(distinct a.request_seq) from tbl_request_answer a where a.question_seq = q.question_seq) as answer_count,
+				(select count(*) from tbl_question_option o where o.question_seq = q.question_seq and o.enabled = 'Y') as option_count
+			from tbl_question q
+				where q.category_seq = #{categorySeq}
+					order by q.enabled desc, q.sort_order, q.question_seq
+	</select>
+
+	<resultMap id="adminQuestionMap" type="QuestionDto">
+		<id property="questionSeq" column="question_seq" />
+		<result property="categorySeq" column="category_seq" />
+		<result property="categoryName" column="category_name" />
+		<result property="content" column="content" />
+		<result property="questionType" column="question_type" />
+		<result property="required" column="required" />
+		<result property="sortOrder" column="sort_order" />
+		<result property="enabled" column="enabled" />
+		<result property="answerCount" column="answer_count" />
+		<collection property="options" ofType="QuestionOptionDto" notNullColumn="option_seq">
+			<id property="optionSeq" column="option_seq" />
+			<result property="questionSeq" column="question_seq" />
+			<result property="content" column="option_content" />
+			<result property="sortOrder" column="option_sort_order" />
+			<result property="enabled" column="option_enabled" />
+			<result property="answerCount" column="option_answer_count" />
+		</collection>
+	</resultMap>
+
+	<!-- 질문 하나와 보기 전부 (사용 안 함 포함) -->
+	<select id="get" parameterType="Long" resultMap="adminQuestionMap">
+		select q.question_seq, q.category_seq, p.name || ' > ' || c.name as category_name,
+				q.content, q.question_type, q.required, q.sort_order, q.enabled,
+				(select count(distinct a.request_seq) from tbl_request_answer a where a.question_seq = q.question_seq) as answer_count,
+				o.option_seq, o.content as option_content, o.sort_order as option_sort_order, o.enabled as option_enabled,
+				(select count(*) from tbl_request_answer a where a.option_seq = o.option_seq) as option_answer_count
+			from tbl_question q
+				join tbl_category c on c.category_seq = q.category_seq
+				left join tbl_category p on p.category_seq = c.parent_seq
+				left join tbl_question_option o on o.question_seq = q.question_seq
+					where q.question_seq = #{questionSeq}
+						order by o.sort_order, o.option_seq
+	</select>
+
+	<insert id="add" parameterType="QuestionDto">
+		<selectKey keyProperty="questionSeq" resultType="Long" order="BEFORE">
+			select seq_question.nextval from dual
+		</selectKey>
+		insert into tbl_question (question_seq, category_seq, content, question_type, required, sort_order, enabled)
+			values (#{questionSeq}, #{categorySeq}, #{content}, #{questionType}, #{required}, #{sortOrder}, 'Y')
+	</insert>
+
+	<insert id="addOption" parameterType="QuestionOptionDto">
+		insert into tbl_question_option (option_seq, question_seq, content, sort_order, enabled)
+			values (seq_question_option.nextval, #{questionSeq}, #{content}, #{sortOrder}, #{enabled})
+	</insert>
+
+	<!-- 카테고리는 바꾸지 않는다 -->
+	<update id="edit" parameterType="QuestionDto">
+		update tbl_question
+			set content = #{content}, question_type = #{questionType}, required = #{required}, sort_order = #{sortOrder}
+				where question_seq = #{questionSeq}
+	</update>
+
+	<!-- 보기 수정. 다른 질문의 보기는 바꾸지 못하게 question_seq 도 조건에 넣는다 -->
+	<update id="editOption" parameterType="QuestionOptionDto">
+		update tbl_question_option
+			set content = #{content}, sort_order = #{sortOrder}, enabled = #{enabled}
+				where option_seq = #{optionSeq} and question_seq = #{questionSeq}
+	</update>
+
+	<!-- 사용 / 사용 안 함 -->
+	<update id="updateEnabled">
+		update tbl_question set enabled = #{enabled} where question_seq = #{questionSeq}
+	</update>
+
+</mapper>

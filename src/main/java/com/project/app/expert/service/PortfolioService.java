@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.project.app.expert.model.ExpertPortfolioDto;
+import com.project.app.expert.model.ExpertTalentDto;
 import com.project.app.expert.model.PortfolioImageDto;
 import com.project.app.expert.repository.PortfolioDao;
 
@@ -42,6 +43,12 @@ public class PortfolioService {
 	public List<PortfolioImageDto> getPortfolioImages(Long portfolioSeq) {
 		List<PortfolioImageDto> imgList = portfolioDao.getPortfolioImages(portfolioSeq);
 		return imgList;
+	}
+
+	//이 포트폴리오를 연결한 서비스 (포트폴리오 상세의 버튼)
+	public List<ExpertTalentDto> getLinkedTalentList(Long portfolioSeq) {
+		List<ExpertTalentDto> talentList = portfolioDao.getLinkedTalentList(portfolioSeq);
+		return talentList;
 	}
 
 	/**

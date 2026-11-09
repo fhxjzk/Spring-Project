@@ -71,6 +71,9 @@ public class PortfolioController {
 		model.addAttribute("pdto",pdto);
 		model.addAttribute("imgList",imgList);
 		model.addAttribute("isOwner",isOwner);
+
+		//이 포트폴리오를 연결한 서비스. 버튼을 누르면 서비스 상세(②-10)로 간다
+		model.addAttribute("talentList",portfolioService.getLinkedTalentList(portfolioSeq));
 		
 		return "expert/portfolio/view";
 	}

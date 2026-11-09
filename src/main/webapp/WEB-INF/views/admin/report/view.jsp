@@ -49,6 +49,7 @@
 						<td>
 							<c:choose>
 								<c:when test="${report.targetType eq 'PROFILE'}">고수 프로필</c:when>
+								<c:when test="${report.targetType eq 'BOARD'}">게시글</c:when>
 								<c:otherwise>요청서</c:otherwise>
 							</c:choose>
 							&middot;

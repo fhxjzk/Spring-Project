@@ -24,6 +24,8 @@ public interface ReportMapper {
 	ReportDto getBySeq(Long reportSeq);
 
 	Long getRequestOwner(Long targetSeq);
+
+	Long getBoardOwner(Long targetSeq);
 	
 	int updateReviewing(HashMap<String, Object> map);
 
@@ -32,5 +34,7 @@ public interface ReportMapper {
 	int updateExpertHidden(HashMap<String, Object> map);
 
 	int updateRequestHidden(HashMap<String, Object> map);
+
+	int updateBoardEnabled(HashMap<String, Object> map);
 
 }

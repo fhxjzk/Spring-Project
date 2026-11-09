@@ -96,4 +96,21 @@ public class ReportDao {
 		return reportMapper.updateRequestHidden(map);
 	}
 
+	//게시글을 쓴 사람 번호
+	public Long getBoardOwner(Long targetSeq) {
+
+		return reportMapper.getBoardOwner(targetSeq);
+	}
+
+	//게시글 숨김 / 해제
+	//게시판은 hidden 이 아니라 enabled 라서 뒤집어서 넣는다. 숨김(Y) = enabled 'N'
+	public int updateBoardHidden(Long targetSeq, String hidden) {
+
+		HashMap<String, Object> map = new HashMap<>();
+		map.put("targetSeq", targetSeq);
+		map.put("enabled", "Y".equals(hidden) ? "N" : "Y");
+
+		return reportMapper.updateBoardEnabled(map);
+	}
+
 }
