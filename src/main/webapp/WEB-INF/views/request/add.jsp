@@ -137,7 +137,10 @@
 				<div class="form-group">
 					<label for="address">지역<span class="required-mark">*</span></label>
 					<input type="text" id="address" name="address" maxlength="100" value="<c:out value='${address}' />" placeholder="예) 서울 강남구">
-					<p class="hint">여러 고수가 보는 정보라서 구·동까지만 적어 주세요. 가입 주소의 시·군·구가 기본으로 들어가 있어요.</p>
+					<c:choose>
+						<c:when test="${empty expertSeq}"><p class="hint">여러 고수가 보는 정보라서 구·동까지만 적어 주세요. 가입 주소의 시·군·구가 기본으로 들어가 있어요.</p></c:when>
+						<c:otherwise><p class="hint">구·동까지만 적어 주세요. 자세한 주소는 거래가 정해진 뒤 고수에게 알려 주면 돼요. 가입 주소의 시·군·구가 기본으로 들어가 있어요.</p></c:otherwise>
+					</c:choose>
 				</div>
 
 				<div class="form-group">

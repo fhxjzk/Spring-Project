@@ -195,6 +195,13 @@
 					</p>
 					<p><fmt:formatNumber value="${myQuote.price}" />원 · 작업 기간 ${myQuote.workDays}일</p>
 					<p class="quote-content"><c:out value="${myQuote.content}" /></p>
+					<%-- 고객이 이 견적으로 결제했으면 거래 화면으로 간다 (작업 시작·완료는 거래 화면에서) --%>
+					<c:if test="${not empty myQuote.tradeSeq}">
+					<p>
+						<a class="btn btn-primary btn-sm" href="${path}/trade/detail.do?tradeSeq=${myQuote.tradeSeq}">거래 보기</a>
+						<span class="sub">작업 시작과 완료는 거래 화면에서 할 수 있어요.</span>
+					</p>
+					</c:if>
 				</div>
 				</c:when>
 

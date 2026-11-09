@@ -148,12 +148,16 @@
 					order by file_seq
 	</select>
 
-	<!-- 받은 견적 (보낸 순서대로). 신고로 숨김 처리된 고수의 견적은 고를 수 없어서 숨김 여부도 가져온다 -->
+	<!--
+		받은 견적 (보낸 순서대로). 신고로 숨김 처리된 고수의 견적은 고를 수 없어서 숨김 여부도 가져온다
+		trade_seq: 이 견적으로 결제한 거래 번호 (④ tbl_trade). 있으면 화면에 '거래 보기' 버튼을 보여 준다
+	-->
 	<select id="quoteList" parameterType="Long" resultType="RequestQuoteDto">
 		select q.quote_seq, q.request_seq, q.expert_seq, m.name as expert_name,
 				q.price, q.work_days, q.content, q.status,
 				to_char(q.regdate, 'YYYY-MM-DD HH24:MI') as regdate,
-				nvl(p.hidden, 'N') as expert_hidden
+				nvl(p.hidden, 'N') as expert_hidden,
+				(select max(t.trade_seq) from tbl_trade t where t.quote_seq = q.quote_seq) as trade_seq
 			from tbl_quote q
 				join tbl_member m on m.member_seq = q.expert_seq
 				left join tbl_expert_profile p on p.expert_seq = q.expert_seq
