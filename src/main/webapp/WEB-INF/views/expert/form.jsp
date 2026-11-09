@@ -16,6 +16,18 @@
 	--%>
 
 	<style>
+		/* 필수 입력 표시 (*) */
+		.req {
+			color: var(--color-danger);
+		}
+
+		/* 페이지 제목(h2) 바로 아래, 왼쪽에 붙여서 눈에 띄게 */
+		.required-guide {
+			margin: -8px 0 16px;
+			font-size: 15px;
+			color: var(--color-text-light);
+		}
+
 		.form-hint {
 			margin-top: 4px;
 			font-size: 13px;
@@ -119,6 +131,9 @@
 		}
 	</style>
 
+	<%-- 소개, 서비스 제공 위치만 필수다. 사진, 경력, 활동 가능 지역은 비워도 저장된다 --%>
+	<p class="required-guide">(<span class="req">*</span>)는 필수 입력</p>
+
 	<section class="card">
 		<h3>프로필 사진</h3>
 		<div class="photo-row">
@@ -144,7 +159,7 @@
 	<section class="card">
 		<h3>소개</h3>
 		<div class="form-group">
-			<label for="intro">고수 소개</label>
+			<label for="intro">고수 소개 <span class="req">*</span></label>
 			<%-- textarea 안의 값도 태그가 실행되지 않게 c:out 으로 출력한다 --%>
 			<textarea id="intro" name="intro" rows="6" maxlength="2000" required><c:out value="${edto.intro}" /></textarea>
 			<div class="form-hint">한글 약 660자까지 쓸 수 있어요.</div>
@@ -222,7 +237,7 @@
 		<h3>활동지역/주소</h3>
 
 		<div class="form-group">
-			<label for="serviceAddress">서비스 제공 위치</label>
+			<label for="serviceAddress">서비스 제공 위치 <span class="req">*</span></label>
 			<div class="address-row">
 				<input type="text" id="serviceAddress" name="serviceAddress" readonly maxlength="300"
 					placeholder="주소 검색을 눌러 주세요" value="<c:out value='${edto.serviceAddress}' />">
