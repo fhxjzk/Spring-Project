@@ -5,7 +5,80 @@ document.addEventListener("DOMContentLoaded", function () {
     const panel = document.getElementById("notificationPanel");
     const list = document.getElementById("notificationList");
     const count = document.getElementById("notificationCount");
+    // 알림 소리 재생
+let notificationAudioContext = null;
 
+function playNotificationSound() {
+    try {
+        const AudioContextClass =
+            window.AudioContext || window.webkitAudioContext;
+
+        if (!AudioContextClass) {
+            return;
+        }
+
+        if (!notificationAudioContext) {
+            notificationAudioContext = new AudioContextClass();
+        }
+
+        const audioContext = notificationAudioContext;
+
+        if (audioContext.state !== "running") {
+    audioContext.resume()
+        .then(function () {
+            playNotificationSound();
+        })
+        .catch(function (error) {
+            console.warn("오디오 활성화 실패", error);
+        });
+    return;
+}
+
+        // 부드러운 2음 알림
+        [880, 1174.66].forEach(function (frequency, index) {
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+
+            const startTime =
+                audioContext.currentTime + index * 0.18;
+
+            oscillator.type = "sine";
+            oscillator.frequency.value = frequency;
+
+            gain.gain.setValueAtTime(0.0001, startTime);
+            gain.gain.exponentialRampToValueAtTime(
+                0.12, startTime + 0.02
+            );
+            gain.gain.exponentialRampToValueAtTime(
+                0.0001, startTime + 0.35
+            );
+
+            oscillator.connect(gain);
+            gain.connect(audioContext.destination);
+
+            oscillator.start(startTime);
+            oscillator.stop(startTime + 0.36);
+        });
+    } catch (error) {
+        console.warn("알림 소리 재생 실패", error);
+    }
+}
+
+// 사용자가 화면을 클릭하면 브라우저 오디오 활성화
+document.addEventListener("click", function unlockAudio() {
+    const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
+
+    if (AudioContextClass) {
+        if (!notificationAudioContext) {
+            notificationAudioContext = new AudioContextClass();
+        }
+
+        notificationAudioContext.resume().catch(function () {});
+    }
+
+    document.removeEventListener("click", unlockAudio);
+});
     if (!bell || !panel || !list || !count) {
         return;
     }
@@ -179,20 +252,18 @@ list.appendChild(li);
             onConnect: function () {
                 console.log("알림 WebSocket 연결 성공");
 
-                client.subscribe(
-                    "/user/queue/notifications",
-                    function (message) {
-                        console.log("새 알림 도착", message.body);
+              client.subscribe(
+    "/user/queue/notifications",
+    function (message) {
+        console.log("새 알림 도착", message.body);
 
-                        // 알림창이 열려 있으면 목록 갱신
-                        if (!panel.hidden) {
-                            loadNotifications();
-                        } else {
-                            // 알림창이 닫혀 있어도 숫자 갱신
-                            loadNotifications();
-                        }
-                    }
-                );
+        // 새 알림 수신 시 알림음 1회 재생
+        playNotificationSound();
+
+        // 알림 목록 및 읽지 않은 알림 개수 갱신
+        loadNotifications();
+           }
+         );
             },
 
             onStompError: function (frame) {

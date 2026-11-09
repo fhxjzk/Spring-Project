@@ -259,7 +259,6 @@ body {
 
     <!-- 채팅 상단 -->
     <div class="chat-header">
-
         <div>
             <div class="chat-title">💬 재능톡</div>
 
@@ -270,7 +269,6 @@ body {
         </div>
 
         <div class="header-actions">
-
             <a class="back-button"
                href="${pageContext.request.contextPath}/chat/list">
                 채팅 목록
@@ -279,9 +277,7 @@ body {
             <div class="connection-status" id="status">
                 서버 연결 중...
             </div>
-
         </div>
-
     </div>
 
     <!-- 메시지 표시 영역 -->
@@ -305,12 +301,15 @@ body {
         </button>
 
     </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.2.1/bundles/stomp.umd.min.js"></script>
 
 <script>
+// ============================================================
+// 1. 기본 설정
+// ============================================================
+
 // 프로젝트 경로
 const contextPath =
     '${pageContext.request.contextPath}';
@@ -341,12 +340,175 @@ const displayedMessageIds = new Set();
 
 const sendButton = document.getElementById('sendButton');
 
+
+// ============================================================
+// 2. 채팅 메시지 알림음
+// ============================================================
+
+let chatAudioContext = null;
+let lastChatSoundTime = 0;
+
+// 오디오 컨텍스트 생성
+function getChatAudioContext() {
+
+    const AudioContextClass =
+        window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContextClass) {
+        return null;
+    }
+
+    if (!chatAudioContext) {
+        chatAudioContext = new AudioContextClass();
+    }
+
+    return chatAudioContext;
+}
+
+// 실제 알림음 재생
+function playChatSound() {
+
+    try {
+        const audioContext = getChatAudioContext();
+
+        if (!audioContext) {
+            return;
+        }
+
+        // 브라우저가 오디오를 차단한 상태라면
+        // 사용자 클릭 후 활성화되도록 대기
+        if (audioContext.state !== 'running') {
+            return;
+        }
+
+        const now = Date.now();
+
+        // 0.5초 이내 중복 알림 방지
+        if (now - lastChatSoundTime < 500) {
+            return;
+        }
+
+        lastChatSoundTime = now;
+
+        // 부드러운 2음 알림
+        [880, 1174.66].forEach(function (frequency, index) {
+
+            const oscillator =
+                audioContext.createOscillator();
+
+            const gain =
+                audioContext.createGain();
+
+            const startTime =
+                audioContext.currentTime + index * 0.18;
+
+            oscillator.type = 'sine';
+            oscillator.frequency.value = frequency;
+
+            gain.gain.setValueAtTime(
+                0.0001,
+                startTime
+            );
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.12,
+                startTime + 0.02
+            );
+
+            gain.gain.exponentialRampToValueAtTime(
+                0.0001,
+                startTime + 0.35
+            );
+
+            oscillator.connect(gain);
+            gain.connect(audioContext.destination);
+
+            oscillator.start(startTime);
+            oscillator.stop(startTime + 0.36);
+        });
+
+    } catch (error) {
+        console.warn(
+            '채팅 알림음 재생 실패',
+            error
+        );
+    }
+}
+
+// 브라우저 자동 재생 제한 해제
+// 첫 클릭에 실패하면 다음 클릭에서 다시 시도
+function unlockChatAudio() {
+
+    try {
+        const audioContext = getChatAudioContext();
+
+        if (!audioContext) {
+            document.removeEventListener(
+                'click',
+                unlockChatAudio
+            );
+            return;
+        }
+
+        if (audioContext.state === 'running') {
+            document.removeEventListener(
+                'click',
+                unlockChatAudio
+            );
+            return;
+        }
+
+        audioContext.resume()
+            .then(function () {
+
+                if (audioContext.state === 'running') {
+
+                    document.removeEventListener(
+                        'click',
+                        unlockChatAudio
+                    );
+
+                    console.log(
+                        '채팅 알림음 활성화 완료'
+                    );
+                }
+            })
+            .catch(function (error) {
+                console.warn(
+                    '채팅 오디오 활성화 실패',
+                    error
+                );
+            });
+
+    } catch (error) {
+        console.warn(
+            '채팅 오디오 초기화 실패',
+            error
+        );
+    }
+}
+
+document.addEventListener(
+    'click',
+    unlockChatAudio
+);
+
+
+// ============================================================
+// 3. 전송 버튼 상태
+// ============================================================
+
 function updateSendButton() {
+
     sendButton.disabled =
         !client.connected || currentRoom === null;
 }
 
-// WebSocket/STOMP 연결
+
+// ============================================================
+// 4. WebSocket / STOMP 연결
+// ============================================================
+
 const client = new StompJs.Client({
 
     brokerURL:
@@ -362,14 +524,17 @@ const client = new StompJs.Client({
 
         // 연결이 끊어졌다가 복구된 경우
         if (currentRoom !== null) {
+
             subscribeRoom();
             loadHistory(currentRoom, roomVersion);
 
         // 최초 접속 시 자동 입장
         } else if (/^[0-9]{1,18}$/.test(initialRoomSeq)) {
+
             joinRoom(initialRoomSeq);
 
         } else {
+
             document.getElementById('status').textContent =
                 '거래 상세에서 채팅을 시작해 주세요.';
         }
@@ -378,6 +543,7 @@ const client = new StompJs.Client({
     },
 
     onStompError: function (frame) {
+
         document.getElementById('status').textContent =
             '연결 오류: '
             + (frame.headers['message'] || '');
@@ -386,6 +552,7 @@ const client = new StompJs.Client({
     },
 
     onWebSocketClose: function () {
+
         document.getElementById('status').textContent =
             '연결이 끊어졌습니다.';
 
@@ -395,11 +562,24 @@ const client = new StompJs.Client({
 
 client.activate();
 
-// 시간 표시
-function formatTime(value) {
-    if (!value) return '';
 
-    const date = new Date(value);
+// ============================================================
+// 5. 시간 표시
+// ============================================================
+
+function formatTime(value) {
+
+    if (!value) {
+        return '';
+    }
+
+    // 서버에서 전달한 형식:
+    // YYYY-MM-DD HH:mm:ss
+    // 날짜와 시간 사이를 T로 변경하여 파싱
+    const normalized =
+        String(value).replace(' ', 'T');
+
+    const date = new Date(normalized);
 
     if (isNaN(date.getTime())) {
         return String(value);
@@ -411,16 +591,27 @@ function formatTime(value) {
     });
 }
 
-// 메시지 화면 출력
+
+// ============================================================
+// 6. 메시지 화면 출력
+// ============================================================
+
 function appendMessage(message) {
-    if (!message) return;
+
+    if (!message) {
+        return;
+    }
 
     const messageId = message.messageId;
 
+    // 중복 메시지 출력 방지
     if (messageId != null) {
+
         const id = String(messageId);
 
-        if (displayedMessageIds.has(id)) return;
+        if (displayedMessageIds.has(id)) {
+            return;
+        }
 
         displayedMessageIds.add(id);
     }
@@ -444,9 +635,12 @@ function appendMessage(message) {
 
     // 상대방 프로필 아이콘
     if (!mine) {
+
         const avatar = document.createElement('div');
+
         avatar.className = 'avatar';
         avatar.textContent = '👤';
+
         row.appendChild(avatar);
     }
 
@@ -456,19 +650,26 @@ function appendMessage(message) {
     const name = document.createElement('div');
     name.className = 'sender-name';
 
-    // 나 또는 실제 상대방 이름
-    name.textContent = mine ? '나' : opponentName;
+    name.textContent =
+        mine ? '나' : opponentName;
+
     body.appendChild(name);
 
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
+
+    // HTML 삽입 방지를 위해 textContent 사용
     bubble.textContent = content;
+
     body.appendChild(bubble);
 
     if (createdAt) {
+
         const time = document.createElement('div');
         time.className = 'message-time';
+
         time.textContent = formatTime(createdAt);
+
         body.appendChild(time);
     }
 
@@ -478,25 +679,36 @@ function appendMessage(message) {
         document.getElementById('messages');
 
     messages.appendChild(row);
-    messages.scrollTop = messages.scrollHeight;
+
+    messages.scrollTop =
+        messages.scrollHeight;
 }
 
-// 서버가 전달한 방 번호로 자동 입장
+
+// ============================================================
+// 7. 채팅방 입장
+// ============================================================
+
 function joinRoom(roomId) {
 
     if (!client.connected) {
+
         document.getElementById('status').textContent =
             '서버 연결을 기다리는 중...';
+
         return;
     }
 
     if (!/^[0-9]{1,18}$/.test(String(roomId))) {
+
         document.getElementById('status').textContent =
             '올바르지 않은 채팅방입니다.';
+
         return;
     }
 
     if (subscription) {
+
         subscription.unsubscribe();
         subscription = null;
     }
@@ -506,6 +718,7 @@ function joinRoom(roomId) {
 
     historyLoading = true;
     pendingMessages = [];
+
     displayedMessageIds.clear();
 
     document.getElementById('messages').textContent = '';
@@ -516,10 +729,15 @@ function joinRoom(roomId) {
     updateSendButton();
 }
 
-// 채팅방 실시간 메시지 구독
+
+// ============================================================
+// 8. 실시간 채팅 메시지 구독
+// ============================================================
+
 function subscribeRoom() {
 
     if (subscription) {
+
         subscription.unsubscribe();
         subscription = null;
     }
@@ -531,13 +749,60 @@ function subscribeRoom() {
 
         function (frame) {
 
-            if (currentRoom !== subscribedRoom) return;
+            if (currentRoom !== subscribedRoom) {
+                return;
+            }
 
-            const data = JSON.parse(frame.body);
+            let data;
+
+            try {
+                data = JSON.parse(frame.body);
+            } catch (error) {
+                console.error(
+                    '채팅 메시지 JSON 분석 실패',
+                    error
+                );
+                return;
+            }
+
+            // 메시지를 보낸 회원번호
+            const senderSeq =
+                data.senderSeq == null
+                    ? ''
+                    : String(data.senderSeq);
+
+            // 상대방이 보낸 메시지인지 확인
+            const isOtherMessage =
+                loginMemberSeq !== ''
+                && senderSeq !== ''
+                && senderSeq !== loginMemberSeq;
+
+            const messageId =
+                data.messageId == null
+                    ? null
+                    : String(data.messageId);
+
+            // 이미 화면에 출력된 메시지는 제외
+            const isNewMessage =
+                messageId === null
+                || !displayedMessageIds.has(messageId);
+
+            // 상대방의 새로운 메시지일 때만 알림음
+            if (isOtherMessage && isNewMessage) {
+
+                console.log(
+                    '상대방 메시지 수신 - 알림음 실행'
+                );
+
+                playChatSound();
+            }
 
             if (historyLoading) {
+
                 pendingMessages.push(data);
+
             } else {
+
                 appendMessage(data);
             }
         }
@@ -547,7 +812,11 @@ function subscribeRoom() {
         '채팅방 연결 중...';
 }
 
-// 이전 대화 불러오기
+
+// ============================================================
+// 9. 이전 대화 불러오기
+// ============================================================
+
 async function loadHistory(roomId, version) {
 
     historyLoading = true;
@@ -557,30 +826,42 @@ async function loadHistory(roomId, version) {
         '이전 대화 불러오는 중...';
 
     try {
+
         const response = await fetch(
             contextPath + '/chat/history/'
                 + encodeURIComponent(roomId),
-            { cache: 'no-store' }
+            {
+                cache: 'no-store',
+                credentials: 'same-origin'
+            }
         );
 
         if (!response.ok) {
-            throw new Error('HTTP ' + response.status);
+
+            throw new Error(
+                'HTTP ' + response.status
+            );
         }
 
         const history = await response.json();
 
-        if (version !== roomVersion) return;
+        // 다른 채팅방으로 이동한 경우
+        if (version !== roomVersion) {
+            return;
+        }
 
         const messages =
             document.getElementById('messages');
 
         messages.textContent = '';
+
         displayedMessageIds.clear();
 
         history.forEach(function (message) {
             appendMessage(message);
         });
 
+        // 이전 대화 로딩 중 도착한 실시간 메시지
         pendingMessages.forEach(function (message) {
             appendMessage(message);
         });
@@ -590,7 +871,9 @@ async function loadHistory(roomId, version) {
 
     } catch (error) {
 
-        if (version !== roomVersion) return;
+        if (version !== roomVersion) {
+            return;
+        }
 
         document.getElementById('status').textContent =
             '대화 조회 실패: ' + error.message;
@@ -602,27 +885,39 @@ async function loadHistory(roomId, version) {
     } finally {
 
         if (version === roomVersion) {
+
             historyLoading = false;
             pendingMessages = [];
         }
     }
 }
 
-// 메시지 전송
+
+// ============================================================
+// 10. 메시지 전송
+// ============================================================
+
 function sendMessage() {
 
     if (!client.connected || currentRoom === null) {
+
         alert('채팅방 연결을 기다려 주세요.');
         return;
     }
 
-    const input = document.getElementById('message');
+    const input =
+        document.getElementById('message');
+
     const content = input.value.trim();
 
-    if (!content) return;
+    if (!content) {
+        return;
+    }
 
     client.publish({
-        destination: '/app/chat.send/' + currentRoom,
+
+        destination:
+            '/app/chat.send/' + currentRoom,
 
         body: JSON.stringify({
             roomId: currentRoom,
@@ -634,17 +929,24 @@ function sendMessage() {
     input.focus();
 }
 
-// 엔터키로 메시지 전송
+
+// ============================================================
+// 11. 엔터키로 메시지 전송
+// ============================================================
+
 document.getElementById('message').addEventListener(
     'keydown',
 
     function (event) {
+
         if (event.key === 'Enter' && !event.isComposing) {
+
             event.preventDefault();
             sendMessage();
         }
     }
 );
+
 </script>
 
 </body>
