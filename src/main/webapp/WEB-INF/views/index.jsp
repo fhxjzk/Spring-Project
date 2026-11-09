@@ -120,6 +120,66 @@
 			overflow: hidden;
 		}
 
+		/* 커뮤니티 최근 글: 제목 왼쪽, 바로가기 오른쪽 */
+		.section-head {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.section-more {
+			font-size: 14px;
+			font-weight: 600;
+		}
+
+		/* 카드 대신 박스 하나에 글을 한 줄씩 (제목 · 작성자 · 작성일) */
+		.board-box {
+			padding: 6px 20px;
+			border: 1px solid var(--color-border);
+			border-radius: var(--radius);
+		}
+
+		.board-row {
+			display: flex;
+			align-items: center;
+			gap: 16px;
+			padding: 13px 0;
+			color: var(--color-text);
+		}
+
+		.board-row + .board-row {
+			border-top: 1px solid var(--color-border);
+		}
+
+		/* 줄 전체가 링크라 밑줄 대신 제목 색만 바꾼다 */
+		.board-row:hover {
+			text-decoration: none;
+		}
+
+		.board-row:hover .board-title {
+			color: var(--color-primary);
+		}
+
+		/* 제목이 길면 한 줄로 자르고 ... */
+		.board-title {
+			flex: 1;
+			min-width: 0;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+
+		.board-writer,
+		.board-date {
+			flex: 0 0 90px;
+			font-size: 14px;
+			color: var(--color-text-light);
+		}
+
+		.board-date {
+			text-align: right;
+		}
+
 		.small {
 			font-size: 14px;
 		}
@@ -180,6 +240,31 @@
 				</a>
 				</c:forEach>
 			</div>
+		</section>
+
+		<!-- 커뮤니티 최근 글 (⑥ 동네 게시판). 회원은 내 동네, 비회원은 서울 -->
+		<section class="main-section">
+			<div class="section-head">
+				<h2>${boardRegionName} 커뮤니티 최근 글</h2>
+				<a class="section-more" href="${path}/board/list.do?regionSeq=${boardRegionSeq}">커뮤니티 바로가기 →</a>
+			</div>
+
+			<c:choose>
+				<c:when test="${empty boardList}">
+					<p class="message-info small">아직 등록된 글이 없어요</p>
+				</c:when>
+				<c:otherwise>
+					<div class="board-box">
+						<c:forEach items="${boardList}" var="board">
+						<a class="board-row" href="${path}/board/view.do?boardSeq=${board.boardSeq}">
+							<span class="board-title"><c:out value="${board.subject}" /></span>
+							<span class="board-writer"><c:out value="${board.writerName}" /></span>
+							<span class="board-date">${board.regdate}</span>
+						</a>
+						</c:forEach>
+					</div>
+				</c:otherwise>
+			</c:choose>
 		</section>
 
 		<!-- 최근 리뷰 -->
