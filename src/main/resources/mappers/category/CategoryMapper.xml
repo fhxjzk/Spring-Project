@@ -12,4 +12,13 @@
 		<!-- enabled가 Y인 경우(관리자가 끄지 않은 카테고리)만 반환 -->
 	</select>
 
+	<!-- 사용 중인 소분류 전체 (메인 카테고리 카드의 드롭다운).
+	     대분류마다 따로 부르지 않고 한 번에 가져와서 화면에서 parent_seq 로 나눈다 -->
+	<select id="getSubCategoryList" resultType="CategoryDto">
+		select * from tbl_category
+		where parent_seq is not null
+			and enabled = 'Y'
+		order by parent_seq, sort_order
+	</select>
+
 </mapper>

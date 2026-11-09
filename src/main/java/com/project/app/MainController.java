@@ -45,6 +45,9 @@ public class MainController {
 		List<CategoryDto> clist = categoryService.getTopCategory();
 		model.addAttribute("clist",clist);
 
+		//카드에 마우스를 올리거나 누르면 뜨는 소분류 목록
+		model.addAttribute("subList", categoryService.getSubCategoryList());
+
 		List<ExpertCardDto> expertList = expertService.getPopularExpertList();
 		model.addAttribute("expertList", expertList);
 

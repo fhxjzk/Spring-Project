@@ -72,10 +72,78 @@
 		}
 
 		/* 카테고리 */
+		/* 카드는 링크가 아니다. 누르거나 마우스를 올리면 아래에 소분류 메뉴가 뜬다 */
 		.category-card {
+			position: relative;
 			padding: 20px 12px;
 			text-align: center;
 			font-weight: 600;
+			cursor: pointer;
+			user-select: none;
+		}
+
+		.category-card.open {
+			z-index: 10;
+			border-color: var(--color-primary);
+		}
+
+		/* 소분류 메뉴: 카드 안에 넣어 둬서, 메뉴로 마우스를 옮겨도 카드에서 벗어난 게 아니다.
+		   카드와 메뉴 사이 8px 틈도 padding-top 으로 메뉴에 포함시켜서 지나갈 때 닫히지 않게 한다 */
+		.sub-menu {
+			display: none;
+			position: absolute;
+			top: 100%;
+			left: 0;
+			right: 0;
+			padding-top: 8px;
+			text-align: left;
+			font-weight: 400;
+		}
+
+		.category-card.open .sub-menu {
+			display: block;
+		}
+
+		/* 마우스가 있는 기기(PC)에서만 hover 로 연다.
+		   휴대폰은 누르면 hover 가 남아서 다시 눌러도 안 닫히는 문제가 있어서 클릭(open)으로만 연다 */
+		@media (hover: hover) {
+			.category-card:hover {
+				z-index: 10;
+				border-color: var(--color-primary);
+			}
+
+			.category-card:hover .sub-menu {
+				display: block;
+			}
+		}
+
+		.sub-menu-box {
+			padding: 6px;
+			border: 1px solid var(--color-border);
+			border-radius: var(--radius);
+			background-color: var(--color-bg);
+			box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+		}
+
+		.sub-menu-box a {
+			display: block;
+			padding: 8px 10px;
+			border-radius: 6px;
+			font-size: 14px;
+			color: var(--color-text);
+		}
+
+		.sub-menu-box a:hover {
+			text-decoration: none;
+			color: var(--color-primary);
+			background-color: var(--color-bg-light);
+		}
+
+		.sub-menu-empty {
+			margin: 0;
+			padding: 8px 10px;
+			font-size: 14px;
+			color: var(--color-text-light);
 		}
 
 		.category-icon {
@@ -209,10 +277,26 @@
 
 			<div class="grid grid-6">
 				<c:forEach items="${clist}" var="category">
-				<a class="card card-link category-card" href="#">
+				<div class="card category-card">
 					<div class="category-icon"></div>
 					${category.name}
-				</a>
+
+					<%-- 소분류를 누르면 그 소분류로 고수 검색 (⑥ /search/list.do?categorySeq=) --%>
+					<div class="sub-menu">
+						<div class="sub-menu-box">
+							<c:set var="hasSub" value="false" />
+							<c:forEach items="${subList}" var="sub">
+								<c:if test="${sub.parentSeq == category.categorySeq}">
+									<a href="${path}/search/list.do?categorySeq=${sub.categorySeq}">${sub.name}</a>
+									<c:set var="hasSub" value="true" />
+								</c:if>
+							</c:forEach>
+							<c:if test="${!hasSub}">
+								<p class="sub-menu-empty">준비 중인 카테고리예요</p>
+							</c:if>
+						</div>
+					</div>
+				</div>
 				</c:forEach>
 			</div>
 		</section>
@@ -295,7 +379,34 @@
 	</main>
 
 	<script>
+		// 카테고리 카드: 누르면 소분류 메뉴를 열고 닫는다 (휴대폰용. PC는 hover 로도 열린다)
+		const categoryCards = document.querySelectorAll('.category-card');
 
+		categoryCards.forEach(card => {
+			card.addEventListener('click', e => {
+
+				// 메뉴 안의 소분류 링크를 누른 거면 그대로 이동하게 둔다
+				if (e.target.closest('.sub-menu')) {
+					return;
+				}
+
+				const wasOpen = card.classList.contains('open');
+
+				// 메뉴는 하나만 열린다
+				categoryCards.forEach(c => c.classList.remove('open'));
+
+				if (!wasOpen) {
+					card.classList.add('open');
+				}
+			});
+		});
+
+		// 카드 바깥을 누르면 닫는다
+		document.addEventListener('click', e => {
+			if (!e.target.closest('.category-card')) {
+				categoryCards.forEach(c => c.classList.remove('open'));
+			}
+		});
 	</script>
 </body>
 </html>

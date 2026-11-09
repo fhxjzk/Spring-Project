@@ -11,4 +11,6 @@ public interface CategoryMapper {
 
 	List<CategoryDto> getTopCategory();
 
+	List<CategoryDto> getSubCategoryList();
+
 }
