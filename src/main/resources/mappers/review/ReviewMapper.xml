@@ -39,4 +39,20 @@
 			values (seq_review.nextval, #{tradeSeq}, #{customerSeq}, #{expertSeq}, #{rating}, #{content})
 	</insert>
 
+	<!-- ===== 리뷰 답변 (②-06) ===== -->
+
+	<!-- 답변 등록. 등록한 답변은 수정할 수 없다.
+	     where 조건 세 개를 다 만족할 때만 1줄이 바뀌고, 하나라도 아니면 0줄이다 (화면이 아니라 쿼리로 막는다)
+	       - review_seq : 답변할 리뷰
+	       - expert_seq : 그 리뷰를 받은 고수 = 로그인한 고수 (남의 리뷰에는 답변 못 함)
+	       - reply is null : 아직 답변이 없을 때만 (이미 있으면 덮어쓰지 않음 = 수정 불가) -->
+	<update id="addReply" parameterType="ReviewDto">
+		update tbl_review
+			set reply = #{reply},
+				reply_date = sysdate
+			where review_seq = #{reviewSeq}
+				and expert_seq = #{expertSeq}
+				and reply is null
+	</update>
+
 </mapper>

@@ -6,6 +6,8 @@ import java.util.List;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
+import com.project.app.expert.model.ExpertProfileDto;
+import com.project.app.expert.service.ExpertService;
 import com.project.app.review.model.ReviewDto;
 import com.project.app.review.model.ReviewSummaryDto;
 import com.project.app.review.repository.ReviewDao;
@@ -22,7 +24,10 @@ public class ReviewService {
 	//④ 거래. 리뷰 작성 자격(구매 확정한 거래의 고객, 아직 안 씀)은 ④가 만든 걸 그대로 쓴다
 	private final TradeService tradeService;
 
-	//tbl_review.content VARCHAR2(2000) 은 바이트 기준이다. 한글은 3바이트라 약 660자
+	//답변할 때 숨김(신고 처리) 고수인지 확인한다
+	private final ExpertService expertService;
+
+	//tbl_review.content, reply 둘 다 VARCHAR2(2000) 이고 바이트 기준이다. 한글은 3바이트라 약 660자
 	private static final int MAX_CONTENT_BYTES = 2000;
 
 	/**
@@ -76,6 +81,37 @@ public class ReviewService {
 		}
 
 		return 1;
+	}
+
+	/**
+	 * 리뷰 답변 (②-06). 등록한 답변은 수정할 수 없다
+	 *
+	 * @param expertSeq 로그인한 회원 번호 (= 고수 번호). 이 고수가 받은 리뷰에만 답변할 수 있다
+	 * @return 1 저장, 0 답변 내용이 잘못됨, -1 답변할 수 없음 (남의 리뷰, 이미 답변함, 숨김 고수, 고수 아님)
+	 */
+	public int addReply(Long reviewSeq, String reply, Long expertSeq) {
+
+		String text = reply == null ? "" : reply.trim();
+
+		if (text.isEmpty() || text.getBytes(StandardCharsets.UTF_8).length > MAX_CONTENT_BYTES) {
+			return 0;
+		}
+
+		//고수 프로필이 없거나(고객) 신고 처리로 숨김된 고수는 답변할 수 없다. 서비스 등록·수정과 같은 기준
+		ExpertProfileDto edto = expertService.getProfile(expertSeq);
+
+		if (edto == null || "Y".equals(edto.getHidden())) {
+			return -1;
+		}
+
+		ReviewDto dto = new ReviewDto();
+		dto.setReviewSeq(reviewSeq);
+		dto.setExpertSeq(expertSeq);
+		dto.setReply(text);
+
+		//"내가 받은 리뷰 + 아직 답변 없음" 은 쿼리 where 조건이 확인한다 (ReviewMapper.addReply).
+		//하나라도 아니면 0줄이 바뀐다. 먼저 조회해서 확인하지 않는 이유: 확인과 저장 사이에 다른 창에서 답변하면 덮어쓸 수 있어서
+		return reviewDao.addReply(dto) == 1 ? 1 : -1;
 	}
 
 	// 리뷰 5개만 가져오기

@@ -15,12 +15,13 @@ import com.project.app.trade.model.TradeDto;
 import lombok.RequiredArgsConstructor;
 
 /**
- * 리뷰 (화면설계서 ②-05 리뷰·별점 작성)
+ * 리뷰 (화면설계서 ②-05 리뷰·별점 작성, ②-06 리뷰 답변)
  *
  * URL은 /review/동작.do
- *   - add.do, addok.do 는 로그인한 회원만 (security-context.xml 의 /** isAuthenticated)
- *     구매 확정한 거래의 고객인지는 여기서(ReviewService) 직접 확인한다
+ *   - add.do, addok.do, replyok.do 는 로그인한 회원만 (security-context.xml 의 /** isAuthenticated)
+ *     구매 확정한 거래의 고객인지, 내가 받은 리뷰인지는 여기서(ReviewService) 직접 확인한다
  *   - 거래 상세(④-05)의 [리뷰 작성] 버튼이 add.do?tradeSeq= 로 들어온다
+ *   - 고수 상세(②-04)의 리뷰 영역 답변 칸이 replyok.do 로 보낸다
  */
 @Controller
 @RequiredArgsConstructor
@@ -58,6 +59,22 @@ public class ReviewController {
 		model.addAttribute("tradeSeq", dto.getTradeSeq());
 
 		return "review/addok";
+	}
+
+	// 리뷰 답변 처리  POST /review/replyok.do  (②-06)
+	// 고수 상세의 리뷰 영역에서 본인 고수만 보이는 답변 칸으로 들어온다. 폼에서 오는 값: reviewSeq(hidden), reply
+	// 고수 번호는 폼에서 받지 않고 로그인 정보로 넣는다
+	@PostMapping(value = "/replyok.do")
+	public String replyok(Long reviewSeq, String reply, Model model, Authentication auth) {
+
+		Long memberSeq = getMemberSeq(auth);
+
+		model.addAttribute("result", reviewService.addReply(reviewSeq, reply, memberSeq));
+
+		//답변 후 돌아갈 내 고수 상세 (고수 번호 = 회원 번호)
+		model.addAttribute("expertSeq", memberSeq);
+
+		return "review/replyok";
 	}
 
 	private Long getMemberSeq(Authentication auth) {

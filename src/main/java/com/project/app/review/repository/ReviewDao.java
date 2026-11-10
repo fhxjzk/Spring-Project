@@ -31,6 +31,10 @@ public class ReviewDao {
 	public int addReview(ReviewDto dto) {
 		return reviewMapper.addReview(dto);
 	}
+
+	public int addReply(ReviewDto dto) {
+		return reviewMapper.addReply(dto);
+	}
 	
 	
 }

@@ -133,6 +133,41 @@
 			letter-spacing: 2px;
 		}
 
+		/* 고수 답변: 리뷰 아래 연한 회색 상자. 왼쪽 파란 선으로 "고수가 단 글"인 걸 구분 */
+		.review-reply {
+			margin-top: 10px;
+			padding: 10px 14px;
+			border-left: 3px solid var(--color-primary);
+			border-radius: 0 8px 8px 0;
+			background-color: var(--color-bg-light);
+		}
+
+		.review-reply strong {
+			margin-right: 6px;
+			font-size: 14px;
+		}
+
+		.review-reply p {
+			margin: 4px 0 0;
+			white-space: pre-line;	/* 답변에 쓴 줄바꿈을 그대로 보여 준다 */
+		}
+
+		/* 본인 고수에게만 보이는 답변 입력 칸 */
+		.reply-form {
+			margin-top: 10px;
+		}
+
+		.reply-form textarea {
+			width: 100%;
+		}
+
+		.reply-form-footer {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-top: 6px;
+		}
+
 		.small {
 			font-size: 14px;
 		}
@@ -380,6 +415,32 @@
 							${review.customerName}
 						</div>
 						<div class="message-info small">${review.content}</div>
+
+						<%-- 고수 답변 (②-06). 답변이 있으면 누구에게나 보이고, 없으면 본인 고수에게만 입력 칸이 보인다.
+						     등록한 답변은 수정할 수 없어서 수정 버튼이 없다 (ReviewMapper.addReply 의 reply is null 조건) --%>
+						<c:choose>
+							<c:when test="${not empty review.reply}">
+								<div class="review-reply">
+									<strong>고수 답변</strong>
+									<span class="message-info small"><fmt:formatDate value="${review.replyDate}" pattern="yyyy-MM-dd" /></span>
+									<p class="small"><c:out value="${review.reply}" /></p>
+								</div>
+							</c:when>
+
+							<%-- 숨김 처리된 고수는 답변할 수 없다 (서비스 등록·수정과 같은 기준) --%>
+							<c:when test="${isOwner and not isHidden}">
+								<form class="reply-form" method="POST" action="${path}/review/replyok.do"
+										onsubmit="return checkReply(this);">
+									<textarea name="reply" rows="3" placeholder="고객에게 답변을 남겨 보세요."></textarea>
+									<div class="reply-form-footer">
+										<span class="message-info small">등록한 답변은 수정할 수 없어요</span>
+										<button class="btn btn-primary btn-sm">답변 등록</button>
+									</div>
+									<input type="hidden" name="reviewSeq" value="${review.reviewSeq}">
+									<input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}">
+								</form>
+							</c:when>
+						</c:choose>
 					</div>
 					</c:forEach>
 				</section>
@@ -389,6 +450,26 @@
 	</main>
 
 	<script>
+		// 리뷰 답변 등록 전 확인 (②-06). 서버(ReviewService.addReply)에서도 같은 조건으로 한 번 더 확인한다
+		function checkReply(form) {
+
+			const text = form.reply.value.trim();
+
+			if (text === '') {
+				alert('답변 내용을 입력해 주세요.');
+				form.reply.focus();
+				return false;
+			}
+
+			// tbl_review.reply VARCHAR2(2000) 은 바이트 기준. 한글 한 글자 = 3바이트
+			if (new TextEncoder().encode(text).length > 2000) {
+				alert('답변이 너무 길어요. (한글 약 660자까지)');
+				form.reply.focus();
+				return false;
+			}
+
+			return confirm('답변을 등록할까요? 등록한 답변은 수정할 수 없어요.');
+		}
 	</script>
 	<%@ include file="/WEB-INF/views/report/modal.jsp" %>
 </body>

@@ -18,4 +18,6 @@ public interface ReviewMapper {
 
 	int addReview(ReviewDto dto);
 
+	int addReply(ReviewDto dto);
+
 }
