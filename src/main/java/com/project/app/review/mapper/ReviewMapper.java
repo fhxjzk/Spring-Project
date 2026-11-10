@@ -16,4 +16,6 @@ public interface ReviewMapper {
 
 	List<ReviewDto> getLatestReviewList();
 
+	int addReview(ReviewDto dto);
+
 }

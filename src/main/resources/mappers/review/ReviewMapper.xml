@@ -30,4 +30,13 @@
 			fetch first 3 rows only
 	</select>
 
+	<!-- ===== 리뷰 작성 (②-05) ===== -->
+
+	<!-- 리뷰 INSERT. 답변(reply, reply_date)은 비워 두고, regdate 는 DEFAULT(sysdate)
+	     거래 하나에 리뷰 하나는 DB 의 uq_review_trade 가 한 번 더 막는다 (같은 거래로 두 번 들어오면 DuplicateKeyException) -->
+	<insert id="addReview" parameterType="ReviewDto">
+		insert into tbl_review (review_seq, trade_seq, customer_seq, expert_seq, rating, content)
+			values (seq_review.nextval, #{tradeSeq}, #{customerSeq}, #{expertSeq}, #{rating}, #{content})
+	</insert>
+
 </mapper>
