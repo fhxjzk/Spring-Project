@@ -14,6 +14,7 @@ import com.project.app.auth.CustomUser;
 import com.project.app.quote.model.QuoteDto;
 import com.project.app.quote.service.QuoteService;
 import com.project.app.request.model.RequestDto;
+import com.project.app.request.service.RequestNoticeService;
 import com.project.app.request.service.RequestService;
 
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class QuoteController {
 
 	private final QuoteService quoteService;
 	private final RequestService requestService;
+	private final RequestNoticeService requestNoticeService;
 
 	//받은 요청서 목록. type=designated면 나를 지정한 요청서, 없으면 공개 요청서
 	@GetMapping(value = "/request.do")
@@ -84,6 +86,7 @@ public class QuoteController {
 
 		if (result == 1) {
 			msg = "견적을 보냈습니다.";
+			requestNoticeService.quoteArrived(dto.getRequestSeq());	//고객에게 견적 도착 알림
 		} else if (result == -1) {
 			msg = "신고 처리로 숨김 상태라 견적을 보낼 수 없습니다.";
 		} else if (result == -2) {
@@ -103,6 +106,11 @@ public class QuoteController {
 			@RequestParam(value = "requestSeq") Long requestSeq) {
 
 		int result = quoteService.reject(requestSeq, getMemberSeq(auth));
+
+		//거절에 성공하면 고객에게 알린다
+		if (result == 1) {
+			requestNoticeService.requestRejected(requestSeq);
+		}
 
 		rttr.addFlashAttribute("msg", result == 1 ? "요청을 거절했습니다." : "거절할 수 없는 요청서입니다.");
 

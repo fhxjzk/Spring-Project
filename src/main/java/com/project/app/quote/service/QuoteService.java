@@ -79,7 +79,7 @@ public class QuoteService {
 		dto.setContent(dto.getContent().trim());
 		quoteDao.add(dto);
 
-		//TODO 고객에게 견적 도착 알림 (⑤ 공통 알림 기능이 생기면 호출)
+		//고객에게 보내는 견적 도착 알림은 저장이 끝난 뒤 컨트롤러가 보낸다 (RequestNoticeService)
 
 		return 1;
 	}
@@ -115,8 +115,7 @@ public class QuoteService {
 			return 0;
 		}
 
-		//TODO 고객에게 거절 알림 (⑤ 공통 알림 기능이 생기면 호출)
-
+		//고객에게 보내는 거절 알림은 컨트롤러가 보낸다 (RequestNoticeService)
 		return quoteDao.reject(requestSeq, expertSeq);
 	}
 

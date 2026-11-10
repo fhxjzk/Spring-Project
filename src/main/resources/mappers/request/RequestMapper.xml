@@ -212,4 +212,100 @@
 				where request_seq = #{requestSeq} and status = 'WAITING'
 	</update>
 
+	<!-- ===== 알림을 받을 사람 (RequestNoticeService, B-06) ===== -->
+
+	<!-- 알림에 쓰는 칸: 요청서 번호, 받는 회원 번호·아이디, 카테고리 이름, 지정한 고수(공개 요청은 null) -->
+	<sql id="noticeColumns">
+		r.request_seq, m.member_seq, m.id, c.name as category_name, r.expert_seq
+	</sql>
+
+	<!-- 요청서를 쓴 고객 (탈퇴했으면 null) -->
+	<select id="noticeCustomer" parameterType="Long" resultType="RequestNoticeDto">
+		select <include refid="noticeColumns" />
+			from tbl_request r
+				join tbl_category c on c.category_seq = r.category_seq
+				join tbl_member m on m.member_seq = r.customer_seq
+					where r.request_seq = #{requestSeq} and m.enabled = 'Y'
+	</select>
+
+	<!--
+		새 요청서를 알릴 고수
+		지정 요청은 지정한 고수 한 명, 공개 요청은 그 카테고리의 서비스를 제공하는 고수 모두.
+		탈퇴했거나 신고로 숨김 처리된 고수는 견적을 보낼 수 없으니 알리지 않는다.
+	-->
+	<select id="noticeNewRequestExperts" parameterType="Long" resultType="RequestNoticeDto">
+		select <include refid="noticeColumns" />
+			from tbl_request r
+				join tbl_category c on c.category_seq = r.category_seq
+				join tbl_member m on (m.member_seq = r.expert_seq
+					or (r.expert_seq is null
+						and m.member_seq in (select expert_seq from tbl_talent where category_seq = r.category_seq and enabled = 'Y')))
+				join tbl_expert_profile p on p.expert_seq = m.member_seq
+					where r.request_seq = #{requestSeq}
+						and m.role = 'ROLE_EXPERT' and m.enabled = 'Y' and p.hidden = 'N'
+	</select>
+
+	<!-- 요청서에 견적을 보낸 고수들과 지정된 고수 (요청서가 취소됐을 때 알린다) -->
+	<select id="noticeQuoteExperts" parameterType="Long" resultType="RequestNoticeDto">
+		select <include refid="noticeColumns" />
+			from tbl_request r
+				join tbl_category c on c.category_seq = r.category_seq
+				join tbl_member m on (m.member_seq = r.expert_seq
+					or m.member_seq in (select expert_seq from tbl_quote where request_seq = r.request_seq))
+					where r.request_seq = #{requestSeq} and m.enabled = 'Y'
+	</select>
+
+	<!--
+		아래 4개는 자동 마감·만료로 상태가 바뀔 요청서의 알림 대상이다.
+		조건은 위의 UPDATE 문과 같고, 상태를 바꾸기 직전에 조회한다.
+		for update: 조회하고 바꾸는 사이에 고객이 취소하는 일이 없도록 그 줄을 잠근다.
+	-->
+
+	<!-- 견적 마감이 될 요청서의 고객. 고수 선택 마감도 이미 지난 것은 곧바로 만료되므로 뺀다 -->
+	<select id="noticeCloseQuoted" resultType="RequestNoticeDto">
+		select <include refid="noticeColumns" />
+			from tbl_request r
+				join tbl_category c on c.category_seq = r.category_seq
+				join tbl_member m on m.member_seq = r.customer_seq
+					where r.status = 'OPEN' and r.quote_deadline &lt;= sysdate and r.quote_count > 0
+						and r.quote_deadline + 7 > sysdate
+						and m.enabled = 'Y'
+							for update of r.status
+	</select>
+
+	<!-- 견적 없이 만료될 요청서의 고객 -->
+	<select id="noticeExpireNoQuote" resultType="RequestNoticeDto">
+		select <include refid="noticeColumns" />
+			from tbl_request r
+				join tbl_category c on c.category_seq = r.category_seq
+				join tbl_member m on m.member_seq = r.customer_seq
+					where r.status = 'OPEN' and r.quote_deadline &lt;= sysdate and r.quote_count = 0
+						and m.enabled = 'Y'
+							for update of r.status
+	</select>
+
+	<!-- 고수를 고르지 않아 만료될 요청서의 고객 -->
+	<select id="noticeExpireUnselected" resultType="RequestNoticeDto">
+		select <include refid="noticeColumns" />
+			from tbl_request r
+				join tbl_category c on c.category_seq = r.category_seq
+				join tbl_member m on m.member_seq = r.customer_seq
+					where r.status = 'CLOSED' and r.select_deadline &lt;= sysdate
+						and m.enabled = 'Y'
+							for update of r.status
+	</select>
+
+	<!-- 고수를 고르지 않아 만료될 요청서에 대기 중인 견적을 보낸 고수 (견적을 미선택으로 바꾸기 전에 조회한다) -->
+	<select id="noticeExpireUnselectedExperts" resultType="RequestNoticeDto">
+		select <include refid="noticeColumns" />
+			from tbl_request r
+				join tbl_category c on c.category_seq = r.category_seq
+				join tbl_quote q on q.request_seq = r.request_seq
+				join tbl_member m on m.member_seq = q.expert_seq
+					where r.status = 'CLOSED' and r.select_deadline &lt;= sysdate
+						and q.status = 'WAITING'
+						and m.enabled = 'Y'
+							for update of q.status
+	</select>
+
 </mapper>

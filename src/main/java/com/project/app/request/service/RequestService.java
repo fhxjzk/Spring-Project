@@ -22,6 +22,7 @@ import com.project.app.request.model.QuestionOptionDto;
 import com.project.app.request.model.RequestAnswerDto;
 import com.project.app.request.model.RequestCategoryDto;
 import com.project.app.request.model.RequestDto;
+import com.project.app.request.model.RequestExpireResult;
 import com.project.app.request.model.RequestFileDto;
 import com.project.app.request.model.RequestQuoteDto;
 import com.project.app.request.repository.RequestDao;
@@ -225,7 +226,7 @@ public class RequestService {
 			throw new IllegalStateException("요청서 참고 이미지 저장 실패", e);
 		}
 
-		//TODO 해당 카테고리 고수들에게 요청서 도착 알림 (⑤ 공통 알림 기능이 생기면 호출)
+		//고수들에게 보내는 요청서 도착 알림은 저장이 끝난 뒤 컨트롤러가 보낸다 (RequestNoticeService)
 
 		return 1;
 	}
@@ -354,7 +355,7 @@ public class RequestService {
 
 		requestDao.unselectQuotes(requestSeq);
 
-		//TODO 견적을 보낸 고수들에게 취소 알림 (⑤ 공통 알림 기능이 생기면 호출)
+		//견적을 보낸 고수들에게 보내는 취소 알림은 저장이 끝난 뒤 컨트롤러가 보낸다 (RequestNoticeService)
 
 		return 1;
 	}
@@ -368,20 +369,32 @@ public class RequestService {
 	 *
 	 * 1번에서 고수 선택 마감이 이미 지난 요청서(서버가 오래 꺼져 있던 경우)는 3번에서 바로 만료된다.
 	 *
-	 * @return 로그에 남길 처리 건수 (예: 마감 1, 만료 2, 선택 기간 만료 0)
+	 * 상태를 바꾸기 직전에 알림을 받을 사람을 먼저 조회해 둔다. (바꾼 뒤에는 어느 요청서가 바뀌었는지 알 수 없어서)
+	 * 알림은 여기서 보내지 않고, 저장이 끝난 뒤 스케줄러가 보낸다.
+	 *
+	 * @return 처리 건수와 알림을 받을 사람
 	 */
 	@Transactional
-	public String expire() {
+	public RequestExpireResult expire() {
 
-		int closed = requestDao.closeQuoted();
-		int expired = requestDao.expireNoQuote();
+		RequestExpireResult result = new RequestExpireResult();
+
+		//1. 견적 마감
+		result.setClosed(requestDao.noticeCloseQuoted());
+		result.setClosedCount(requestDao.closeQuoted());
+
+		//2. 견적 없이 만료
+		result.setExpired(requestDao.noticeExpireNoQuote());
+		result.setExpiredCount(requestDao.expireNoQuote());
+
+		//3. 고수를 고르지 않아 만료
+		result.setUnselected(requestDao.noticeExpireUnselected());
+		result.setUnselectedExperts(requestDao.noticeExpireUnselectedExperts());
 
 		requestDao.unselectExpiredQuotes();
-		int unselected = requestDao.expireUnselected();
+		result.setUnselectedCount(requestDao.expireUnselected());
 
-		//TODO 고객·고수에게 마감·만료 알림 (⑤ 공통 알림 기능이 생기면 호출)
-
-		return "마감 " + closed + ", 만료 " + expired + ", 선택 기간 만료 " + unselected;
+		return result;
 	}
 
 	/**
