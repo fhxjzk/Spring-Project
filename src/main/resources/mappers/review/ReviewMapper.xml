@@ -17,6 +17,15 @@
 					fetch first 5 rows only
 	</select>
 
+	<!-- 리뷰 전체보기: 한 고수가 받은 리뷰 전부, 최신순 (고수 상세는 위의 getRecentReviewList 로 5개만) -->
+	<select id="getReviewList" parameterType="Long" resultType="ReviewDto">
+		select r.*, m.name as customer_name
+			from tbl_review r
+				inner join tbl_member m on m.member_seq = r.customer_seq
+			where r.expert_seq = #{expertSeq}
+			order by r.regdate desc
+	</select>
+
 	<!-- 메인 최근 리뷰: 전체 고수 대상 최신 3개 (숨김 고수, 탈퇴한 고수의 리뷰는 제외) -->
 	<select id="getLatestReviewList" resultType="ReviewDto">
 		select r.*, c.name as customer_name, e.name as expert_name
@@ -29,5 +38,30 @@
 			order by r.regdate desc
 			fetch first 3 rows only
 	</select>
+
+	<!-- ===== 리뷰 작성 (②-05) ===== -->
+
+	<!-- 리뷰 INSERT. 답변(reply, reply_date)은 비워 두고, regdate 는 DEFAULT(sysdate)
+	     거래 하나에 리뷰 하나는 DB 의 uq_review_trade 가 한 번 더 막는다 (같은 거래로 두 번 들어오면 DuplicateKeyException) -->
+	<insert id="addReview" parameterType="ReviewDto">
+		insert into tbl_review (review_seq, trade_seq, customer_seq, expert_seq, rating, content)
+			values (seq_review.nextval, #{tradeSeq}, #{customerSeq}, #{expertSeq}, #{rating}, #{content})
+	</insert>
+
+	<!-- ===== 리뷰 답변 (②-06) ===== -->
+
+	<!-- 답변 등록. 등록한 답변은 수정할 수 없다.
+	     where 조건 세 개를 다 만족할 때만 1줄이 바뀌고, 하나라도 아니면 0줄이다 (화면이 아니라 쿼리로 막는다)
+	       - review_seq : 답변할 리뷰
+	       - expert_seq : 그 리뷰를 받은 고수 = 로그인한 고수 (남의 리뷰에는 답변 못 함)
+	       - reply is null : 아직 답변이 없을 때만 (이미 있으면 덮어쓰지 않음 = 수정 불가) -->
+	<update id="addReply" parameterType="ReviewDto">
+		update tbl_review
+			set reply = #{reply},
+				reply_date = sysdate
+			where review_seq = #{reviewSeq}
+				and expert_seq = #{expertSeq}
+				and reply is null
+	</update>
 
 </mapper>
