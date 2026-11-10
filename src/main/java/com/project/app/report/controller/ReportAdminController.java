@@ -68,6 +68,11 @@ public class ReportAdminController {
 
 		int result = reportService.process(reportSeq, status, processReason, getAdminSeq(auth));
 
+		//처리가 끝났으면 신고한 회원에게 결과를 알린다 (E-02-06)
+		if (result == 1) {
+			reportService.notifyResult(reportSeq);
+		}
+
 		rttr.addFlashAttribute("msg", getMessage(result));
 
 		return "redirect:/admin/report/view.do?reportSeq=" + reportSeq;
