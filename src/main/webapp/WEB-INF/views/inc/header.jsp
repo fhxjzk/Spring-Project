@@ -1,3 +1,4 @@
+
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
@@ -39,6 +40,21 @@
 				</sec:authorize>
 
 				<sec:authorize access="isAuthenticated()">
+
+				<!-- 실시간 알림 버튼 -->
+				<button type="button" id="notificationBell" class="btn btn-sm"
+					aria-label="알림 목록" title="알림">
+					🔔 <span id="notificationCount" hidden>0</span>
+				</button>
+
+				<!-- 알림 목록 -->
+				<div id="notificationPanel" hidden>
+					<strong>알림 목록</strong>
+					<ul id="notificationList">
+						<li>알림을 불러오는 중입니다.</li>
+					</ul>
+				</div>
+
 				<span class="user-name"><sec:authentication property="principal.dto.name" />님</span>
 				<a class="btn btn-sm" href="${path}/auth/logout.do">로그아웃</a>
 				</sec:authorize>
@@ -46,3 +62,12 @@
 
 		</div>
 	</header>
+
+<!-- 알림 전용 CSS -->
+<link rel="stylesheet" href="<c:url value='/resources/css/notification.css' />">
+
+<!-- STOMP WebSocket 라이브러리 -->
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.2.1/bundles/stomp.umd.min.js"></script>
+
+<!-- 알림 전용 JavaScript -->
+<script src="<c:url value='/resources/js/notification.js' />"></script>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.app.chat.mapper.ChatMapper">
+    <!-- 1. 채팅 메시지 번호 생성 -->
+    <select id="nextMessageSeq" resultType="long">
+        SELECT seq_chat_message.NEXTVAL
+        FROM DUAL
+    </select>
+
+    <!-- 2. 채팅 메시지 저장 -->
+    <insert id="insert"
+            parameterType="com.project.app.chat.model.ChatMessage">
+
+        INSERT INTO tbl_chat_message (
+            chat_message_seq,
+            chat_room_seq,
+            sender_seq,
+            content,
+            regdate
+        )
+        VALUES (
+            #{messageId},
+            #{chatRoomSeq},
+            #{senderSeq},
+            #{content},
+            SYSDATE
+        )
+
+    </insert>
+
+    <!-- 3. 메시지 1건 조회 -->
+    <select id="findById"
+            resultType="com.project.app.chat.model.ChatMessage">
+
+        SELECT
+            chat_message_seq AS "messageId",
+            chat_room_seq AS "chatRoomSeq",
+            sender_seq AS "senderSeq",
+            content AS "content",
+            TO_CHAR(regdate, 'YYYY-MM-DD HH24:MI:SS')
+                AS "createdAt"
+        FROM tbl_chat_message
+        WHERE chat_message_seq = #{messageId}
+
+    </select>
+
+    <!-- 4. 채팅방 메시지 조회 -->
+    <select id="findByRoomId"
+            resultType="com.project.app.chat.model.ChatMessage">
+
+        SELECT
+            chat_message_seq AS "messageId",
+            chat_room_seq AS "chatRoomSeq",
+            sender_seq AS "senderSeq",
+            content AS "content",
+            TO_CHAR(regdate, 'YYYY-MM-DD HH24:MI:SS')
+                AS "createdAt"
+        FROM tbl_chat_message
+        WHERE chat_room_seq = #{roomId}
+        ORDER BY chat_message_seq ASC
+
+    </select>
+
+</mapper>
