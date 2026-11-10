@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2f6fed" stroke-linecap="round" stroke-linejoin="round">
+  <!-- 비즈니스(왼쪽 위) + 상담(오른쪽 아래). Lucide 아이콘(ISC 라이선스) 두 개를 58%로 줄여 합쳤다.
+       겹치는 부분은 mask 로 왼쪽 위 아이콘을 잘라 내서 두 아이콘 사이에 틈이 보이게 했다 -->
+  <defs><mask id="m-business" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24"><rect width="24" height="24" fill="#fff"/><g transform="translate(10.08 10.08) scale(0.58)" stroke="#000" stroke-width="6.5" fill="none"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></g></mask></defs>
+  <g mask="url(#m-business)"><g transform="scale(0.58)" stroke-width="2.6"><path d="M12 12h.01"/><path d="M16 6V4a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><path d="M22 13a18.15 18.15 0 0 1-20 0"/><rect width="20" height="14" x="2" y="6" rx="2"/></g></g>
+  <g transform="translate(10.08 10.08) scale(0.58)" stroke-width="2.6"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></g>
+</svg>

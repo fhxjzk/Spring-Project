@@ -152,6 +152,16 @@
 			margin: 0 auto 10px;
 			border-radius: 12px;
 			background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg));
+
+			/* 아이콘을 연한 칸 한가운데에 */
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.category-icon img {
+			width: 26px;
+			height: 26px;
 		}
 
 		/* 인기 고수 */
@@ -165,8 +175,26 @@
 			background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg));
 		}
 
+		/* 프로필 사진이 있으면 칸을 꽉 채운다 (비율이 달라도 잘라서 맞춘다) */
+		.expert-thumb img {
+			display: block;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
 		.expert-info {
 			padding: 14px 16px;
+		}
+
+		/* 소분류가 많으면 한 줄에서 ...으로 자른다 */
+		.expert-category {
+			display: block;
+			margin: 2px 0 4px;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			color: var(--color-text-light);
 		}
 
 		.expert-info strong {
@@ -262,7 +290,7 @@
 		<h1>우리 동네 고수를 찾아보세요</h1>
 		<p>레슨부터 집수리까지, 요청서 한 번으로 견적을 비교하세요</p>
 
-		<%-- TODO: 검색 주소와 파라미터 이름은 ⑥(고수 검색)과 맞춘다 --%>
+		<%-- ⑥ 고수 검색으로 보낸다. keyword 는 고수 이름, 소개글, 서비스 이름에서 찾는다 (SearchMapper) --%>
 		<form class="hero-search" method="GET" action="${path}/search/list.do">
 			<input type="search" name="keyword" placeholder="카테고리 또는 키워드 검색">
 			<button class="btn btn-primary">검색</button>
@@ -278,7 +306,12 @@
 			<div class="grid grid-6">
 				<c:forEach items="${clist}" var="category">
 				<div class="card category-card">
-					<div class="category-icon"></div>
+					<%-- 아이콘 파일명 = 대분류 번호 (resources/images/category/README.md).
+					     그 번호의 파일이 없으면 default.svg. this.onerror=null 은 default.svg 마저 없을 때 무한 반복을 막는다 --%>
+					<div class="category-icon">
+						<img src="${path}/resources/images/category/${category.categorySeq}.svg" alt=""
+							onerror="this.onerror=null; this.src='${path}/resources/images/category/default.svg';">
+					</div>
 					${category.name}
 
 					<%-- 소분류를 누르면 그 소분류로 고수 검색 (⑥ /search/list.do?categorySeq=) --%>
@@ -305,25 +338,40 @@
 		<section class="main-section">
 			<h2>인기 고수</h2>
 
-			<div class="grid grid-4">
-				<%-- TODO: 카테고리 이름 붙이기 (LISTAGG) --%>
-				<c:forEach items="${expertList}" var="expert">
-				<a class="card card-link expert-card" href="${path}/expert/view.do?expertSeq=${expert.expertSeq}">
-					<div class="expert-thumb"></div>
-					<div class="expert-info">
-						<strong>${expert.name}</strong>
-						<c:choose>
-							<c:when test="${expert.reviewCount > 0}">
-								<span class="message-info small">★${expert.averageRating} (${expert.reviewCount})</span>
-							</c:when>
-							<c:otherwise>
-								<span class="message-info small">아직 리뷰가 없어요</span>
-							</c:otherwise>
-						</c:choose>
+			<c:choose>
+				<c:when test="${empty expertList}">
+					<p class="message-info small">아직 등록된 고수가 없어요</p>
+				</c:when>
+				<c:otherwise>
+					<div class="grid grid-4">
+						<c:forEach items="${expertList}" var="expert">
+						<a class="card card-link expert-card" href="${path}/expert/view.do?expertSeq=${expert.expertSeq}">
+							<%-- 사진이 없거나 파일을 못 찾으면(onerror) 배경색만 남는다. 고수 상세와 같은 방식 --%>
+							<div class="expert-thumb">
+								<c:if test="${not empty expert.profileImage}">
+									<img src="${path}/resources/upload/profile/<c:out value='${expert.profileImage}' />" alt="" onerror="this.remove()">
+								</c:if>
+							</div>
+							<div class="expert-info">
+								<strong>${expert.name}</strong>
+								<%-- 등록한 서비스의 소분류. 서비스가 없는 고수는 줄 자체를 안 그린다 --%>
+								<c:if test="${not empty expert.categoryNames}">
+									<span class="expert-category small"><c:out value="${expert.categoryNames}" /></span>
+								</c:if>
+								<c:choose>
+									<c:when test="${expert.reviewCount > 0}">
+										<span class="message-info small">★${expert.averageRating} (${expert.reviewCount})</span>
+									</c:when>
+									<c:otherwise>
+										<span class="message-info small">아직 리뷰가 없어요</span>
+									</c:otherwise>
+								</c:choose>
+							</div>
+						</a>
+						</c:forEach>
 					</div>
-				</a>
-				</c:forEach>
-			</div>
+				</c:otherwise>
+			</c:choose>
 		</section>
 
 		<!-- 커뮤니티 최근 글 (⑥ 동네 게시판). 회원은 내 동네, 비회원은 서울 -->
@@ -367,8 +415,9 @@
 							<div class="review-stars">
 								<c:forEach begin="1" end="5" var="i">${i <= review.rating ? '★' : '☆'}</c:forEach>
 							</div>
-							<p class="review-content">"${review.content}"</p>
-							<span class="message-info small">${review.customerName} · ${review.expertName}</span>
+							<%-- 고객이 쓴 글이라 c:out 으로 감싼다 (XSS 방지) --%>
+							<p class="review-content">"<c:out value="${review.content}" />"</p>
+							<span class="message-info small"><c:out value="${review.customerName}" /> · <c:out value="${review.expertName}" /></span>
 						</a>
 						</c:forEach>
 					</div>

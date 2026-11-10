@@ -62,17 +62,25 @@
 			order by p.regdate desc
 	</select>
 
-	<!-- 메인 인기 고수: 평균 별점 높은 순 4명 (숨김 고수, 탈퇴 회원 제외 / 리뷰 없는 고수는 맨 뒤) -->
+	<!-- 메인 인기 고수: 평균 별점 높은 순 4명 (숨김 고수, 탈퇴 회원 제외 / 리뷰 없는 고수는 맨 뒤)
+	     category_names: 그 고수가 등록한 서비스(삭제 안 된 것)의 소분류 이름을 "영어 회화, 피아노"처럼 한 줄로 붙인다.
+	       서비스 두 개가 같은 소분류면 이름이 두 번 나오지 않게 distinct. 서비스가 없으면 null
+	       리뷰 join 과 섞으면 리뷰 수만큼 줄이 늘어나서, 따로 서브쿼리로 구한다 -->
 	<select id="getPopularExpertList" resultType="ExpertCardDto">
-		select p.expert_seq, m.name,
+		select p.expert_seq, m.name, p.profile_image,
 				count(r.review_seq) as review_count,
-				round(avg(r.rating), 1) as average_rating
+				round(avg(r.rating), 1) as average_rating,
+				(select listagg(distinct c.name, ', ') within group (order by c.name)
+					from tbl_talent t
+						inner join tbl_category c on c.category_seq = t.category_seq
+					where t.expert_seq = p.expert_seq
+						and t.enabled = 'Y') as category_names
 			from tbl_expert_profile p
 				inner join tbl_member m on m.member_seq = p.expert_seq
 				left join tbl_review r on r.expert_seq = p.expert_seq
 			where p.hidden = 'N'
 				and m.enabled = 'Y'
-			group by p.expert_seq, m.name
+			group by p.expert_seq, m.name, p.profile_image
 			order by average_rating desc nulls last, review_count desc
 			fetch first 4 rows only
 	</select>
