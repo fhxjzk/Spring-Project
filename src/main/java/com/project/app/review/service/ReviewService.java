@@ -125,6 +125,11 @@ public class ReviewService {
 		return rsdto;
 	}
 
+	// 리뷰 전체보기: 한 고수가 받은 리뷰 전부 (최신순)
+	public List<ReviewDto> getReviewList(Long expertSeq) {
+		return reviewDao.getReviewList(expertSeq);
+	}
+
 	// 메인 최근 리뷰 (전체 고수 대상 최신 3개)
 	public List<ReviewDto> getLatestReviewList() {
 		List<ReviewDto> reviewList = reviewDao.getLatestReviewList();

@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.project.app.auth.CustomUser;
+import com.project.app.expert.model.ExpertProfileDto;
+import com.project.app.expert.service.ExpertService;
 import com.project.app.review.model.ReviewDto;
 import com.project.app.review.service.ReviewService;
 import com.project.app.trade.model.TradeDto;
@@ -18,10 +20,12 @@ import lombok.RequiredArgsConstructor;
  * 리뷰 (화면설계서 ②-05 리뷰·별점 작성, ②-06 리뷰 답변)
  *
  * URL은 /review/동작.do
+ *   - list.do 는 누구나 (비로그인 포함, security-context.xml 의 list.do 규칙)
  *   - add.do, addok.do, replyok.do 는 로그인한 회원만 (security-context.xml 의 /** isAuthenticated)
  *     구매 확정한 거래의 고객인지, 내가 받은 리뷰인지는 여기서(ReviewService) 직접 확인한다
  *   - 거래 상세(④-05)의 [리뷰 작성] 버튼이 add.do?tradeSeq= 로 들어온다
- *   - 고수 상세(②-04)의 리뷰 영역 답변 칸이 replyok.do 로 보낸다
+ *   - 고수 상세(②-04)의 리뷰 [전체보기]가 list.do?expertSeq= 로 들어온다
+ *   - 고수 상세, 리뷰 전체보기의 답변 칸이 replyok.do 로 보낸다
  */
 @Controller
 @RequiredArgsConstructor
@@ -29,6 +33,29 @@ import lombok.RequiredArgsConstructor;
 public class ReviewController {
 
 	private final ReviewService reviewService;
+	private final ExpertService expertService;
+
+	// 리뷰 전체보기  GET /review/list.do?expertSeq=
+	// 고수 상세에는 최근 5개만 나와서, 그보다 오래된 리뷰는 여기서 보고 답변한다
+	@GetMapping(value = "/list.do")
+	public String list(Long expertSeq, Model model, Authentication auth) {
+
+		ExpertProfileDto edto = expertSeq == null ? null : expertService.getProfile(expertSeq);
+
+		//없는 고수
+		if (edto == null) {
+			return "redirect:/index.do";
+		}
+
+		//답변 칸을 보일지 정하는 값은 고수 상세(ExpertController.view)와 같다
+		model.addAttribute("edto", edto);
+		model.addAttribute("reviewList", reviewService.getReviewList(expertSeq));
+		model.addAttribute("rsdto", reviewService.getReviewSummary(expertSeq));
+		model.addAttribute("isOwner", expertService.ownerCheck(getMemberSeqOrNull(auth), expertSeq));
+		model.addAttribute("isHidden", "Y".equals(edto.getHidden()));
+
+		return "review/list";
+	}
 
 	// 리뷰 작성 화면  GET /review/add.do?tradeSeq=
 	// 버튼은 쓸 수 있을 때만 보이지만, 주소를 직접 치고 들어올 수 있어서 여기서도 막는다
@@ -62,24 +89,35 @@ public class ReviewController {
 	}
 
 	// 리뷰 답변 처리  POST /review/replyok.do  (②-06)
-	// 고수 상세의 리뷰 영역에서 본인 고수만 보이는 답변 칸으로 들어온다. 폼에서 오는 값: reviewSeq(hidden), reply
-	// 고수 번호는 폼에서 받지 않고 로그인 정보로 넣는다
+	// 폼에서 오는 값: reviewSeq(hidden), reply, from(hidden, 리뷰 전체보기에서 보낼 때만 'list')
 	@PostMapping(value = "/replyok.do")
-	public String replyok(Long reviewSeq, String reply, Model model, Authentication auth) {
+	public String replyok(Long reviewSeq, String reply, String from, Model model, Authentication auth) {
 
 		Long memberSeq = getMemberSeq(auth);
 
 		model.addAttribute("result", reviewService.addReply(reviewSeq, reply, memberSeq));
 
-		//답변 후 돌아갈 내 고수 상세 (고수 번호 = 회원 번호)
+		//답변 후 돌아갈 곳: 내 고수 상세 또는 내 리뷰 전체보기 (고수 번호 = 회원 번호)
 		model.addAttribute("expertSeq", memberSeq);
+		model.addAttribute("fromList", "list".equals(from));
 
 		return "review/replyok";
 	}
 
+	//로그인해야 들어오는 주소용 (add, addok, replyok)
 	private Long getMemberSeq(Authentication auth) {
 
 		return ((CustomUser) auth.getPrincipal()).getMemberSeq();
+	}
+
+	//비로그인도 들어오는 주소용 (list). 비회원이면 auth 가 null 이거나 principal 이 CustomUser 가 아니다
+	private Long getMemberSeqOrNull(Authentication auth) {
+
+		if (auth == null || !(auth.getPrincipal() instanceof CustomUser)) {
+			return null;
+		}
+
+		return getMemberSeq(auth);
 	}
 
 }

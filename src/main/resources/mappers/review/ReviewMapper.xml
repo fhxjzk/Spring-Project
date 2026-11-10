@@ -17,6 +17,15 @@
 					fetch first 5 rows only
 	</select>
 
+	<!-- 리뷰 전체보기: 한 고수가 받은 리뷰 전부, 최신순 (고수 상세는 위의 getRecentReviewList 로 5개만) -->
+	<select id="getReviewList" parameterType="Long" resultType="ReviewDto">
+		select r.*, m.name as customer_name
+			from tbl_review r
+				inner join tbl_member m on m.member_seq = r.customer_seq
+			where r.expert_seq = #{expertSeq}
+			order by r.regdate desc
+	</select>
+
 	<!-- 메인 최근 리뷰: 전체 고수 대상 최신 3개 (숨김 고수, 탈퇴한 고수의 리뷰는 제외) -->
 	<select id="getLatestReviewList" resultType="ReviewDto">
 		select r.*, c.name as customer_name, e.name as expert_name

@@ -16,6 +16,8 @@ public interface ReviewMapper {
 
 	List<ReviewDto> getLatestReviewList();
 
+	List<ReviewDto> getReviewList(Long expertSeq);
+
 	int addReview(ReviewDto dto);
 
 	int addReply(ReviewDto dto);
