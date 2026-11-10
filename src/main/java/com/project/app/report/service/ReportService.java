@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.project.app.notice.service.NotificationService;
 import com.project.app.report.model.ReportDto;
 import com.project.app.report.repository.ReportDao;
 
@@ -15,6 +16,11 @@ import lombok.RequiredArgsConstructor;
 public class ReportService {
 
 	private final ReportDao reportDao;
+	private final NotificationService notificationService;	//⑤ 공통 알림 (E-02-06)
+
+	//알림 내용에 넣을 처리 사유 최대 글자 수
+	//tbl_notice.message 가 VARCHAR2(1000) 바이트라서 한글(3바이트)로 꽉 채워도 넘지 않게 자른다
+	private static final int NOTICE_REASON_MAX = 200;
 
 	//--- 신고 접수 (B-07) ---
 
@@ -119,6 +125,67 @@ public class ReportService {
 		}
 
 		return result;
+	}
+
+	/**
+	 * 처리 결과를 신고한 회원에게 알린다 (E-02-06)
+	 *
+	 * process() 안에서 부르지 않고, 처리가 끝난(DB에 확정된) 뒤에 컨트롤러가 따로 부른다.
+	 * ⑤ 알림 저장 메서드에도 트랜잭션이 걸려 있어서, process() 안에서 부르다가 알림 저장이 실패하면
+	 * 신고 처리까지 통째로 취소될 수 있기 때문이다.
+	 * 알림이 실패해도 신고 처리는 그대로 두고 로그만 남긴다.
+	 */
+	public void notifyResult(Long reportSeq) {
+
+		ReportDto report = reportDao.getBySeq(reportSeq);
+
+		//처리완료 · 반려된 신고만 알린다
+		if (report == null
+				|| (!"DONE".equals(report.getStatus()) && !"REJECTED".equals(report.getStatus()))) {
+			return;
+		}
+
+		try {
+			notificationService.send(
+					report.getReporterSeq(),
+					report.getReporterId(),
+					"REPORT",
+					"신고 처리 결과",
+					getResultMessage(report),
+					report.getReportSeq());
+		} catch (Exception e) {
+			System.err.println("신고 처리 결과 알림 실패 (reportSeq=" + reportSeq + ")");
+			e.printStackTrace();
+		}
+	}
+
+	//예) 신고하신 게시글(동네 맛집 추천) 건이 처리완료되었습니다. 처리 사유: 욕설이 확인되어 숨김 처리했습니다.
+	private String getResultMessage(ReportDto report) {
+
+		String targetKind = "요청서";
+
+		if ("PROFILE".equals(report.getTargetType())) {
+			targetKind = "고수 프로필";
+		} else if ("BOARD".equals(report.getTargetType())) {
+			targetKind = "게시글";
+		}
+
+		String result = "DONE".equals(report.getStatus()) ? "처리완료" : "반려";
+
+		String reason = report.getProcessReason();
+
+		if (reason.length() > NOTICE_REASON_MAX) {
+			reason = reason.substring(0, NOTICE_REASON_MAX) + "...";
+		}
+
+		//대상이 지워져서 이름을 못 찾으면 이름 없이 쓴다
+		String target = targetKind;
+
+		if (report.getTargetName() != null) {
+			target += "(" + report.getTargetName() + ")";
+		}
+
+		return "신고하신 " + target + " 건이 " + result + "되었습니다. 처리 사유: " + reason;
 	}
 
 	//숨김 / 비공개 해제 (E-02)
