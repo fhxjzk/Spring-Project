@@ -7,6 +7,7 @@
 <head>
 	<meta charset="UTF-8">
 	<%@ include file="/WEB-INF/views/inc/asset.jsp" %>
+	<%@ include file="/WEB-INF/views/review/item-head.jsp" %>
 	<style>
 		/* 왼쪽 프로필 카드는 고정 너비, 오른쪽 본문은 남은 공간 전부 */
 		.expert-layout {
@@ -119,18 +120,6 @@
 
 		.thumb-info strong {
 			display: block;
-		}
-
-		/* 리뷰 */
-		.review-item + .review-item {
-			margin-top: 12px;
-			padding-top: 12px;
-			border-top: 1px solid var(--color-border);
-		}
-
-		.review-stars {
-			color: var(--color-warning);
-			letter-spacing: 2px;
 		}
 
 		.small {
@@ -364,32 +353,27 @@
 
 				<section class="card">
 					<h3>리뷰</h3>
-					<div class="expert-side-footer">
-							<a class="message-info" href="#">전체보기</a>
-						</div>
-					<c:forEach items="${reviewList}" var="review">
-					<%-- TODO: <c:forEach>로 바꾼다. tbl_review --%>
-					<%-- TODO: reviewDto 수정하기, 리뷰한 사람 이름 가져와야함 --%>
-					<div class="review-item">
-						<div>
-							<span class="review-stars">
-								<c:forEach begin="1" end="5" var="i">
-									${i <= review.rating ? '★' : '☆'}
-								</c:forEach>
-							</span>
-							${review.customerName}
-						</div>
-						<div class="message-info small">${review.content}</div>
-					</div>
-					</c:forEach>
+
+					<%-- 최근 5개만 보여 준다. 나머지는 리뷰 전체보기에서 보고 답변한다 --%>
+					<c:choose>
+						<c:when test="${empty reviewList}">
+							<p class="message-info small">아직 리뷰가 없어요</p>
+						</c:when>
+						<c:otherwise>
+							<c:forEach items="${reviewList}" var="review">
+								<%@ include file="/WEB-INF/views/review/item.jsp" %>
+							</c:forEach>
+							<div class="expert-side-footer">
+								<a class="message-info" href="${path}/review/list.do?expertSeq=${edto.expertSeq}">리뷰 전체보기 (${rsdto.reviewCount}) →</a>
+							</div>
+						</c:otherwise>
+					</c:choose>
 				</section>
 
 			</div>
 		</div>
 	</main>
 
-	<script>
-	</script>
 	<%@ include file="/WEB-INF/views/report/modal.jsp" %>
 </body>
 </html>

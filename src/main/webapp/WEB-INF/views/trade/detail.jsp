@@ -161,7 +161,10 @@
 			<c:if test="${canWriteReview}">
 			<a class="btn btn-primary" href="${path}/review/add.do?tradeSeq=${trade.tradeSeq}">리뷰 작성</a>
 			</c:if>
-
+           <a class="btn"
+   href="${path}/chat/enter?tradeSeq=${trade.tradeSeq}">
+    채팅하기
+          </a>
 			<a class="btn" href="${path}/trade/mylist.do">목록</a>
 		</div>
 

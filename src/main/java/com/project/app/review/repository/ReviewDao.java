@@ -27,6 +27,18 @@ public class ReviewDao {
 	public List<ReviewDto> getLatestReviewList() {
 		return reviewMapper.getLatestReviewList();
 	}
+
+	public List<ReviewDto> getReviewList(Long expertSeq) {
+		return reviewMapper.getReviewList(expertSeq);
+	}
+
+	public int addReview(ReviewDto dto) {
+		return reviewMapper.addReview(dto);
+	}
+
+	public int addReply(ReviewDto dto) {
+		return reviewMapper.addReply(dto);
+	}
 	
 	
 }
