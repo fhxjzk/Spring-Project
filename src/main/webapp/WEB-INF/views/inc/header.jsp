@@ -15,6 +15,8 @@
 						파트별 메뉴는 기능이 만들어지면 담당자에게 요청해서 추가한다. 예)
 						<li><a href="${path}/search/list.do">고수 찾기</a></li>
 					--%>
+					<li><a href="${path}/search/list.do">고수 찾기</a></li>
+					<li><a href="${path}/board/list.do">동네 이야기</a></li>
 
 					<sec:authorize access="hasRole('ROLE_CUSTOMER')">
 					<%-- 고객 메뉴 (예: 내 요청서, 내 거래) --%>
