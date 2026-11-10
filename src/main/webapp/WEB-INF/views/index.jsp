@@ -72,10 +72,78 @@
 		}
 
 		/* 카테고리 */
+		/* 카드는 링크가 아니다. 누르거나 마우스를 올리면 아래에 소분류 메뉴가 뜬다 */
 		.category-card {
+			position: relative;
 			padding: 20px 12px;
 			text-align: center;
 			font-weight: 600;
+			cursor: pointer;
+			user-select: none;
+		}
+
+		.category-card.open {
+			z-index: 10;
+			border-color: var(--color-primary);
+		}
+
+		/* 소분류 메뉴: 카드 안에 넣어 둬서, 메뉴로 마우스를 옮겨도 카드에서 벗어난 게 아니다.
+		   카드와 메뉴 사이 8px 틈도 padding-top 으로 메뉴에 포함시켜서 지나갈 때 닫히지 않게 한다 */
+		.sub-menu {
+			display: none;
+			position: absolute;
+			top: 100%;
+			left: 0;
+			right: 0;
+			padding-top: 8px;
+			text-align: left;
+			font-weight: 400;
+		}
+
+		.category-card.open .sub-menu {
+			display: block;
+		}
+
+		/* 마우스가 있는 기기(PC)에서만 hover 로 연다.
+		   휴대폰은 누르면 hover 가 남아서 다시 눌러도 안 닫히는 문제가 있어서 클릭(open)으로만 연다 */
+		@media (hover: hover) {
+			.category-card:hover {
+				z-index: 10;
+				border-color: var(--color-primary);
+			}
+
+			.category-card:hover .sub-menu {
+				display: block;
+			}
+		}
+
+		.sub-menu-box {
+			padding: 6px;
+			border: 1px solid var(--color-border);
+			border-radius: var(--radius);
+			background-color: var(--color-bg);
+			box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+		}
+
+		.sub-menu-box a {
+			display: block;
+			padding: 8px 10px;
+			border-radius: 6px;
+			font-size: 14px;
+			color: var(--color-text);
+		}
+
+		.sub-menu-box a:hover {
+			text-decoration: none;
+			color: var(--color-primary);
+			background-color: var(--color-bg-light);
+		}
+
+		.sub-menu-empty {
+			margin: 0;
+			padding: 8px 10px;
+			font-size: 14px;
+			color: var(--color-text-light);
 		}
 
 		.category-icon {
@@ -84,6 +152,16 @@
 			margin: 0 auto 10px;
 			border-radius: 12px;
 			background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg));
+
+			/* 아이콘을 연한 칸 한가운데에 */
+			display: flex;
+			align-items: center;
+			justify-content: center;
+		}
+
+		.category-icon img {
+			width: 26px;
+			height: 26px;
 		}
 
 		/* 인기 고수 */
@@ -97,8 +175,26 @@
 			background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-bg));
 		}
 
+		/* 프로필 사진이 있으면 칸을 꽉 채운다 (비율이 달라도 잘라서 맞춘다) */
+		.expert-thumb img {
+			display: block;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
 		.expert-info {
 			padding: 14px 16px;
+		}
+
+		/* 소분류가 많으면 한 줄에서 ...으로 자른다 */
+		.expert-category {
+			display: block;
+			margin: 2px 0 4px;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+			color: var(--color-text-light);
 		}
 
 		.expert-info strong {
@@ -120,6 +216,66 @@
 			overflow: hidden;
 		}
 
+		/* 커뮤니티 최근 글: 제목 왼쪽, 바로가기 오른쪽 */
+		.section-head {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.section-more {
+			font-size: 14px;
+			font-weight: 600;
+		}
+
+		/* 카드 대신 박스 하나에 글을 한 줄씩 (제목 · 작성자 · 작성일) */
+		.board-box {
+			padding: 6px 20px;
+			border: 1px solid var(--color-border);
+			border-radius: var(--radius);
+		}
+
+		.board-row {
+			display: flex;
+			align-items: center;
+			gap: 16px;
+			padding: 13px 0;
+			color: var(--color-text);
+		}
+
+		.board-row + .board-row {
+			border-top: 1px solid var(--color-border);
+		}
+
+		/* 줄 전체가 링크라 밑줄 대신 제목 색만 바꾼다 */
+		.board-row:hover {
+			text-decoration: none;
+		}
+
+		.board-row:hover .board-title {
+			color: var(--color-primary);
+		}
+
+		/* 제목이 길면 한 줄로 자르고 ... */
+		.board-title {
+			flex: 1;
+			min-width: 0;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+
+		.board-writer,
+		.board-date {
+			flex: 0 0 90px;
+			font-size: 14px;
+			color: var(--color-text-light);
+		}
+
+		.board-date {
+			text-align: right;
+		}
+
 		.small {
 			font-size: 14px;
 		}
@@ -134,7 +290,7 @@
 		<h1>우리 동네 고수를 찾아보세요</h1>
 		<p>레슨부터 집수리까지, 요청서 한 번으로 견적을 비교하세요</p>
 
-		<%-- TODO: 검색 주소와 파라미터 이름은 ⑥(고수 검색)과 맞춘다 --%>
+		<%-- ⑥ 고수 검색으로 보낸다. keyword 는 고수 이름, 소개글, 서비스 이름에서 찾는다 (SearchMapper) --%>
 		<form class="hero-search" method="GET" action="${path}/search/list.do">
 			<input type="search" name="keyword" placeholder="카테고리 또는 키워드 검색">
 			<button class="btn btn-primary">검색</button>
@@ -149,10 +305,31 @@
 
 			<div class="grid grid-6">
 				<c:forEach items="${clist}" var="category">
-				<a class="card card-link category-card" href="#">
-					<div class="category-icon"></div>
+				<div class="card category-card">
+					<%-- 아이콘 파일명 = 대분류 번호 (resources/images/category/README.md).
+					     그 번호의 파일이 없으면 default.svg. this.onerror=null 은 default.svg 마저 없을 때 무한 반복을 막는다 --%>
+					<div class="category-icon">
+						<img src="${path}/resources/images/category/${category.categorySeq}.svg" alt=""
+							onerror="this.onerror=null; this.src='${path}/resources/images/category/default.svg';">
+					</div>
 					${category.name}
-				</a>
+
+					<%-- 소분류를 누르면 그 소분류로 고수 검색 (⑥ /search/list.do?categorySeq=) --%>
+					<div class="sub-menu">
+						<div class="sub-menu-box">
+							<c:set var="hasSub" value="false" />
+							<c:forEach items="${subList}" var="sub">
+								<c:if test="${sub.parentSeq == category.categorySeq}">
+									<a href="${path}/search/list.do?categorySeq=${sub.categorySeq}">${sub.name}</a>
+									<c:set var="hasSub" value="true" />
+								</c:if>
+							</c:forEach>
+							<c:if test="${!hasSub}">
+								<p class="sub-menu-empty">준비 중인 카테고리예요</p>
+							</c:if>
+						</div>
+					</div>
+				</div>
 				</c:forEach>
 			</div>
 		</section>
@@ -161,25 +338,65 @@
 		<section class="main-section">
 			<h2>인기 고수</h2>
 
-			<div class="grid grid-4">
-				<%-- TODO: 카테고리 이름 붙이기 (LISTAGG) --%>
-				<c:forEach items="${expertList}" var="expert">
-				<a class="card card-link expert-card" href="${path}/expert/view.do?expertSeq=${expert.expertSeq}">
-					<div class="expert-thumb"></div>
-					<div class="expert-info">
-						<strong>${expert.name}</strong>
-						<c:choose>
-							<c:when test="${expert.reviewCount > 0}">
-								<span class="message-info small">★${expert.averageRating} (${expert.reviewCount})</span>
-							</c:when>
-							<c:otherwise>
-								<span class="message-info small">아직 리뷰가 없어요</span>
-							</c:otherwise>
-						</c:choose>
+			<c:choose>
+				<c:when test="${empty expertList}">
+					<p class="message-info small">아직 등록된 고수가 없어요</p>
+				</c:when>
+				<c:otherwise>
+					<div class="grid grid-4">
+						<c:forEach items="${expertList}" var="expert">
+						<a class="card card-link expert-card" href="${path}/expert/view.do?expertSeq=${expert.expertSeq}">
+							<%-- 사진이 없거나 파일을 못 찾으면(onerror) 배경색만 남는다. 고수 상세와 같은 방식 --%>
+							<div class="expert-thumb">
+								<c:if test="${not empty expert.profileImage}">
+									<img src="${path}/resources/upload/profile/<c:out value='${expert.profileImage}' />" alt="" onerror="this.remove()">
+								</c:if>
+							</div>
+							<div class="expert-info">
+								<strong>${expert.name}</strong>
+								<%-- 등록한 서비스의 소분류. 서비스가 없는 고수는 줄 자체를 안 그린다 --%>
+								<c:if test="${not empty expert.categoryNames}">
+									<span class="expert-category small"><c:out value="${expert.categoryNames}" /></span>
+								</c:if>
+								<c:choose>
+									<c:when test="${expert.reviewCount > 0}">
+										<span class="message-info small">★${expert.averageRating} (${expert.reviewCount})</span>
+									</c:when>
+									<c:otherwise>
+										<span class="message-info small">아직 리뷰가 없어요</span>
+									</c:otherwise>
+								</c:choose>
+							</div>
+						</a>
+						</c:forEach>
 					</div>
-				</a>
-				</c:forEach>
+				</c:otherwise>
+			</c:choose>
+		</section>
+
+		<!-- 커뮤니티 최근 글 (⑥ 동네 게시판). 회원은 내 동네, 비회원은 서울 -->
+		<section class="main-section">
+			<div class="section-head">
+				<h2>${boardRegionName} 커뮤니티 최근 글</h2>
+				<a class="section-more" href="${path}/board/list.do?regionSeq=${boardRegionSeq}">커뮤니티 바로가기 →</a>
 			</div>
+
+			<c:choose>
+				<c:when test="${empty boardList}">
+					<p class="message-info small">아직 등록된 글이 없어요</p>
+				</c:when>
+				<c:otherwise>
+					<div class="board-box">
+						<c:forEach items="${boardList}" var="board">
+						<a class="board-row" href="${path}/board/view.do?boardSeq=${board.boardSeq}">
+							<span class="board-title"><c:out value="${board.subject}" /></span>
+							<span class="board-writer"><c:out value="${board.writerName}" /></span>
+							<span class="board-date">${board.regdate}</span>
+						</a>
+						</c:forEach>
+					</div>
+				</c:otherwise>
+			</c:choose>
 		</section>
 
 		<!-- 최근 리뷰 -->
@@ -198,8 +415,9 @@
 							<div class="review-stars">
 								<c:forEach begin="1" end="5" var="i">${i <= review.rating ? '★' : '☆'}</c:forEach>
 							</div>
-							<p class="review-content">"${review.content}"</p>
-							<span class="message-info small">${review.customerName} · ${review.expertName}</span>
+							<%-- 고객이 쓴 글이라 c:out 으로 감싼다 (XSS 방지) --%>
+							<p class="review-content">"<c:out value="${review.content}" />"</p>
+							<span class="message-info small"><c:out value="${review.customerName}" /> · <c:out value="${review.expertName}" /></span>
 						</a>
 						</c:forEach>
 					</div>
@@ -210,7 +428,34 @@
 	</main>
 
 	<script>
+		// 카테고리 카드: 누르면 소분류 메뉴를 열고 닫는다 (휴대폰용. PC는 hover 로도 열린다)
+		const categoryCards = document.querySelectorAll('.category-card');
 
+		categoryCards.forEach(card => {
+			card.addEventListener('click', e => {
+
+				// 메뉴 안의 소분류 링크를 누른 거면 그대로 이동하게 둔다
+				if (e.target.closest('.sub-menu')) {
+					return;
+				}
+
+				const wasOpen = card.classList.contains('open');
+
+				// 메뉴는 하나만 열린다
+				categoryCards.forEach(c => c.classList.remove('open'));
+
+				if (!wasOpen) {
+					card.classList.add('open');
+				}
+			});
+		});
+
+		// 카드 바깥을 누르면 닫는다
+		document.addEventListener('click', e => {
+			if (!e.target.closest('.category-card')) {
+				categoryCards.forEach(c => c.classList.remove('open'));
+			}
+		});
 	</script>
 </body>
 </html>

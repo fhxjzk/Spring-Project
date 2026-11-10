@@ -18,4 +18,9 @@ public class CategoryDao {
 		
 		return categoryMapper.getTopCategory();
 	}
+
+	public List<CategoryDto> getSubCategoryList() {
+
+		return categoryMapper.getSubCategoryList();
+	}
 }
