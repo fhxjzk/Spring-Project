@@ -17,16 +17,19 @@
 						<li><a href="${path}/search/list.do">고수 찾기</a></li>
 					--%>
 					<li><a href="${path}/search/list.do">고수 찾기</a></li>
-					<li><a href="${path}/board/list.do">동네 이야기</a></li>
 
 					<sec:authorize access="hasRole('ROLE_CUSTOMER')">
-					<%-- 고객 메뉴 (예: 내 요청서, 내 거래) --%>
+					<li><a href="${path}/request/mylist.do">요청서</a></li>
 					</sec:authorize>
 
 					<sec:authorize access="hasRole('ROLE_EXPERT')">
-					<%-- 고수 메뉴 (예: 받은 요청서, 내 견적) --%>
+					<li><a href="${path}/quote/request.do">요청서</a></li>
 					</sec:authorize>
+
+					<li><a href="${path}/board/list.do">동네 이야기</a></li>
+
 					<sec:authorize access="hasAnyRole('ROLE_CUSTOMER', 'ROLE_EXPERT')">
+					<li><a href="${path}/chat/list">채팅</a></li>
 					<li><a href="${path}/member/mypage.do">마이페이지</a></li>
 					</sec:authorize>
 					<sec:authorize access="hasRole('ROLE_ADMIN')">
@@ -42,6 +45,10 @@
 				</sec:authorize>
 
 				<sec:authorize access="isAuthenticated()">
+				<sec:authorize access="hasRole('ROLE_CUSTOMER')"><span class="badge badge-primary">고객</span></sec:authorize>
+				<sec:authorize access="hasRole('ROLE_EXPERT')"><span class="badge badge-warning">고수</span></sec:authorize>
+				<sec:authorize access="hasRole('ROLE_ADMIN')"><span class="badge badge-danger">관리자</span></sec:authorize>
+				<span class="user-name"><sec:authentication property="principal.dto.name" />님</span>
 
 				<!-- 실시간 알림 버튼 -->
 				<button type="button" id="notificationBell" class="btn btn-sm"
@@ -57,7 +64,6 @@
 					</ul>
 				</div>
 
-				<span class="user-name"><sec:authentication property="principal.dto.name" />님</span>
 				<a class="btn btn-sm" href="${path}/auth/logout.do">로그아웃</a>
 				</sec:authorize>
 			</div>
