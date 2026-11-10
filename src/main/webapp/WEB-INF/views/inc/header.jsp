@@ -30,6 +30,9 @@
 
 					<sec:authorize access="hasAnyRole('ROLE_CUSTOMER', 'ROLE_EXPERT')">
 					<li><a href="${path}/chat/list">채팅</a></li>
+					<sec:authorize access="hasRole('ROLE_EXPERT')">
+					<li><a href="${path}/expert/my.do">내 프로필</a></li>
+					</sec:authorize>
 					<li><a href="${path}/member/mypage.do">마이페이지</a></li>
 					</sec:authorize>
 					<sec:authorize access="hasRole('ROLE_ADMIN')">
