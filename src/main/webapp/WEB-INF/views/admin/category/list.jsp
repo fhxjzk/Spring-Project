@@ -78,7 +78,8 @@
 			<h2>카테고리 관리 <small>Category</small></h2>
 
 			<c:if test="${not empty msg}">
-			<p class="message-info"><c:out value="${msg}" /></p>
+			<%-- 실패(msgError)는 붉은 상자, 성공은 회색 글씨 --%>
+			<p class="${msgError ? 'message-error' : 'message-info'}"><c:out value="${msg}" /></p>
 			</c:if>
 
 			<div class="card filter">
@@ -105,7 +106,6 @@
 			</div>
 
 			<p class="guide">
-				대분류는 메인 화면 카드라서 고정이고, 소분류만 추가 · 순서 변경 · 사용 안 함을 할 수 있습니다.<br>
 				소분류는 지우지 않고 <b>사용 안 함</b>으로 바꿉니다. 새 서비스 · 요청서 · 검색에서는 고를 수 없고, 이미 등록된 서비스와 요청서는 그대로 남습니다.
 				사용 안 함인 소분류의 서비스를 고수가 수정하면 다른 카테고리를 골라야 저장됩니다.
 			</p>

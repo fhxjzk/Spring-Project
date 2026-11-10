@@ -62,10 +62,11 @@ public class CategoryAdminController {
 
 		switch (result) {
 			case 1:  rttr.addFlashAttribute("msg", "소분류를 추가했습니다. 목록 맨 아래에 들어갑니다."); break;
-			case -1: rttr.addFlashAttribute("msg", "소분류 이름을 입력해 주세요. (한글 16자까지)"); break;
-			case -2: rttr.addFlashAttribute("msg", "같은 대분류에 같은 이름의 소분류가 있습니다. 사용 안 함인 소분류라면 다시 사용으로 바꿔 주세요."); break;
+			case -1: rttr.addFlashAttribute("msg", "소분류 이름을 입력해 주세요. (한글 16자까지)"); rttr.addFlashAttribute("msgError", true); break;
+			case -2: rttr.addFlashAttribute("msg", "같은 대분류에 같은 이름의 소분류가 있습니다. 사용 안 함인 소분류라면 다시 사용으로 바꿔 주세요."); rttr.addFlashAttribute("msgError", true); break;
 			default:
 				rttr.addFlashAttribute("msg", "없는 대분류입니다.");
+				rttr.addFlashAttribute("msgError", true);
 				return "redirect:/admin/category/list.do";
 		}
 
@@ -82,6 +83,7 @@ public class CategoryAdminController {
 
 		if (parentSeq == null) {
 			rttr.addFlashAttribute("msg", "없는 소분류입니다.");
+			rttr.addFlashAttribute("msgError", true);
 			return "redirect:/admin/category/list.do";
 		}
 
@@ -103,6 +105,7 @@ public class CategoryAdminController {
 					: "소분류를 사용 안 함으로 바꿨습니다. 이미 등록된 서비스와 요청서는 그대로 남습니다.");
 		} else {
 			rttr.addFlashAttribute("msg", "바꾸지 못했습니다.");
+			rttr.addFlashAttribute("msgError", true);
 		}
 
 		return "redirect:/admin/category/list.do?parentSeq=" + parentSeq;
