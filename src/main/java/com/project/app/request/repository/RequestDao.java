@@ -11,6 +11,7 @@ import com.project.app.request.model.RequestAnswerDto;
 import com.project.app.request.model.RequestCategoryDto;
 import com.project.app.request.model.RequestDto;
 import com.project.app.request.model.RequestFileDto;
+import com.project.app.request.model.RequestNoticeDto;
 import com.project.app.request.model.RequestQuoteDto;
 
 import lombok.RequiredArgsConstructor;
@@ -140,6 +141,43 @@ public class RequestDao {
 	public int expireUnselected() {
 
 		return requestMapper.expireUnselected();
+	}
+
+	//--- 알림을 받을 사람 (B-06) ---
+
+	public RequestNoticeDto noticeCustomer(Long requestSeq) {
+
+		return requestMapper.noticeCustomer(requestSeq);
+	}
+
+	public List<RequestNoticeDto> noticeNewRequestExperts(Long requestSeq) {
+
+		return requestMapper.noticeNewRequestExperts(requestSeq);
+	}
+
+	public List<RequestNoticeDto> noticeQuoteExperts(Long requestSeq) {
+
+		return requestMapper.noticeQuoteExperts(requestSeq);
+	}
+
+	public List<RequestNoticeDto> noticeCloseQuoted() {
+
+		return requestMapper.noticeCloseQuoted();
+	}
+
+	public List<RequestNoticeDto> noticeExpireNoQuote() {
+
+		return requestMapper.noticeExpireNoQuote();
+	}
+
+	public List<RequestNoticeDto> noticeExpireUnselected() {
+
+		return requestMapper.noticeExpireUnselected();
+	}
+
+	public List<RequestNoticeDto> noticeExpireUnselectedExperts() {
+
+		return requestMapper.noticeExpireUnselectedExperts();
 	}
 
 }

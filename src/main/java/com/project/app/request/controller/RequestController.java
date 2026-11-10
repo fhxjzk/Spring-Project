@@ -20,6 +20,7 @@ import com.project.app.auth.CustomUser;
 import com.project.app.request.model.QuestionDto;
 import com.project.app.request.model.RequestCategoryDto;
 import com.project.app.request.model.RequestDto;
+import com.project.app.request.service.RequestNoticeService;
 import com.project.app.request.service.RequestService;
 
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 public class RequestController {
 
 	private final RequestService requestService;
+	private final RequestNoticeService requestNoticeService;
 
 	/**
 	 * 요청서 작성 화면
@@ -93,6 +95,11 @@ public class RequestController {
 
 		int result = requestService.add(dto, params, files, uploadPath);
 
+		//등록에 성공하면 고수들에게 알린다 (공개 요청: 그 카테고리의 고수들, 지정 요청: 지정한 고수)
+		if (result == 1) {
+			requestNoticeService.requestAdded(dto.getRequestSeq());
+		}
+
 		model.addAttribute("result", result);
 		model.addAttribute("expertSeq", dto.getExpertSeq());
 
@@ -136,6 +143,11 @@ public class RequestController {
 			@RequestParam(value = "requestSeq") Long requestSeq) {
 
 		int result = requestService.cancel(requestSeq, getMemberSeq(auth));
+
+		//취소에 성공하면 견적을 보낸 고수들에게 알린다
+		if (result == 1) {
+			requestNoticeService.requestCanceled(requestSeq);
+		}
 
 		rttr.addFlashAttribute("msg", result == 1 ? "요청서를 취소했습니다." : "취소할 수 없는 요청서입니다.");
 

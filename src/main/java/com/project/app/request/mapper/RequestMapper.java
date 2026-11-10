@@ -10,6 +10,7 @@ import com.project.app.request.model.RequestAnswerDto;
 import com.project.app.request.model.RequestCategoryDto;
 import com.project.app.request.model.RequestDto;
 import com.project.app.request.model.RequestFileDto;
+import com.project.app.request.model.RequestNoticeDto;
 import com.project.app.request.model.RequestQuoteDto;
 
 //SQL은 resources/mappers/request/RequestMapper.xml 에 있다 (메서드 이름 = XML의 id)
@@ -57,5 +58,21 @@ public interface RequestMapper {
 	int cancel(HashMap<String, Object> map);
 
 	int unselectQuotes(Long requestSeq);
+
+	//--- 알림을 받을 사람 (B-06) ---
+
+	RequestNoticeDto noticeCustomer(Long requestSeq);
+
+	List<RequestNoticeDto> noticeNewRequestExperts(Long requestSeq);
+
+	List<RequestNoticeDto> noticeQuoteExperts(Long requestSeq);
+
+	List<RequestNoticeDto> noticeCloseQuoted();
+
+	List<RequestNoticeDto> noticeExpireNoQuote();
+
+	List<RequestNoticeDto> noticeExpireUnselected();
+
+	List<RequestNoticeDto> noticeExpireUnselectedExperts();
 
 }
