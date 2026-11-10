@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 찜하기 (추가 기능). tbl_wish 는 (회원, 고수) 한 쌍이 PK 라서 같은 고수를 두 번 찜할 수 없다 -->
+<mapper namespace="com.project.app.wish.mapper.WishMapper">
+
+	<!-- 고수가 받은 찜 수 -->
+	<select id="countWish" parameterType="Long" resultType="int">
+		select count(*) from tbl_wish where expert_seq = #{expertSeq}
+	</select>
+
+	<!-- 이 회원이 이 고수를 찜했는지 (0 / 1) -->
+	<select id="isWished" resultType="int">
+		select count(*) from tbl_wish
+		where member_seq = #{memberSeq}
+			and expert_seq = #{expertSeq}
+	</select>
+
+	<insert id="addWish">
+		insert into tbl_wish (member_seq, expert_seq) values (#{memberSeq}, #{expertSeq})
+	</insert>
+
+	<delete id="deleteWish">
+		delete from tbl_wish
+		where member_seq = #{memberSeq}
+			and expert_seq = #{expertSeq}
+	</delete>
+
+	<!-- 내가 찜한 고수 (최근에 찜한 순). 메인 인기 고수 카드와 같은 값을 쓴다
+	     숨김 처리된 고수, 탈퇴한 고수는 검색 · 메인과 같이 빼고 보여 준다 (찜 기록은 남는다)
+	     리뷰 수 · 별점 · 소분류 이름 · 찜 수는 줄이 늘어나지 않게 각각 서브쿼리로 구한다 -->
+	<select id="getWishList" parameterType="Long" resultType="ExpertCardDto">
+		select p.expert_seq, m.name, p.profile_image,
+				(select count(*) from tbl_review r where r.expert_seq = p.expert_seq) as review_count,
+				(select round(avg(r.rating), 1) from tbl_review r where r.expert_seq = p.expert_seq) as average_rating,
+				(select listagg(distinct c.name, ', ') within group (order by c.name)
+					from tbl_talent t
+						inner join tbl_category c on c.category_seq = t.category_seq
+					where t.expert_seq = p.expert_seq
+						and t.enabled = 'Y') as category_names,
+				(select count(*) from tbl_wish w2 where w2.expert_seq = p.expert_seq) as wish_count
+			from tbl_wish w
+				inner join tbl_expert_profile p on p.expert_seq = w.expert_seq
+				inner join tbl_member m on m.member_seq = p.expert_seq
+			where w.member_seq = #{memberSeq}
+				and p.hidden = 'N'
+				and m.enabled = 'Y'
+			order by w.regdate desc
+	</select>
+
+</mapper>

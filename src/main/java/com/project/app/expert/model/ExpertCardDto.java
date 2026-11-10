@@ -15,4 +15,5 @@ public class ExpertCardDto {
 	private Double averageRating;	// 리뷰가 없으면 null
 	private String profileImage;	// 프로필 사진 파일 이름. 없으면 null
 	private String categoryNames;	// 등록한 서비스의 소분류 이름 ("영어 회화, 피아노"). 서비스가 없으면 null
+	private int wishCount;			// 이 고수가 받은 찜 수
 }
