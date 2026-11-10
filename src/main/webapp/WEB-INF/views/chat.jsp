@@ -205,6 +205,31 @@ body {
     cursor: not-allowed;
 }
 
+/* 첨부파일 선택 및 미리보기 */
+.attach-button {
+    border: 1px solid #dbe4f2;
+    background: #f4f7fc;
+    border-radius: 50%;
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+    cursor: pointer;
+    font-size: 22px;
+}
+.attach-button:disabled { opacity: .5; cursor: not-allowed; }
+.attachment-image, .attachment-video {
+    display: block;
+    max-width: min(300px, 100%);
+    max-height: 340px;
+    width: auto;
+    height: auto;
+    border-radius: 10px;
+}
+.attachment-video { width: 300px; max-height: 300px; }
+.attachment-link { display: block; }
+.attachment-error { font-size: 12px; }
+.chat-input-area { align-items: center; }
+
 @media (max-width: 600px) {
     .chat-container {
         height: 100dvh;
@@ -246,6 +271,34 @@ body {
         max-width: 82%;
     }
 }
+
+/* 내가 보낸 첨부파일 관리 버튼 */
+.attachment-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 8px;
+}
+
+.attachment-action-button {
+    padding: 5px 10px;
+    border: 1px solid #dce4f0;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #34445c;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.attachment-action-button:hover {
+    background: #edf3ff;
+}
+
+.attachment-action-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 </style>
 </head>
 
@@ -285,6 +338,15 @@ body {
 
     <!-- 메시지 입력 영역 -->
     <div class="chat-input-area">
+
+        <input type="hidden" id="csrfToken" value="<c:out value='${_csrf.token}'/>" />
+        <input type="hidden" id="csrfHeader" value="<c:out value='${_csrf.headerName}'/>" />
+
+        <input type="file" id="attachmentFile" hidden
+               accept=".jpg,.jpeg,.png,.gif,.mp4,image/jpeg,image/png,image/gif,video/mp4" />
+        <button type="button" id="attachButton" class="attach-button"
+                title="사진 또는 동영상 첨부" aria-label="사진 또는 동영상 첨부"
+                disabled>＋</button>
 
         <input type="text"
                id="message"
@@ -338,7 +400,52 @@ let pendingMessages = [];
 
 const displayedMessageIds = new Set();
 
+
+const messageRows = new Map();
+
+// 이미 화면에 있는 메시지를 새 정보로 갱신
+function updateExistingMessage(message) {
+
+    if (!message || message.messageId == null) {
+        return false;
+    }
+
+    const id = String(message.messageId);
+    const oldRow = messageRows.get(id);
+
+    if (!oldRow) {
+        return false;
+    }
+
+    // 기존 메시지 위치를 기억
+    const nextRow = oldRow.nextSibling;
+    const parent = oldRow.parentNode;
+
+    if (!parent) {
+        return false;
+    }
+
+    // 기존 행을 제거하고 최신 정보로 다시 생성
+    oldRow.remove();
+    displayedMessageIds.delete(id);
+    messageRows.delete(id);
+
+    appendMessage(message);
+
+    const newRow = messageRows.get(id);
+
+    if (newRow && nextRow && nextRow.parentNode === parent) {
+        parent.insertBefore(newRow, nextRow);
+    }
+
+    return true;
+}
+
+
 const sendButton = document.getElementById('sendButton');
+const attachButton = document.getElementById('attachButton');
+const attachmentFile = document.getElementById('attachmentFile');
+let uploadingAttachment = false;
 
 
 // ============================================================
@@ -502,6 +609,8 @@ function updateSendButton() {
 
     sendButton.disabled =
         !client.connected || currentRoom === null;
+    attachButton.disabled =
+        !client.connected || currentRoom === null || uploadingAttachment;
 }
 
 
@@ -549,6 +658,7 @@ const client = new StompJs.Client({
             + (frame.headers['message'] || '');
 
         sendButton.disabled = true;
+        attachButton.disabled = true;
     },
 
     onWebSocketClose: function () {
@@ -557,6 +667,7 @@ const client = new StompJs.Client({
             '연결이 끊어졌습니다.';
 
         sendButton.disabled = true;
+        attachButton.disabled = true;
     }
 });
 
@@ -610,6 +721,7 @@ function appendMessage(message) {
         const id = String(messageId);
 
         if (displayedMessageIds.has(id)) {
+        	updateExistingMessage(message);
             return;
         }
 
@@ -658,11 +770,245 @@ function appendMessage(message) {
     const bubble = document.createElement('div');
     bubble.className = 'bubble';
 
-    // HTML 삽입 방지를 위해 textContent 사용
-    bubble.textContent = content;
+    // 첨부파일 번호와 MIME 형식을 검증한 후 DOM으로 생성
+    const attachmentSeq = message.attachmentSeq;
+    const attachmentType = String(message.attachmentContentType || '');
+    const validAttachmentId = /^[1-9][0-9]*$/.test(String(attachmentSeq));
+    const isImage = ['image/jpeg', 'image/png', 'image/gif'].includes(attachmentType);
+    const isVideo = attachmentType === 'video/mp4';
 
+    if (validAttachmentId && (isImage || isVideo)) {
+
+        // 교체된 파일이 브라우저 캐시에 가려지지 않도록 처리
+        const fileUrl = contextPath + '/chat/attachment/'
+            + encodeURIComponent(String(attachmentSeq))
+            + '?v=' + Date.now();
+
+
+        if (isImage) {
+            const link = document.createElement('a');
+            link.className = 'attachment-link';
+            link.href = fileUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+
+            const img = document.createElement('img');
+            img.className = 'attachment-image';
+            img.src = fileUrl;
+            img.alt = '채팅 사진';
+            img.loading = 'lazy';
+            img.addEventListener('error', function () {
+                img.replaceWith(document.createTextNode('사진을 불러올 수 없습니다.'));
+            });
+            link.appendChild(img);
+            bubble.appendChild(link);
+        } else {
+            const video = document.createElement('video');
+            video.className = 'attachment-video';
+            video.src = fileUrl;
+            video.controls = true;
+            video.preload = 'metadata';
+            video.playsInline = true;
+            bubble.appendChild(video);
+        }
+    } else {
+        // 일반 채팅은 textContent로 처리하여 HTML 삽입 방지
+        bubble.textContent = content;
+    }
+
+    // 내가 보낸 사진·동영상에만 관리 버튼 표시
+    if (mine && validAttachmentId && (isImage || isVideo)) {
+
+        const actions = document.createElement('div');
+        actions.className = 'attachment-actions';
+
+        const replaceButton = document.createElement('button');
+        replaceButton.type = 'button';
+        replaceButton.className = 'attachment-action-button';
+        replaceButton.textContent = '교체';
+
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'attachment-action-button';
+        deleteButton.textContent = '삭제';
+
+
+        replaceButton.addEventListener('click', function () {
+
+            if (replaceButton.disabled) {
+                return;
+            }
+
+            // 교체할 새 파일 선택창 생성
+            const replaceFileInput = document.createElement('input');
+
+            replaceFileInput.type = 'file';
+            replaceFileInput.accept =
+                '.jpg,.jpeg,.png,.gif,.mp4,image/jpeg,image/png,image/gif,video/mp4';
+
+            replaceFileInput.addEventListener('change', async function () {
+
+                const file = replaceFileInput.files
+                    && replaceFileInput.files[0];
+
+                if (!file) {
+                    return;
+                }
+
+                const allowedTypes = [
+                    'image/jpeg',
+                    'image/png',
+                    'image/gif',
+                    'video/mp4'
+                ];
+
+                const allowedExtensions = [
+                    'jpg', 'jpeg', 'png', 'gif', 'mp4'
+                ];
+
+                const extension =
+                    (file.name.split('.').pop() || '').toLowerCase();
+
+                if (!allowedTypes.includes(file.type)
+                        || !allowedExtensions.includes(extension)) {
+
+                    alert('JPG, PNG, GIF, MP4 파일만 선택할 수 있습니다.');
+                    return;
+                }
+
+                if (file.size <= 0 || file.size > 50 * 1024 * 1024) {
+                    alert('파일 크기는 50MB 이하여야 합니다.');
+                    return;
+                }
+
+                if (!confirm('이 첨부파일을 새 파일로 교체하시겠습니까?')) {
+                    return;
+                }
+
+                replaceButton.disabled = true;
+                deleteButton.disabled = true;
+
+                try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    const headers = {};
+
+                    const csrfToken =
+                        document.getElementById('csrfToken').value;
+
+                    const csrfHeader =
+                        document.getElementById('csrfHeader').value;
+
+                    if (csrfToken && csrfHeader) {
+                        headers[csrfHeader] = csrfToken;
+                    }
+
+                    const response = await fetch(
+                        contextPath + '/chat/attachment/'
+                        + encodeURIComponent(String(attachmentSeq))
+                        + '/replace',
+                        {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: headers,
+                            body: formData
+                        }
+                    );
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+
+                        throw new Error(
+                            errorText || 'HTTP ' + response.status
+                        );
+                    }
+
+                    // 서버가 WebSocket으로 변경된 메시지를 전송함
+                    // 기존 메시지 위치에서 사진·동영상이 갱신됨
+
+                } catch (error) {
+
+                    alert('첨부파일 교체 실패: ' + error.message);
+
+                    replaceButton.disabled = false;
+                    deleteButton.disabled = false;
+                }
+            });
+
+            replaceFileInput.click();
+        });
+
+
+
+        deleteButton.addEventListener('click', async function () {
+
+            if (!confirm('이 사진 또는 동영상을 삭제하시겠습니까?')) {
+                return;
+            }
+
+            if (deleteButton.disabled) {
+                return;
+            }
+
+            deleteButton.disabled = true;
+            replaceButton.disabled = true;
+
+            try {
+                const headers = {};
+
+                const csrfToken =
+                    document.getElementById('csrfToken').value;
+
+                const csrfHeader =
+                    document.getElementById('csrfHeader').value;
+
+                if (csrfToken && csrfHeader) {
+                    headers[csrfHeader] = csrfToken;
+                }
+
+                const response = await fetch(
+                    contextPath + '/chat/attachment/'
+                    + encodeURIComponent(String(attachmentSeq)),
+                    {
+                        method: 'DELETE',
+                        credentials: 'same-origin',
+                        headers: headers
+                    }
+                );
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+
+                    throw new Error(
+                        errorText || 'HTTP ' + response.status
+                    );
+                }
+
+                // 화면 갱신은 다음 단계에서 연결할
+                // WebSocket 메시지 업데이트 기능이 처리함
+
+            } catch (error) {
+
+                alert('첨부파일 삭제 실패: ' + error.message);
+
+                deleteButton.disabled = false;
+                replaceButton.disabled = false;
+            }
+        });
+
+
+        actions.appendChild(replaceButton);
+        actions.appendChild(deleteButton);
+        
+        body.appendChild(bubble);
+        body.appendChild(actions);
+       
+        
+    } else {
     body.appendChild(bubble);
-
+    }
+    
     if (createdAt) {
 
         const time = document.createElement('div');
@@ -679,6 +1025,10 @@ function appendMessage(message) {
         document.getElementById('messages');
 
     messages.appendChild(row);
+    
+    if (messageId != null) {
+        messageRows.set(String(messageId), row);
+    }
 
     messages.scrollTop =
         messages.scrollHeight;
@@ -720,6 +1070,7 @@ function joinRoom(roomId) {
     pendingMessages = [];
 
     displayedMessageIds.clear();
+    messageRows.clear();
 
     document.getElementById('messages').textContent = '';
 
@@ -856,13 +1207,20 @@ async function loadHistory(roomId, version) {
         messages.textContent = '';
 
         displayedMessageIds.clear();
+        messageRows.clear();
 
         history.forEach(function (message) {
             appendMessage(message);
         });
 
-        // 이전 대화 로딩 중 도착한 실시간 메시지
+
+        // 이전 대화 로딩 중 도착한 실시간 메시지를 순서대로 반영
         pendingMessages.forEach(function (message) {
+
+            if (!message) {
+                return;
+            }
+
             appendMessage(message);
         });
 
@@ -931,7 +1289,79 @@ function sendMessage() {
 
 
 // ============================================================
-// 11. 엔터키로 메시지 전송
+// 11. 사진·영상 업로드 (기존 텍스트 채팅과 별개)
+// ============================================================
+
+attachButton.addEventListener('click', function () {
+    if (!attachButton.disabled) {
+        attachmentFile.click();
+    }
+});
+
+attachmentFile.addEventListener('change', async function () {
+    const file = attachmentFile.files && attachmentFile.files[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'video/mp4'];
+    const extension = (file.name.split('.').pop() || '').toLowerCase();
+    const allowedExtensions = ['jpg', 'jpeg', 'png', 'gif', 'mp4'];
+
+    if (!allowedTypes.includes(file.type) || !allowedExtensions.includes(extension)) {
+        alert('JPG, PNG, GIF, MP4 파일만 선택할 수 있습니다.');
+        attachmentFile.value = '';
+        return;
+    }
+    if (file.size <= 0 || file.size > 50 * 1024 * 1024) {
+        alert('파일 크기는 50MB 이하여야 합니다.');
+        attachmentFile.value = '';
+        return;
+    }
+    if (!client.connected || currentRoom === null || uploadingAttachment) {
+        alert('채팅방 연결을 확인해 주세요.');
+        attachmentFile.value = '';
+        return;
+    }
+
+    const uploadRoom = currentRoom;
+    const formData = new FormData();
+    formData.append('roomId', uploadRoom);
+    formData.append('file', file);
+
+    const headers = {};
+    const csrfToken = document.getElementById('csrfToken').value;
+    const csrfHeader = document.getElementById('csrfHeader').value;
+    if (csrfToken && csrfHeader) headers[csrfHeader] = csrfToken;
+
+    uploadingAttachment = true;
+    updateSendButton();
+    const status = document.getElementById('status');
+    status.textContent = '첨부파일 업로드 중...';
+
+    try {
+        const response = await fetch(contextPath + '/chat/attachment/upload', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: headers,
+            body: formData
+        });
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || 'HTTP ' + response.status);
+        }
+        // 서버에서 STOMP로 방송하므로 여기서 다시 그리지 않음 (중복 방지)
+        if (currentRoom === uploadRoom) status.textContent = '● 채팅방 연결됨';
+    } catch (error) {
+        alert('첨부파일 전송 실패: ' + error.message);
+        if (currentRoom === uploadRoom) status.textContent = '첨부파일 전송 실패';
+    } finally {
+        uploadingAttachment = false;
+        attachmentFile.value = '';
+        updateSendButton();
+    }
+});
+
+// ============================================================
+// 12. 엔터키로 메시지 전송
 // ============================================================
 
 document.getElementById('message').addEventListener(

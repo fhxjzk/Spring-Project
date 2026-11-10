@@ -1,12 +1,15 @@
 
 package com.project.app.chat.mapper;
 
+import java.util.List;
+
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
-import java.util.List;
+
 import com.project.app.chat.model.ChatRoomListDto;
+
 @Mapper
 public interface ChatRoomMapper {
 
@@ -84,7 +87,7 @@ public interface ChatRoomMapper {
         @Param("tradeSeq") Long tradeSeq
     );
 
-    // 7. 거래 참여자 권한 확인 (신규 추가)
+    // 7. 거래 참여자 권한 확인
     @Select(
         "SELECT COUNT(*) " +
         "FROM tbl_trade " +
@@ -97,7 +100,7 @@ public interface ChatRoomMapper {
         @Param("memberSeq") Long memberSeq
     );
 
-    // 8. 로그인 회원의 채팅방 목록 조회
+    // 8. 로그인 회원의 채팅방 번호 목록 조회
     @Select(
         "SELECT chat_room_seq " +
         "FROM tbl_chat_room " +
@@ -105,7 +108,7 @@ public interface ChatRoomMapper {
         "OR expert_seq = #{memberSeq} " +
         "ORDER BY chat_room_seq DESC"
     )
-    java.util.List<Long> findRoomSeqsByMemberSeq(
+    List<Long> findRoomSeqsByMemberSeq(
         @Param("memberSeq") Long memberSeq
     );
 
@@ -133,6 +136,16 @@ public interface ChatRoomMapper {
     )
     List<ChatRoomListDto> findChatRoomList(
         @Param("memberSeq") Long memberSeq
+    );
+
+    // 10. 메시지 번호로 해당 채팅방 번호 조회 (신규 추가)
+    @Select(
+        "SELECT chat_room_seq " +
+        "FROM tbl_chat_message " +
+        "WHERE chat_message_seq = #{chatMessageSeq}"
+    )
+    Long findRoomSeqByMessageId(
+        @Param("chatMessageSeq") Long chatMessageSeq
     );
 
 }

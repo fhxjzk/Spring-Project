@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.project.app.chat.mapper.ChatAttachmentMapper">
+
+    <!-- 1. 첨부파일 번호 생성 -->
+    <select id="nextAttachmentSeq" resultType="long">
+        SELECT SEQ_CHAT_ATTACHMENT.NEXTVAL
+        FROM DUAL
+    </select>
+
+    <!-- 2. 첨부파일 정보 저장 -->
+    <insert id="insert"
+            parameterType="com.project.app.chat.model.ChatAttachment">
+
+        INSERT INTO TBL_CHAT_ATTACHMENT (
+            ATTACHMENT_SEQ,
+            CHAT_MESSAGE_SEQ,
+            ORIGINAL_NAME,
+            STORED_NAME,
+            CONTENT_TYPE,
+            FILE_SIZE,
+            REGDATE
+        )
+        VALUES (
+            #{attachmentSeq},
+            #{chatMessageSeq},
+            #{originalName},
+            #{storedName},
+            #{contentType},
+            #{fileSize},
+            SYSDATE
+        )
+
+    </insert>
+
+    <!-- 3. 첨부파일 1건 조회 -->
+    <select id="findById"
+            resultType="com.project.app.chat.model.ChatAttachment">
+
+        SELECT
+            ATTACHMENT_SEQ AS "attachmentSeq",
+            CHAT_MESSAGE_SEQ AS "chatMessageSeq",
+            ORIGINAL_NAME AS "originalName",
+            STORED_NAME AS "storedName",
+            CONTENT_TYPE AS "contentType",
+            FILE_SIZE AS "fileSize"
+        FROM TBL_CHAT_ATTACHMENT
+        WHERE ATTACHMENT_SEQ = #{attachmentSeq}
+
+    </select>
+
+    <!-- 4. 메시지에 연결된 첨부파일 조회 -->
+    <select id="findByMessageId"
+            resultType="com.project.app.chat.model.ChatAttachment">
+
+        SELECT
+            ATTACHMENT_SEQ AS "attachmentSeq",
+            CHAT_MESSAGE_SEQ AS "chatMessageSeq",
+            ORIGINAL_NAME AS "originalName",
+            STORED_NAME AS "storedName",
+            CONTENT_TYPE AS "contentType",
+            FILE_SIZE AS "fileSize"
+        FROM TBL_CHAT_ATTACHMENT
+        WHERE CHAT_MESSAGE_SEQ = #{chatMessageSeq}
+        ORDER BY ATTACHMENT_SEQ ASC
+
+    </select>
+
+    <!-- 5. 첨부파일 정보 삭제 -->
+    <delete id="deleteById">
+
+        DELETE FROM TBL_CHAT_ATTACHMENT
+        WHERE ATTACHMENT_SEQ = #{attachmentSeq}
+
+    </delete>
+
+    <!-- 6. 기존 첨부파일 정보 교체 -->
+    <update id="updateAttachment">
+
+        UPDATE TBL_CHAT_ATTACHMENT
+        SET
+            ORIGINAL_NAME = #{originalName},
+            STORED_NAME = #{storedName},
+            CONTENT_TYPE = #{contentType},
+            FILE_SIZE = #{fileSize}
+        WHERE ATTACHMENT_SEQ = #{attachmentSeq}
+
+    </update>
+
+</mapper>

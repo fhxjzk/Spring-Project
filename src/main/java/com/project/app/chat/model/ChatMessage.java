@@ -3,20 +3,15 @@ package com.project.app.chat.model;
 
 public class ChatMessage {
 
-    // 채팅 메시지 고유번호
     private Long messageId;
-
-    // 채팅방 고유번호
     private Long chatRoomSeq;
-
-    // 메시지를 보낸 로그인 회원번호
     private Long senderSeq;
-
-    // 메시지 내용
     private String content;
-
-    // 메시지 작성일
     private String createdAt;
+
+    // 사진·영상 첨부파일 정보
+    private Long attachmentSeq;
+    private String attachmentContentType;
 
     public ChatMessage() {
     }
@@ -59,5 +54,24 @@ public class ChatMessage {
 
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
+    }
+
+    // 첨부파일 번호
+    public Long getAttachmentSeq() {
+        return attachmentSeq;
+    }
+
+    public void setAttachmentSeq(Long attachmentSeq) {
+        this.attachmentSeq = attachmentSeq;
+    }
+
+    // 첨부파일 종류
+    public String getAttachmentContentType() {
+        return attachmentContentType;
+    }
+
+    public void setAttachmentContentType(
+            String attachmentContentType) {
+        this.attachmentContentType = attachmentContentType;
     }
 }
