@@ -3,6 +3,7 @@
     "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.project.app.chat.mapper.ChatMapper">
+
     <!-- 1. 채팅 메시지 번호 생성 -->
     <select id="nextMessageSeq" resultType="long">
         SELECT seq_chat_message.NEXTVAL
@@ -30,37 +31,70 @@
 
     </insert>
 
-    <!-- 3. 메시지 1건 조회 -->
+    <!-- 3. 메시지 1건 조회 (첨부파일 정보 포함) -->
     <select id="findById"
             resultType="com.project.app.chat.model.ChatMessage">
 
         SELECT
-            chat_message_seq AS "messageId",
-            chat_room_seq AS "chatRoomSeq",
-            sender_seq AS "senderSeq",
-            content AS "content",
-            TO_CHAR(regdate, 'YYYY-MM-DD HH24:MI:SS')
-                AS "createdAt"
-        FROM tbl_chat_message
-        WHERE chat_message_seq = #{messageId}
+            m.chat_message_seq AS "messageId",
+            m.chat_room_seq AS "chatRoomSeq",
+            m.sender_seq AS "senderSeq",
+            m.content AS "content",
+            TO_CHAR(m.regdate, 'YYYY-MM-DD HH24:MI:SS')
+                AS "createdAt",
+            (
+                SELECT MAX(a.attachment_seq)
+                FROM tbl_chat_attachment a
+                WHERE a.chat_message_seq = m.chat_message_seq
+            ) AS "attachmentSeq",
+            (
+                SELECT MAX(a.content_type)
+                    KEEP (DENSE_RANK LAST ORDER BY a.attachment_seq)
+                FROM tbl_chat_attachment a
+                WHERE a.chat_message_seq = m.chat_message_seq
+            ) AS "attachmentContentType"
+
+        FROM tbl_chat_message m
+        WHERE m.chat_message_seq = #{messageId}
 
     </select>
 
-    <!-- 4. 채팅방 메시지 조회 -->
+    <!-- 4. 채팅방 메시지 조회 (첨부파일 정보 포함) -->
     <select id="findByRoomId"
             resultType="com.project.app.chat.model.ChatMessage">
 
         SELECT
-            chat_message_seq AS "messageId",
-            chat_room_seq AS "chatRoomSeq",
-            sender_seq AS "senderSeq",
-            content AS "content",
-            TO_CHAR(regdate, 'YYYY-MM-DD HH24:MI:SS')
-                AS "createdAt"
-        FROM tbl_chat_message
-        WHERE chat_room_seq = #{roomId}
-        ORDER BY chat_message_seq ASC
+            m.chat_message_seq AS "messageId",
+            m.chat_room_seq AS "chatRoomSeq",
+            m.sender_seq AS "senderSeq",
+            m.content AS "content",
+            TO_CHAR(m.regdate, 'YYYY-MM-DD HH24:MI:SS')
+                AS "createdAt",
+            (
+                SELECT MAX(a.attachment_seq)
+                FROM tbl_chat_attachment a
+                WHERE a.chat_message_seq = m.chat_message_seq
+            ) AS "attachmentSeq",
+            (
+                SELECT MAX(a.content_type)
+                    KEEP (DENSE_RANK LAST ORDER BY a.attachment_seq)
+                FROM tbl_chat_attachment a
+                WHERE a.chat_message_seq = m.chat_message_seq
+            ) AS "attachmentContentType"
+
+        FROM tbl_chat_message m
+        WHERE m.chat_room_seq = #{roomId}
+        ORDER BY m.chat_message_seq ASC
 
     </select>
+
+    <!-- 5. 첨부파일 삭제 시 메시지 내용 변경 -->
+    <update id="updateContent">
+
+        UPDATE tbl_chat_message
+        SET content = #{content}
+        WHERE chat_message_seq = #{messageId}
+
+    </update>
 
 </mapper>

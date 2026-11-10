@@ -21,9 +21,10 @@ import com.project.app.auth.CustomUser;
 import com.project.app.chat.filter.MessageFilterService;
 import com.project.app.chat.mapper.ChatRoomMapper;
 import com.project.app.chat.model.ChatMessage;
+import com.project.app.chat.model.ChatRoomListDto;
 import com.project.app.chat.repository.ChatMessageRepository;
 import com.project.app.chat.service.ChatRoomService;
-import com.project.app.chat.model.ChatRoomListDto;
+
 @Controller
 public class ChatController {
 
@@ -54,16 +55,13 @@ public class ChatController {
         return messageFilterService.filter(message);
     }
 
-    
-
-    // 3. 거래 상세 화면에서 채팅방 입장
+    // 2. 거래 상세 화면에서 채팅방 입장
     @GetMapping("/chat/enter")
     public String enterChat(
             @RequestParam("tradeSeq") Long tradeSeq,
             Authentication authentication,
             Model model) {
 
-        // 로그인 확인
         if (authentication == null ||
                 !(authentication.getPrincipal() instanceof CustomUser)) {
             return "redirect:/login";
@@ -78,12 +76,10 @@ public class ChatController {
             return "redirect:/login";
         }
 
-        // 거래번호 검증
         if (tradeSeq == null || tradeSeq <= 0) {
             return "redirect:/trade/mylist.do";
         }
 
-        // 중요: 채팅방 생성 전에 거래 참여자 확인
         int membership =
                 chatRoomMapper.countTradeMembership(
                         tradeSeq, memberSeq);
@@ -92,21 +88,18 @@ public class ChatController {
             return "redirect:/trade/mylist.do";
         }
 
-        // 권한이 확인된 거래만 채팅방 조회 또는 생성
         Long roomSeq =
                 chatRoomService.getOrCreateRoom(tradeSeq);
 
-        // 채팅방 참여 권한 재확인
         if (chatRoomMapper.countMembership(
                 roomSeq, memberSeq) == 0) {
 
             return "redirect:/trade/mylist.do";
         }
 
-
-        // 채팅 상대방 정보 조회
         Long opponentSeq =
-                chatRoomMapper.findReceiverSeq(roomSeq, memberSeq);
+                chatRoomMapper.findReceiverSeq(
+                        roomSeq, memberSeq);
 
         if (opponentSeq == null) {
             return "redirect:/trade/mylist.do";
@@ -124,27 +117,25 @@ public class ChatController {
             }
         }
 
-        if (opponentName == null || opponentName.trim().isEmpty()) {
+        if (opponentName == null ||
+                opponentName.trim().isEmpty()) {
             opponentName = "상대방";
         }
 
-        // 채팅 화면에 정보 전달
         model.addAttribute("loginMemberSeq", memberSeq);
         model.addAttribute("roomSeq", roomSeq);
         model.addAttribute("opponentName", opponentName);
 
         return "chat";
-
     }
 
-    // 4. 이전 채팅 내역 조회
+    // 3. 이전 채팅 내역 조회
     @GetMapping("/chat/history/{roomId}")
     @ResponseBody
     public ResponseEntity<?> getChatHistory(
             @PathVariable("roomId") String roomId,
             Authentication authentication) {
 
-        // 로그인 확인
         if (authentication == null ||
                 !(authentication.getPrincipal() instanceof CustomUser)) {
 
@@ -153,7 +144,6 @@ public class ChatController {
                     .body("로그인이 필요합니다.");
         }
 
-        // 채팅방 번호 확인
         if (roomId == null ||
                 !roomId.matches("[0-9]{1,18}")) {
 
@@ -170,13 +160,11 @@ public class ChatController {
                     .body("올바르지 않은 채팅방 번호입니다.");
         }
 
-        // 로그인 회원 확인
         CustomUser user =
                 (CustomUser) authentication.getPrincipal();
 
         Long memberSeq = user.getMemberSeq();
 
-        // 채팅방 참여 권한 확인
         if (memberSeq == null ||
                 chatRoomMapper.countMembership(
                         chatRoomSeq, memberSeq) == 0) {
@@ -186,11 +174,10 @@ public class ChatController {
                     .body("해당 채팅방에 접근할 권한이 없습니다.");
         }
 
-        // 이전 대화 조회
         try {
             List<ChatMessage> messages =
                     chatMessageRepository
-                        .findMessagesByRoomId(chatRoomSeq);
+                            .findMessagesByRoomId(chatRoomSeq);
 
             return ResponseEntity.ok(messages);
 
@@ -202,13 +189,12 @@ public class ChatController {
         }
     }
 
-    // 5. 내 채팅방 목록 화면
+    // 4. 내 채팅방 목록 화면
     @GetMapping("/chat/list")
     public String chatList(
             Authentication authentication,
             Model model) {
 
-        // 로그인 확인
         if (authentication == null ||
                 !(authentication.getPrincipal() instanceof CustomUser)) {
             return "redirect:/login";
@@ -223,14 +209,21 @@ public class ChatController {
             return "redirect:/login";
         }
 
-        // 로그인 회원의 채팅방 목록 조회
+        // ★ 추가: 로그인 회원번호 확인
+        System.out.println(
+                "[채팅 목록] 로그인 회원번호 = " + memberSeq);
+
+        // 기존 채팅방 목록 조회
         List<ChatRoomListDto> rooms =
                 chatRoomService.getChatRoomList(memberSeq);
+
+        // ★ 추가: 조회된 채팅방 개수 확인
+        System.out.println(
+                "[채팅 목록] 조회된 채팅방 개수 = " + rooms.size());
 
         model.addAttribute("chatRooms", rooms);
         model.addAttribute("loginMemberSeq", memberSeq);
 
         return "chat-list";
     }
-
 }
