@@ -21,4 +21,54 @@
 		order by parent_seq, sort_order
 	</select>
 
+	<!-- ================ 관리자 카테고리 관리 (E-03) ================ -->
+
+	<!-- 대분류 전체. 관리자 화면이라 enabled 와 상관없이 다 보여 준다 -->
+	<select id="getAdminTopCategoryList" resultType="CategoryDto">
+		select * from tbl_category
+		where parent_seq is null
+		order by sort_order, category_seq
+	</select>
+
+	<select id="getCategory" parameterType="Long" resultType="CategoryDto">
+		select * from tbl_category where category_seq = #{categorySeq}
+	</select>
+
+	<!-- 한 대분류의 소분류 전부 (사용 안 함 포함) + 서비스 수 · 요청서 수.
+	     순서 바꾸기(CategoryService.move)도 이 순서를 기준으로 한다 -->
+	<select id="getAdminSubCategoryList" parameterType="Long" resultType="CategoryDto">
+		select c.*,
+			(select count(*) from tbl_talent t where t.category_seq = c.category_seq and t.enabled = 'Y') as talent_count,
+			(select count(*) from tbl_request r where r.category_seq = c.category_seq) as request_count
+		from tbl_category c
+		where c.parent_seq = #{parentSeq}
+		order by c.sort_order, c.category_seq
+	</select>
+
+	<!-- 같은 대분류 안에 같은 이름의 소분류가 있는지 (앞뒤 공백 무시) -->
+	<select id="countSameName" resultType="int">
+		select count(*) from tbl_category
+		where parent_seq = #{parentSeq}
+			and trim(name) = #{name}
+	</select>
+
+	<!-- 소분류 추가. 그 대분류의 맨 뒤 순서로 들어간다 -->
+	<insert id="addSubCategory" parameterType="CategoryDto">
+		insert into tbl_category (category_seq, parent_seq, name, sort_order, enabled)
+		values (seq_category.nextval, #{parentSeq}, #{name},
+			(select nvl(max(sort_order), 0) + 1 from tbl_category where parent_seq = #{parentSeq}), 'Y')
+	</insert>
+
+	<update id="updateSortOrder">
+		update tbl_category set sort_order = #{sortOrder}
+		where category_seq = #{categorySeq}
+	</update>
+
+	<!-- 사용 / 사용 안 함. 대분류는 고정이라 소분류만 바꾼다 -->
+	<update id="updateEnabled">
+		update tbl_category set enabled = #{enabled}
+		where category_seq = #{categorySeq}
+			and parent_seq is not null
+	</update>
+
 </mapper>
