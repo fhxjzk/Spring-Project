@@ -45,6 +45,55 @@
 			font-size: 20px;
 		}
 
+		/* 이름 왼쪽, 찜(♡ 개수) 오른쪽 */
+		.expert-name-row {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			gap: 8px;
+		}
+
+		/* 찜: [하트] 숫자. 하트 크기는 고정이라 찜이 1,000개가 넘어도 숫자만 길어진다 */
+		.wish {
+			flex-shrink: 0;
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			font-size: 14px;
+			color: var(--color-text-light);
+			white-space: nowrap;
+		}
+
+		/* 하트: 고객에게는 누르는 동그란 버튼, 비로그인에게는 같은 모양의 로그인 링크, 그 밖에는 글자만 */
+		.wish-heart {
+			font-size: 18px;
+			line-height: 1;
+			color: var(--color-danger);
+		}
+
+		.wish-btn {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 34px;
+			height: 34px;
+			padding: 0;
+			border: 1px solid var(--color-border);
+			border-radius: 50%;
+			background: none;
+			text-decoration: none;
+			cursor: pointer;
+		}
+
+		.wish-btn:hover,
+		.wish-btn.on {
+			border-color: var(--color-danger);
+		}
+
+		.wish-btn.on {
+			background-color: color-mix(in srgb, var(--color-danger) 8%, transparent);
+		}
+
 		.expert-meta {
 			margin: 14px 0;
 			font-size: 14px;
@@ -182,7 +231,32 @@
 
 				<div class="expert-side-body">
 
-					<strong class="expert-name">${edto.name}</strong>
+					<div class="expert-name-row">
+						<strong class="expert-name">${edto.name}</strong>
+
+						<%-- 찜 (추가 기능). 고객: 누르면 찜 ↔ 해제 / 비로그인: 누르면 로그인 / 고수 · 관리자 · 숨김 고수: 개수만 --%>
+						<div class="wish">
+							<c:choose>
+								<c:when test="${canWish}">
+									<button type="button" id="wishBtn" class="wish-btn ${isWished ? 'on' : ''}"
+											title="${isWished ? '찜 해제' : '찜하기'}" onclick="toggleWish(${edto.expertSeq});">
+										<span class="wish-heart">${isWished ? '♥' : '♡'}</span>
+									</button>
+								</c:when>
+								<c:when test="${empty pageContext.request.userPrincipal and not isHidden}">
+									<a class="wish-btn" href="${path}/auth/login.do" title="로그인하고 찜하기"
+											onclick="return confirm('찜하려면 로그인이 필요해요. 로그인할까요?');">
+										<span class="wish-heart">♡</span>
+									</a>
+								</c:when>
+								<c:otherwise>
+									<span class="wish-heart">♡</span>
+								</c:otherwise>
+							</c:choose>
+							<%-- 1,234 처럼 쉼표를 찍는다 --%>
+							<span id="wishCount" title="찜한 고객 수"><fmt:formatNumber value="${wishCount}" /></span>
+						</div>
+					</div>
 				<c:choose>
 					<c:when test="${rsdto.reviewCount > 0}">
 						★${rsdto.averageRating} (${rsdto.reviewCount})
@@ -375,5 +449,49 @@
 	</main>
 
 	<%@ include file="/WEB-INF/views/report/modal.jsp" %>
+
+	<c:if test="${canWish}">
+	<script>
+		// 찜 ↔ 찜 해제 (WishController.toggle). 새로고침 없이 하트와 숫자만 바꾼다
+		// 숫자는 서버가 돌려준 값으로 바꿔서, 다른 고객이 그사이 찜해도 맞는 수가 보인다
+		let wishSending = false;
+
+		function toggleWish(expertSeq) {
+
+			if (wishSending) {
+				return;
+			}
+			wishSending = true;
+
+			$.post('${path}/wish/toggle.do', { expertSeq: expertSeq })
+				.done(function (res) {
+
+					// 로그인이 풀렸으면 JSON 대신 로그인 화면(HTML)이 온다
+					if (typeof res !== 'object') {
+						alert('로그인이 풀렸어요. 다시 로그인해 주세요.');
+						location.href = '${path}/auth/login.do';
+						return;
+					}
+
+					if (!res.success) {
+						alert(res.message);
+						return;
+					}
+
+					const btn = $('#wishBtn');
+					btn.toggleClass('on', res.wished);
+					btn.attr('title', res.wished ? '찜 해제' : '찜하기');
+					btn.find('.wish-heart').text(res.wished ? '♥' : '♡');
+					$('#wishCount').text(Number(res.count).toLocaleString());
+				})
+				.fail(function () {
+					alert('찜하지 못했어요. 잠시 후 다시 시도해 주세요.');
+				})
+				.always(function () {
+					wishSending = false;
+				});
+		}
+	</script>
+	</c:if>
 </body>
 </html>

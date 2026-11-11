@@ -23,6 +23,7 @@ import com.project.app.review.model.ReviewDto;
 import com.project.app.review.model.ReviewSummaryDto;
 import com.project.app.review.service.ReviewService;
 import com.project.app.search.service.SearchService;
+import com.project.app.wish.service.WishService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 public class ExpertController {
 	private final ExpertService expertService;
 	private final ReviewService reviewService;
+	private final WishService wishService;
 
 	//활동 가능 지역 체크박스 (⑥ 지역 17개)
 	private final SearchService searchService;
@@ -84,6 +86,11 @@ public class ExpertController {
 		// 신고 처리로 숨김(hidden='Y')된 고수인지. 숨김이면 요청하기, 수정하기를 막는다
 		boolean isHidden = "Y".equals(edto.getHidden());
 
+		//찜 (추가 기능). 하트 버튼은 고객에게만 보이고, 숨김 고수는 새로 찜할 수 없다. 찜 수는 누구에게나 보인다
+		boolean canWish = isCustomer(auth) && !isHidden;
+		boolean isWished = wishService.isWished(memberSeq, expertSeq);
+		int wishCount = wishService.countWish(expertSeq);
+
 		model.addAttribute("edto",edto);
 		model.addAttribute("careerList",careerList);
 		model.addAttribute("regionNameList",regionNameList);
@@ -93,6 +100,9 @@ public class ExpertController {
 		model.addAttribute("rsdto",rsdto);
 		model.addAttribute("isOwner",isOwner);
 		model.addAttribute("isHidden",isHidden);
+		model.addAttribute("canWish",canWish);
+		model.addAttribute("isWished",isWished);
+		model.addAttribute("wishCount",wishCount);
 
 		return "expert/view";
 	}
@@ -233,6 +243,16 @@ public class ExpertController {
 		}
 
 		return "ROLE_EXPERT".equals(((CustomUser) auth.getPrincipal()).getDto().getRole());
+	}
+
+	//고객으로 가입한 회원인지. 찜 버튼을 보일지 정한다
+	private boolean isCustomer(Authentication auth) {
+
+		if (auth == null || !(auth.getPrincipal() instanceof CustomUser)) {
+			return false;
+		}
+
+		return "ROLE_CUSTOMER".equals(((CustomUser) auth.getPrincipal()).getDto().getRole());
 	}
 
 	//resources/upload/profile 의 실제 경로 (CONVENTION.md "업로드 파일")

@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <!DOCTYPE html>
 <html>
@@ -201,6 +202,10 @@
 			display: block;
 		}
 
+		.expert-info .wish-heart {
+			color: var(--color-danger);
+		}
+
 		/* 최근 리뷰 */
 		.review-stars {
 			color: var(--color-warning);
@@ -358,14 +363,14 @@
 								<c:if test="${not empty expert.categoryNames}">
 									<span class="expert-category small"><c:out value="${expert.categoryNames}" /></span>
 								</c:if>
-								<c:choose>
-									<c:when test="${expert.reviewCount > 0}">
-										<span class="message-info small">★${expert.averageRating} (${expert.reviewCount})</span>
-									</c:when>
-									<c:otherwise>
-										<span class="message-info small">아직 리뷰가 없어요</span>
-									</c:otherwise>
-								</c:choose>
+								<%-- 별점 · 찜 수. 카드 전체가 고수 상세 링크라서 여기서는 찜을 누를 수 없고 개수만 보여 준다 --%>
+								<span class="message-info small">
+									<c:choose>
+										<c:when test="${expert.reviewCount > 0}">★${expert.averageRating} (${expert.reviewCount})</c:when>
+										<c:otherwise>아직 리뷰가 없어요</c:otherwise>
+									</c:choose>
+									· <span class="wish-heart">♡</span> <fmt:formatNumber value="${expert.wishCount}" />
+								</span>
 							</div>
 						</a>
 						</c:forEach>
