@@ -90,7 +90,7 @@ CREATE TABLE tbl_request_file (
     file_seq        NUMBER          NOT NULL,
     request_seq     NUMBER          NOT NULL,
     org_filename    VARCHAR2(300)   NOT NULL,                   -- 사용자가 올린 원래 파일 이름
-    save_filename   VARCHAR2(300)   NOT NULL,                   -- 저장한 파일 이름 (UUID_원래이름)
+    save_filename   VARCHAR2(300)   NOT NULL,                   -- 저장한 파일 이름 (UUID.확장자)
     regdate         DATE            DEFAULT sysdate NOT NULL,
     CONSTRAINT pk_request_file PRIMARY KEY (file_seq),
     CONSTRAINT fk_request_file_request FOREIGN KEY (request_seq) REFERENCES tbl_request (request_seq)

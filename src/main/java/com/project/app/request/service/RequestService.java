@@ -203,8 +203,12 @@ public class RequestService {
 			}
 
 			for (MultipartFile image : images) {
+				//저장 이름은 UUID + 확장자만 쓴다. 원래 이름에 #, ?, % 가 있으면 주소가 깨져서 사진이 안 보이기 때문이다
+				//원래 이름은 화면에 보여 주기만 하므로, DB 칸(300바이트)보다 길면 확장자를 남기고 앞부분만 저장한다
 				String orgFilename = Paths.get(image.getOriginalFilename()).getFileName().toString();
-				String saveFilename = UUID.randomUUID() + "_" + orgFilename;
+				String saveFilename = UUID.randomUUID() + "." + extension(orgFilename);
+
+				orgFilename = cutFilename(orgFilename, 300);
 
 				File target = new File(dir, saveFilename);
 				image.transferTo(target);
@@ -494,11 +498,40 @@ public class RequestService {
 		}
 	}
 
+	//파일 이름의 확장자 (소문자). 없으면 빈 문자열
+	private String extension(String filename) {
+
+		int dot = filename.lastIndexOf('.');
+
+		return dot < 0 ? "" : filename.substring(dot + 1).toLowerCase();
+	}
+
+	/**
+	 * 파일 이름이 maxBytes보다 길면, 확장자는 남기고 앞부분을 잘라 maxBytes 안에 맞춘다.
+	 * 예) "아주긴이름...(생략).png" → "아주긴이름...png"
+	 */
+	private String cutFilename(String filename, int maxBytes) {
+
+		if (byteLength(filename) <= maxBytes) {
+			return filename;
+		}
+
+		String ext = extension(filename);
+		String tail = ext.isEmpty() ? "" : "." + ext;
+		String base = filename.substring(0, filename.length() - tail.length());
+
+		//한 글자씩 줄인다 (한글은 1글자에 3바이트라 바이트 단위로 자르면 글자가 깨진다)
+		while (!base.isEmpty() && byteLength(base + tail) > maxBytes) {
+			base = base.substring(0, base.offsetByCodePoints(base.length(), -1));
+		}
+
+		return base + tail;
+	}
+
 	private boolean isImage(MultipartFile file) {
 
 		String name = file.getOriginalFilename() == null ? "" : file.getOriginalFilename();
-		int dot = name.lastIndexOf('.');
-		String ext = dot < 0 ? "" : name.substring(dot + 1).toLowerCase();
+		String ext = extension(name);
 
 		//참고 이미지로 받을 수 있는 확장자: jpg, jpeg, png, gif
 		boolean imageExt = ext.equals("jpg") || ext.equals("jpeg") || ext.equals("png") || ext.equals("gif");
