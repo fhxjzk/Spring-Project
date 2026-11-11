@@ -262,12 +262,40 @@
 				return false;
 			}
 
-			return confirm('견적을 보낼까요?\n보낸 견적은 수정할 수 없습니다.');
+			if (!confirm('견적을 보낼까요?\n보낸 견적은 수정할 수 없습니다.')) {
+				return false;
+			}
+
+			return lockForm(this);
 		});
 
 		//거절하면 되돌릴 수 없으니 한 번 더 묻는다
 		$('#rejectForm').submit(function () {
-			return confirm('이 요청을 거절할까요?\n거절하면 되돌릴 수 없습니다.');
+
+			if (!confirm('이 요청을 거절할까요?\n거절하면 되돌릴 수 없습니다.')) {
+				return false;
+			}
+
+			return lockForm(this);
+		});
+
+		//버튼을 두 번 눌러 두 번 보내지 않게, 보내는 중에는 두 폼의 버튼을 모두 막는다
+		function lockForm(form) {
+
+			if ($(form).data('sending')) {
+				return false;
+			}
+
+			$(form).data('sending', true);
+			$('#quoteForm button, #rejectForm button').prop('disabled', true);
+
+			return true;
+		}
+
+		//뒤로 가기로 이 화면에 돌아오면 버튼을 다시 쓸 수 있게 한다
+		$(window).on('pageshow', function () {
+			$('#quoteForm, #rejectForm').data('sending', false);
+			$('#quoteForm button, #rejectForm button').prop('disabled', false);
 		});
 
 	</script>

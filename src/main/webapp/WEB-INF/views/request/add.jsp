@@ -317,6 +317,19 @@
 					return false;
 				}
 			}
+
+			//등록 버튼을 두 번 눌러 요청서가 두 개 생기지 않게, 보내는 중에는 버튼을 막는다
+			if ($(this).data('sending')) {
+				return false;
+			}
+
+			$(this).data('sending', true);
+			$(this).find('button').prop('disabled', true).text('등록하는 중...');
+		});
+
+		//뒤로 가기로 이 화면에 돌아오면 버튼을 다시 쓸 수 있게 한다
+		$(window).on('pageshow', function () {
+			$('#requestForm').data('sending', false).find('button').prop('disabled', false).text('요청서 등록');
 		});
 
 	</script>
