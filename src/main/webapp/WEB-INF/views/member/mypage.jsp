@@ -47,6 +47,9 @@
 			color: var(--color-danger);
 			border-color: var(--color-danger);
 		}
+		#wishMypageCard {
+			margin-block: 16px;
+		}
 	</style>
 </head>
 <body>
@@ -91,6 +94,8 @@
 				</tbody>
 			</table>
 		</div>
+
+		<%@ include file="/WEB-INF/views/wish/mypage-card.jsp" %>
 
 		<div class="card">
 			<h2>정보 수정</h2>
