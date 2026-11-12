@@ -144,9 +144,9 @@
 				</c:if>
 			</div>
 			<div>
-				<input type="file" id="imageFile" name="imageFile" accept="image/png,image/jpeg,image/gif">
+				<input type="file" id="imageFile" name="imageFile" accept="image/png,image/jpeg">
 				<div class="form-hint">
-					jpg, png, gif 파일 1장. 올리지 않으면
+					jpg, png 파일 1장. 올리지 않으면
 					<c:choose>
 						<c:when test="${not empty edto}">지금 사진을 그대로 둡니다.</c:when>
 						<c:otherwise>기본 이미지로 보여줍니다.</c:otherwise>
@@ -280,8 +280,8 @@
 				return;
 			}
 
-			if (!/\.(jpe?g|png|gif)$/i.test(file.name)) {
-				alert('jpg, png, gif 파일만 올릴 수 있어요.');
+			if (!/\.(jpe?g|png)$/i.test(file.name)) {
+				alert('jpg, png 파일만 올릴 수 있어요.');
 				$(this).val('');
 				return;
 			}

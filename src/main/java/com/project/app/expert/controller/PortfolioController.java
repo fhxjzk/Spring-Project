@@ -38,19 +38,14 @@ public class PortfolioController {
 	private final PortfolioService portfolioService;
 	private final ExpertService expertService;
 
-	// TODO 상세 (②-09)  GET /expert/portfolio/view.do?portfolioSeq=
-	//  1. 포트폴리오 글 하나 조회 → null이면 redirect (없는 번호)
-	//  2. 사진 목록 조회 (slot 순서)
-	//  3. 작성한 고수 본인인지 확인 (본인이면 수정·삭제 버튼)
-	//  4. Model에 담고 "expert/portfolio/view" 반환
+	// 포트폴리오 상세 (②-09)  GET /expert/portfolio/view.do?portfolioSeq=
 	@GetMapping(value="/view.do")
 	public String viewPortfolio(@RequestParam("portfolioSeq") Long portfolioSeq, Model model, Authentication auth) {
 		
 		//포폴 글 조회
 		ExpertPortfolioDto pdto = portfolioService.getPortfolio(portfolioSeq);
 		
-		//없는 포폴 번호인 경우 쫒아내기
-		//에러 페이지 생기면 해당 페이지로 변경
+		//없는 포폴 번호면 메인으로 보낸다
 		if (pdto == null) {
 			return "redirect:/index.do";
 		}

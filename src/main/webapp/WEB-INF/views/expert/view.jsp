@@ -267,7 +267,8 @@
 				</c:choose>
 					<dl class="expert-meta">
 						<dt>서비스 위치</dt>
-						<dd>${edto.serviceAddress}</dd>
+						<%-- 시·군·구까지만 (ExpertProfileDto.getServiceRegion). 정확한 주소는 보여 주지 않는다 --%>
+						<dd><c:out value="${edto.serviceRegion}" /></dd>
 						<dt>활동 가능 지역</dt>
 						<dd>
 							<c:choose>
@@ -292,6 +293,8 @@
 						<c:when test="${isOwner}">
 							<a class="btn btn-primary btn-block" href="${path}/expert/edit.do">프로필 수정</a>
 						</c:when>
+						<%-- 고수 회원이 다른 고수를 볼 때는 요청하기를 안 보여 준다 (요청서는 고객만 쓴다) --%>
+						<c:when test="${isExpertViewer}"></c:when>
 						<c:otherwise>
 							<a class="btn btn-primary btn-block" href="${path}/request/add.do?expertSeq=${edto.expertSeq}">요청하기</a>
 						</c:otherwise>
@@ -405,7 +408,7 @@
 						</c:when>
 						<c:otherwise>
 							<div class="grid-3">
-								<%-- TODO: 포트폴리오 상세(②-09) 화면을 만들면 이 주소로 연결된다 --%>
+								<%-- 누르면 포트폴리오 상세(②-09)로 간다 --%>
 								<c:forEach items="${portfolioList}" var="portfolio">
 								<a class="card card-link" href="${path}/expert/portfolio/view.do?portfolioSeq=${portfolio.portfolioSeq}">
 									<div class="thumb">

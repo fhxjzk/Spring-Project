@@ -65,12 +65,17 @@ public class TalentController {
 		// 신고 처리로 숨김(hidden='Y')된 고수인지. 숨김이면 요청하기, 수정을 막는다
 		boolean isHidden = "Y".equals(edto.getHidden());
 		
+		// 보는 사람이 고수 회원인지. 고수는 다른 고수에게 요청을 보낼 수 없어서 요청하기를 숨긴다 (/request/add*.do 는 고객만)
+		boolean isExpertViewer = auth != null && auth.getPrincipal() instanceof CustomUser
+				&& "ROLE_EXPERT".equals(((CustomUser) auth.getPrincipal()).getDto().getRole());
+
 		model.addAttribute("tdto",tdto);
 		model.addAttribute("edto",edto);
 		model.addAttribute("plist",plist);
 		model.addAttribute("rsdto",rsdto);
 		model.addAttribute("isOwner",isOwner);
 		model.addAttribute("isHidden",isHidden);
+		model.addAttribute("isExpertViewer",isExpertViewer);
 		
 		return "expert/talent/view";
 	}

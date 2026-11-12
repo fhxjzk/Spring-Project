@@ -86,10 +86,10 @@
 
 				<div class="form-group">
 					<label for="images">사진</label>
-					<input type="file" id="images" name="images" accept="image/*" multiple>
+					<input type="file" id="images" name="images" accept="image/png,image/jpeg" multiple>
 					<div class="form-hint">
 						새 사진을 고르지 않으면 지금 사진이 그대로 남아요.
-						새로 고르면 지금 사진은 전부 지워지고 고른 사진으로 바뀝니다. (최대 5장, 첫 번째가 대표 사진)
+						새로 고르면 지금 사진은 전부 지워지고 고른 사진으로 바뀝니다. (jpg, png 최대 5장, 첫 번째가 대표 사진)
 					</div>
 
 					<%-- 처음에는 지금 등록된 사진을 보여 주고, 새로 고르면 고른 사진으로 바꿔 그린다 --%>
@@ -122,6 +122,12 @@
 
 			if (this.files.length > MAX_IMAGES) {
 				alert('사진은 최대 ' + MAX_IMAGES + '장까지 올릴 수 있어요.');
+				$(this).val('');
+			}
+
+			//jpg, png 만 받는다 (PortfolioService.IMAGE_EXT 와 같은 기준). 지우면 아래에서 지금 사진 미리보기로 돌아간다
+			if (Array.from(this.files).some(function (file) { return !/\.(jpe?g|png)$/i.test(file.name); })) {
+				alert('사진은 jpg, png 파일만 올릴 수 있어요.');
 				$(this).val('');
 			}
 
