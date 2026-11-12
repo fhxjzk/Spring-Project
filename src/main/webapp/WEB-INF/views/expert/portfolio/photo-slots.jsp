@@ -12,7 +12,7 @@
 		- 5장을 채우면 [+ 사진 추가] 칸이 사라진다. 첫 번째 사진이 대표 사진이다
 		- 파일 선택창 하나로는 "한 장만 빼기"가 안 돼서, 고른 사진을 JS 배열에 모아 두었다가 보낼 때 images 칸에 한 번에 넣는다
 		- 수정에서 남긴 기존 사진은 keepImageSeqs 로 보낸다. 서버는 남긴 사진 → 새 사진 순서로 1번부터 다시 매긴다
-		  (PortfolioService.edit). 서버에서도 장 수와 확장자를 한 번 더 확인한다
+		  (PortfolioService.edit). 사진은 1 ~ 5장이고, 서버에서도 장 수와 확장자를 한 번 더 확인한다
 	--%>
 	<style>
 		/* 필수 입력 표시 (제목, 내용) */
@@ -121,7 +121,7 @@
 
 	<div class="form-group">
 		<div class="photo-head">
-			<label>사진 <small>(선택 · 최대 5장 · jpg, png)</small></label>
+			<label>사진 <span class="required-mark">*</span> <small>(1 ~ 5장 · jpg, png)</small></label>
 			<span class="photo-count" id="photoCount">0 / 5</span>
 		</div>
 
@@ -213,8 +213,13 @@
 			});
 
 			// 보내기 직전: 새 사진은 images 칸에, 남긴 기존 사진 번호는 keepImageSeqs 로 넣는다
-			// 사진은 필수가 아니다. 0장이면 사진 없이 저장된다 (수정에서 전부 지우면 사진이 없는 글이 된다)
+			// 사진은 1장 이상 필수다 (서버에서도 한 번 더 막는다)
 			$('#portfolioForm').on('submit', function () {
+
+				if (photos.length === 0) {
+					alert('사진을 1장 이상 올려 주세요.');
+					return false;
+				}
 
 				const dt = new DataTransfer();
 				const $keep = $('#photoKeep').empty();

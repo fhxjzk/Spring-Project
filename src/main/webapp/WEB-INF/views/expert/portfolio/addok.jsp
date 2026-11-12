@@ -24,6 +24,11 @@
 		history.back();
 		</c:if>
 
+		<c:if test="${result == -3}">
+		alert('사진을 1장 이상 올려 주세요.');
+		history.back();
+		</c:if>
+
 		<c:if test="${result == 0}">
 		alert('포트폴리오를 등록하지 못했습니다. 제목과 내용을 확인해 주세요. (제목은 한글 약 33자까지)');
 		history.back();

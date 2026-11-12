@@ -54,8 +54,8 @@ public class PortfolioService {
 	/**
 	 * 포트폴리오 작성
 	 * 글 INSERT → 사진 파일 저장 → 사진 INSERT 를 한 번에 처리한다. 중간에 실패하면 전부 취소된다.
-	 * 사진은 필수가 아니다 (0 ~ 5장)
-	 * @return 1: 성공, 0: 잘못된 입력, -1: 사진 5장 초과, -2: 이미지가 아닌 파일
+	 * 사진은 1 ~ 5장이다
+	 * @return 1: 성공, 0: 잘못된 입력, -1: 사진 5장 초과, -2: 이미지가 아닌 파일, -3: 사진 없음
 	 */
 	@Transactional
 	public int add(ExpertPortfolioDto dto, List<MultipartFile> files, String uploadPath) {
@@ -71,6 +71,10 @@ public class PortfolioService {
 			return imageResult;
 		}
 
+		if (images.isEmpty()) {
+			return -3;
+		}
+
 		//selectKey 가 dto.portfolioSeq 에 새 번호를 넣어 준다
 		portfolioDao.addPortfolio(dto);
 
@@ -83,9 +87,9 @@ public class PortfolioService {
 	 * 포트폴리오 수정
 	 * 화면의 사진 칸에서 남긴 기존 사진(keepImageSeqs, 화면 순서)과 새로 올린 사진을 합쳐
 	 * 남긴 사진 → 새 사진 순서로 slot 1 번부터 다시 매긴다. 뺀 사진은 행과 파일을 지운다.
-	 * 사진은 합쳐서 0 ~ 5장이다 (필수가 아니라서 전부 지워도 된다).
+	 * 사진은 합쳐서 1 ~ 5장이다.
 	 * @param keepImageSeqs 남길 기존 사진 번호. 이 글의 사진이 아닌 번호, 겹친 번호는 무시한다
-	 * @return 1: 성공, 0: 잘못된 입력, -1: 사진 5장 초과, -2: 이미지가 아닌 파일
+	 * @return 1: 성공, 0: 잘못된 입력, -1: 사진 5장 초과, -2: 이미지가 아닌 파일, -3: 사진 없음
 	 */
 	@Transactional
 	public int edit(ExpertPortfolioDto dto, List<Long> keepImageSeqs, List<MultipartFile> files, String uploadPath) {
@@ -117,6 +121,10 @@ public class PortfolioService {
 
 		if (keep.size() + images.size() > MAX_IMAGES) {
 			return -1;
+		}
+
+		if (keep.size() + images.size() == 0) {
+			return -3;
 		}
 
 		//where 에 expert_seq 까지 걸려 있어서, 내 글이 아니면 0줄이 바뀐다
