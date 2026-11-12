@@ -50,7 +50,7 @@
 				and expert_seq = #{expertSeq}
 	</update>
 
-	<!-- 수정에서 사진을 새로 올렸을 때, 기존 사진 행을 전부 지운다 -->
+	<!-- 수정할 때 사진 행을 전부 지운다. 남긴 사진과 새 사진은 Service 가 slot 1 번부터 다시 넣는다 -->
 	<delete id="deletePortfolioImages" parameterType="Long">
 		delete from tbl_portfolio_image
 			where portfolio_seq = #{portfolioSeq}
