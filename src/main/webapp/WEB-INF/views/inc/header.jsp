@@ -29,6 +29,8 @@
 					<li><a href="${path}/board/list.do">동네 이야기</a></li>
 
 					<sec:authorize access="hasAnyRole('ROLE_CUSTOMER', 'ROLE_EXPERT')">
+					<li><a href="${path}/trade/mylist.do">내 거래</a></li>
+					<li><a href="${path}/point/mylist.do">포인트</a></li>
 					<li><a href="${path}/chat/list">채팅</a></li>
 					<sec:authorize access="hasRole('ROLE_EXPERT')">
 					<li><a href="${path}/expert/my.do">내 프로필</a></li>
