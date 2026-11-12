@@ -25,6 +25,7 @@ import com.project.app.trade.exception.TradeException;
 import com.project.app.trade.model.TradeDto;
 import com.project.app.trade.model.TradeFileDto;
 import com.project.app.trade.model.TradeTab;
+import com.project.app.trade.service.TradeNoticeService;
 import com.project.app.trade.service.TradeService;
 
 import lombok.RequiredArgsConstructor;
@@ -49,6 +50,7 @@ public class TradeController {
 	private static final String UPLOAD_PATH = "/resources/upload/trade";
 
 	private final TradeService tradeService;
+	private final TradeNoticeService tradeNoticeService;	//처리가 끝난 뒤 채팅방·알림 (B-05-01, B-06)
 	private final PointService pointService;
 
 	//결제 화면: 견적 금액, 내 잔액
@@ -68,6 +70,7 @@ public class TradeController {
 	public String payok(Long quoteSeq, Authentication auth, RedirectAttributes ra) {
 
 		Long tradeSeq = tradeService.pay(quoteSeq, memberSeq(auth));
+		tradeNoticeService.paid(tradeSeq);
 
 		ra.addFlashAttribute("message", "결제가 완료됐어요. 포인트는 구매 확정 전까지 플랫폼이 보관해요.");
 
@@ -112,6 +115,7 @@ public class TradeController {
 	public String startok(Long tradeSeq, Authentication auth, RedirectAttributes ra) {
 
 		tradeService.start(tradeSeq, memberSeq(auth));
+		tradeNoticeService.started(tradeSeq);
 
 		ra.addFlashAttribute("message", "작업을 시작했어요.");
 
@@ -123,6 +127,7 @@ public class TradeController {
 	public String completeok(Long tradeSeq, MultipartFile file, Authentication auth, HttpServletRequest req, RedirectAttributes ra) {
 
 		tradeService.complete(tradeSeq, memberSeq(auth), file, uploadDir(req));
+		tradeNoticeService.completed(tradeSeq);
 
 		ra.addFlashAttribute("message", "납품을 완료했어요. 고객이 구매 확정하면 포인트가 정산돼요.");
 
@@ -134,6 +139,7 @@ public class TradeController {
 	public String confirmok(Long tradeSeq, Authentication auth, RedirectAttributes ra) {
 
 		tradeService.confirm(tradeSeq, memberSeq(auth));
+		tradeNoticeService.confirmed(tradeSeq);
 
 		ra.addFlashAttribute("message", "구매 확정했어요. 고수에게 포인트가 정산됐어요.");
 
@@ -144,7 +150,10 @@ public class TradeController {
 	@PostMapping(value = "/cancelok.do")
 	public String cancelok(Long tradeSeq, Authentication auth, RedirectAttributes ra) {
 
-		tradeService.cancel(tradeSeq, memberSeq(auth));
+		Long memberSeq = memberSeq(auth);
+
+		tradeService.cancel(tradeSeq, memberSeq);
+		tradeNoticeService.canceled(tradeSeq, memberSeq);
 
 		ra.addFlashAttribute("message", "거래를 취소했어요. 결제한 포인트는 고객에게 전액 환불됐어요.");
 

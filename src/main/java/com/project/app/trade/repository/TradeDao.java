@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import com.project.app.trade.mapper.TradeMapper;
 import com.project.app.trade.model.TradeDto;
 import com.project.app.trade.model.TradeFileDto;
+import com.project.app.trade.model.TradeNoticeDto;
 import com.project.app.trade.model.TradeQuoteDto;
 
 import lombok.RequiredArgsConstructor;
@@ -95,6 +96,16 @@ public class TradeDao {
 	public int countOngoing(Long memberSeq) {
 
 		return tradeMapper.countOngoing(memberSeq);
+	}
+
+	public TradeNoticeDto noticeMember(Long memberSeq) {
+
+		return tradeMapper.noticeMember(memberSeq);
+	}
+
+	public List<TradeNoticeDto> noticeUnselectedExperts(Long requestSeq, Long quoteSeq) {
+
+		return tradeMapper.noticeUnselectedExperts(requestSeq, quoteSeq);
 	}
 
 	public int addFile(TradeFileDto dto) {

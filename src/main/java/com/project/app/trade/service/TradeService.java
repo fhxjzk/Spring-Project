@@ -108,8 +108,7 @@ public class TradeService {
 		//포인트가 모자라면 여기서 예외 → 위의 요청서·견적·거래 변경도 전부 롤백된다
 		pointService.decrease(customerSeq, quote.getPrice(), PointHistoryType.PAY, trade.getTradeSeq());
 
-		//TODO ⑤ 알림: 선택된 고수에게 결제 완료, 나머지 고수에게 미선택
-		//TODO ⑤ 채팅방 생성
+		//채팅방 생성과 알림은 저장이 끝난 뒤 컨트롤러가 TradeNoticeService.paid()로 부른다
 
 		return trade.getTradeSeq();
 	}
@@ -148,8 +147,6 @@ public class TradeService {
 		if (tradeDao.start(tradeSeq) == 0) {
 			throw new TradeException(TradeErrorCode.CANNOT_START);
 		}
-
-		//TODO ⑤ 알림: 고객에게 작업 시작
 	}
 
 	//D-03 작업 완료 (고수): 진행 중 → 납품 완료. 온라인 작업이면 결과물 파일을 같이 올린다 (파일 없이도 된다)
@@ -165,8 +162,6 @@ public class TradeService {
 		if (file != null && !file.isEmpty()) {
 			tradeDao.addFile(saveFile(tradeSeq, file, uploadDir));
 		}
-
-		//TODO ⑤ 알림: 고객에게 작업 완료
 	}
 
 	//C-03-b 구매 확정 (고객): 납품 완료 → 구매 확정, 보관하던 포인트를 고수에게 정산
@@ -182,19 +177,22 @@ public class TradeService {
 		settle(trade);
 	}
 
-	//C-03-b 자동 구매 확정 (TradeAutoConfirmScheduler가 거래마다 부른다). 그 사이 고객이 먼저 확정했으면 넘어간다
+	/**
+	 * C-03-b 자동 구매 확정 (TradeAutoConfirmScheduler가 거래마다 부른다). 그 사이 고객이 먼저 확정했으면 넘어간다
+	 * @return 이번에 확정했으면 true (스케줄러가 알림을 보낼지 정한다)
+	 */
 	@Transactional
-	public void autoConfirm(Long tradeSeq) {
+	public boolean autoConfirm(Long tradeSeq) {
 
 		TradeDto trade = get(tradeSeq);
 
 		if (tradeDao.confirm(tradeSeq) == 0) {
-			return;
+			return false;
 		}
 
 		settle(trade);
 
-		//TODO ⑤ 알림: 고객에게 자동 확정
+		return true;
 	}
 
 	public List<Long> listAutoConfirmTargets() {
@@ -220,8 +218,6 @@ public class TradeService {
 		tradeDao.cancelRequest(trade.getRequestSeq());
 
 		pointService.increase(trade.getCustomerSeq(), trade.getPrice(), PointHistoryType.REFUND, tradeSeq);
-
-		//TODO ⑤ 알림: 상대방에게 취소 (고객이 취소하면 고수에게, 고수가 취소하면 고객에게) (C-03-c-04)
 	}
 
 	//결과물 파일 목록 (getForMember로 본인 확인을 먼저 한 거래에만 쓴다)
@@ -309,8 +305,6 @@ public class TradeService {
 	private void settle(TradeDto trade) {
 
 		pointService.increase(trade.getExpertSeq(), trade.getPrice(), PointHistoryType.SETTLE, trade.getTradeSeq());
-
-		//TODO ⑤ 알림: 고수에게 정산
 	}
 
 	//결과물 저장: 업로드 폴더/UUID_원래이름 (CONVENTION.md 업로드 규칙)
