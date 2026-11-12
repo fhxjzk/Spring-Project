@@ -292,6 +292,8 @@
 						<c:when test="${isOwner}">
 							<a class="btn btn-primary btn-block" href="${path}/expert/edit.do">프로필 수정</a>
 						</c:when>
+						<%-- 고수 회원이 다른 고수를 볼 때는 요청하기를 안 보여 준다 (요청서는 고객만 쓴다) --%>
+						<c:when test="${isExpertViewer}"></c:when>
 						<c:otherwise>
 							<a class="btn btn-primary btn-block" href="${path}/request/add.do?expertSeq=${edto.expertSeq}">요청하기</a>
 						</c:otherwise>

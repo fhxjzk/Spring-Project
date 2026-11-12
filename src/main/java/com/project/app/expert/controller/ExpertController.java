@@ -86,6 +86,9 @@ public class ExpertController {
 		// 신고 처리로 숨김(hidden='Y')된 고수인지. 숨김이면 요청하기, 수정하기를 막는다
 		boolean isHidden = "Y".equals(edto.getHidden());
 
+		// 보는 사람이 고수 회원인지. 고수는 다른 고수에게 요청을 보낼 수 없어서 요청하기를 숨긴다 (/request/add*.do 는 고객만)
+		boolean isExpertViewer = isExpertMember(auth);
+
 		//찜 (추가 기능). 하트 버튼은 고객에게만 보이고, 숨김 고수는 새로 찜할 수 없다. 찜 수는 누구에게나 보인다
 		boolean canWish = isCustomer(auth) && !isHidden;
 		boolean isWished = wishService.isWished(memberSeq, expertSeq);
@@ -100,6 +103,7 @@ public class ExpertController {
 		model.addAttribute("rsdto",rsdto);
 		model.addAttribute("isOwner",isOwner);
 		model.addAttribute("isHidden",isHidden);
+		model.addAttribute("isExpertViewer",isExpertViewer);
 		model.addAttribute("canWish",canWish);
 		model.addAttribute("isWished",isWished);
 		model.addAttribute("wishCount",wishCount);
