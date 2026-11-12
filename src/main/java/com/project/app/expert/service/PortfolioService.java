@@ -54,7 +54,8 @@ public class PortfolioService {
 	/**
 	 * 포트폴리오 작성
 	 * 글 INSERT → 사진 파일 저장 → 사진 INSERT 를 한 번에 처리한다. 중간에 실패하면 전부 취소된다.
-	 * @return 1: 성공, 0: 잘못된 입력, -1: 사진 5장 초과, -2: 이미지가 아닌 파일
+	 * 사진은 1 ~ 5장이다
+	 * @return 1: 성공, 0: 잘못된 입력, -1: 사진 5장 초과, -2: 이미지가 아닌 파일, -3: 사진 없음
 	 */
 	@Transactional
 	public int add(ExpertPortfolioDto dto, List<MultipartFile> files, String uploadPath) {
@@ -70,21 +71,28 @@ public class PortfolioService {
 			return imageResult;
 		}
 
+		if (images.isEmpty()) {
+			return -3;
+		}
+
 		//selectKey 가 dto.portfolioSeq 에 새 번호를 넣어 준다
 		portfolioDao.addPortfolio(dto);
 
-		saveImages(dto.getPortfolioSeq(), images, uploadPath);
+		saveImages(dto.getPortfolioSeq(), images, 1, uploadPath);
 
 		return 1;
 	}
 
 	/**
 	 * 포트폴리오 수정
-	 * 사진을 새로 올리지 않으면 기존 사진을 그대로 두고, 올리면 기존 사진을 전부 바꾼다.
-	 * @return 1: 성공, 0: 잘못된 입력, -1: 사진 5장 초과, -2: 이미지가 아닌 파일
+	 * 화면의 사진 칸에서 남긴 기존 사진(keepImageSeqs, 화면 순서)과 새로 올린 사진을 합쳐
+	 * 남긴 사진 → 새 사진 순서로 slot 1 번부터 다시 매긴다. 뺀 사진은 행과 파일을 지운다.
+	 * 사진은 합쳐서 1 ~ 5장이다.
+	 * @param keepImageSeqs 남길 기존 사진 번호. 이 글의 사진이 아닌 번호, 겹친 번호는 무시한다
+	 * @return 1: 성공, 0: 잘못된 입력, -1: 사진 5장 초과, -2: 이미지가 아닌 파일, -3: 사진 없음
 	 */
 	@Transactional
-	public int edit(ExpertPortfolioDto dto, List<MultipartFile> files, String uploadPath) {
+	public int edit(ExpertPortfolioDto dto, List<Long> keepImageSeqs, List<MultipartFile> files, String uploadPath) {
 
 		if (!isValidText(dto)) {
 			return 0;
@@ -97,23 +105,49 @@ public class PortfolioService {
 			return imageResult;
 		}
 
+		//지금 이 글의 사진 중에서, 화면이 보낸 순서대로 남길 사진을 고른다
+		List<PortfolioImageDto> oldImages = portfolioDao.getPortfolioImages(dto.getPortfolioSeq());
+		List<PortfolioImageDto> keep = new ArrayList<>();
+
+		if (keepImageSeqs != null) {
+			for (Long seq : keepImageSeqs) {
+				for (PortfolioImageDto image : oldImages) {
+					if (image.getImageSeq().equals(seq) && !keep.contains(image)) {
+						keep.add(image);
+					}
+				}
+			}
+		}
+
+		if (keep.size() + images.size() > MAX_IMAGES) {
+			return -1;
+		}
+
+		if (keep.size() + images.size() == 0) {
+			return -3;
+		}
+
 		//where 에 expert_seq 까지 걸려 있어서, 내 글이 아니면 0줄이 바뀐다
 		if (portfolioDao.editPortfolio(dto) == 0) {
 			return 0;
 		}
 
-		if (images.isEmpty()) {
-			return 1;
+		//사진 행을 전부 지우고, 남긴 사진 → 새 사진 순서로 다시 넣는다
+		//(slot 에 (portfolio_seq, slot) UNIQUE 가 걸려 있어서, 하나씩 순서를 바꾸면 중간에 번호가 겹친다)
+		portfolioDao.deletePortfolioImages(dto.getPortfolioSeq());
+
+		int slot = 1;
+		for (PortfolioImageDto image : keep) {
+			image.setSlot(slot++);
+			portfolioDao.addPortfolioImage(image);
 		}
 
-		//기존 사진 파일 이름은 DB 행을 지우기 전에 받아 둔다
-		List<PortfolioImageDto> oldImages = portfolioDao.getPortfolioImages(dto.getPortfolioSeq());
+		saveImages(dto.getPortfolioSeq(), images, slot, uploadPath);
 
-		portfolioDao.deletePortfolioImages(dto.getPortfolioSeq());
-		saveImages(dto.getPortfolioSeq(), images, uploadPath);
-
-		//DB 작업이 다 끝난 뒤에 기존 파일을 지운다 (중간에 실패하면 DB는 되돌아가는데 파일만 사라지는 걸 막는다)
-		deleteFiles(oldImages, uploadPath);
+		//뺀 사진의 파일은 DB 작업이 다 끝난 뒤에 지운다 (중간에 실패하면 DB는 되돌아가는데 파일만 사라지는 걸 막는다)
+		List<PortfolioImageDto> removed = new ArrayList<>(oldImages);
+		removed.removeAll(keep);
+		deleteFiles(removed, uploadPath);
 
 		return 1;
 	}
@@ -148,9 +182,9 @@ public class PortfolioService {
 
 	/**
 	 * 사진 파일 저장 + 사진 INSERT (작성, 수정에서 같이 쓴다)
-	 * 올린 순서대로 slot 1 ~ 5, 1번이 대표 사진
+	 * 올린 순서대로 startSlot 번부터 매긴다 (작성은 1번부터, 수정은 남긴 사진 다음 번호부터). 1번이 대표 사진
 	 */
-	private void saveImages(Long portfolioSeq, List<MultipartFile> images, String uploadPath) {
+	private void saveImages(Long portfolioSeq, List<MultipartFile> images, int startSlot, String uploadPath) {
 
 		List<File> saved = new ArrayList<>();
 
@@ -161,7 +195,7 @@ public class PortfolioService {
 				dir.mkdirs();
 			}
 
-			int slot = 1;
+			int slot = startSlot;
 
 			for (MultipartFile image : images) {
 				//경로가 섞여 들어와도 파일 이름만 쓴다

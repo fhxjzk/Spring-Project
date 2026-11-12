@@ -141,7 +141,9 @@ public class PortfolioController {
 
 	// 수정 처리  POST /expert/portfolio/editok.do
 	@PostMapping(value="/editok.do")
+	// keepImageSeqs: 사진 칸에서 남긴 기존 사진 번호 (화면 순서). 새로 올린 사진은 images 로 온다
 	public String editok(Model model, ExpertPortfolioDto dto,
+			@RequestParam(value = "keepImageSeqs", required = false) List<Long> keepImageSeqs,
 			@RequestParam(value = "images", required = false) List<MultipartFile> images,
 			Authentication auth, HttpServletRequest req) {
 
@@ -156,7 +158,7 @@ public class PortfolioController {
 
 		dto.setExpertSeq(memberSeq);
 
-		int result = portfolioService.edit(dto, images, getUploadPath(req));
+		int result = portfolioService.edit(dto, keepImageSeqs, images, getUploadPath(req));
 
 		model.addAttribute("result", result);
 		model.addAttribute("portfolioSeq", dto.getPortfolioSeq());
