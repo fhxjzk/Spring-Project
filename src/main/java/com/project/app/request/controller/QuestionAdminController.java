@@ -58,9 +58,10 @@ public class QuestionAdminController {
 
 	//질문 등록 화면
 	@GetMapping(value = "/add.do")
-	public String add(Model model, RedirectAttributes rttr, @RequestParam(value = "categorySeq") Long categorySeq) {
+	public String add(Model model, RedirectAttributes rttr, @RequestParam(value = "categorySeq", required = false) String categorySeq) {
 
-		RequestCategoryDto category = questionService.getSubCategory(categorySeq);
+		//번호가 없거나 숫자가 아니면 없는 카테고리와 같이 목록으로 돌려보낸다 (주소를 직접 고쳐 들어온 경우)
+		RequestCategoryDto category = questionService.getSubCategory(toLong(categorySeq));
 
 		if (category == null) {
 			rttr.addFlashAttribute("msg", "없는 카테고리입니다.");
@@ -91,9 +92,10 @@ public class QuestionAdminController {
 
 	//질문 수정 화면
 	@GetMapping(value = "/edit.do")
-	public String edit(Model model, RedirectAttributes rttr, @RequestParam(value = "questionSeq") Long questionSeq) {
+	public String edit(Model model, RedirectAttributes rttr, @RequestParam(value = "questionSeq", required = false) String questionSeq) {
 
-		QuestionDto dto = questionService.get(questionSeq);
+		//번호가 없거나 숫자가 아니면 없는 질문과 같이 목록으로 돌려보낸다 (주소를 직접 고쳐 들어온 경우)
+		QuestionDto dto = questionService.get(toLong(questionSeq));
 
 		if (dto == null) {
 			rttr.addFlashAttribute("msg", "없는 질문입니다.");
@@ -150,6 +152,16 @@ public class QuestionAdminController {
 	 * 줄마다 optionSeq(새 보기는 빈 값), optionContent, optionEnabled 가 하나씩 온다. 개수가 다르면 null
 	 * (List<String> 으로 바로 받으면 쉼표가 들어간 보기가 둘로 나뉠 수 있어서 MultiValueMap 으로 받는다)
 	 */
+	//주소로 넘어온 번호. 비었거나 숫자가 아니면 null
+	private Long toLong(String value) {
+
+		try {
+			return value == null ? null : Long.valueOf(value.trim());
+		} catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
 	private List<QuestionOptionDto> toOptions(MultiValueMap<String, String> params) {
 
 		List<String> seqs = params.getOrDefault("optionSeq", new ArrayList<>());
