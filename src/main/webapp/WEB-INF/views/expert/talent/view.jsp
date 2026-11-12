@@ -187,7 +187,7 @@
 							</form>
 						</c:when>
 						<c:otherwise>
-							<a class="btn btn-primary btn-block" href="${path}/request/add.do?expertSeq=${tdto.expertSeq}">요청하기</a>
+							<a class="btn btn-primary btn-block" href="${path}/request/add.do?expertSeq=${tdto.expertSeq}&categorySeq=${tdto.categorySeq}">요청하기</a>
 						</c:otherwise>
 					</c:choose>
 				</div>
