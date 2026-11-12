@@ -30,4 +30,33 @@ public class ExpertProfileDto {
 	//체크한 활동 가능 지역 번호 (tbl_region 1 ~ 17)
 	private List<Integer> regionSeqs;
 
+	/**
+	 * 고수 상세에 보여 줄 서비스 위치. 시·도 + 시·군·구까지만 (화면설계서 ②-04)
+	 * 도로명 · 번지까지 다 보이면 고수의 정확한 위치가 드러나서 자른다. 작성·수정 폼은 serviceAddress 를 그대로 쓴다
+	 *   "서울 강남구 테헤란로 123"        → "서울 강남구"
+	 *   "경기 성남시 분당구 판교역로 235"  → "경기 성남시 분당구"
+	 *   "세종특별자치시 한누리대로 2130"   → "세종특별자치시"
+	 * 첫 단어(시·도) 뒤로 "시", "군", "구"로 끝나는 단어만 최대 두 개 붙인다
+	 */
+	public String getServiceRegion() {
+
+		if (serviceAddress == null || serviceAddress.isBlank()) {
+			return serviceAddress;
+		}
+
+		String[] words = serviceAddress.trim().split("\\s+");
+		StringBuilder region = new StringBuilder(words[0]);
+
+		for (int i = 1; i < words.length && i <= 2; i++) {
+
+			if (!words[i].matches(".+[시군구]")) {
+				break;
+			}
+
+			region.append(' ').append(words[i]);
+		}
+
+		return region.toString();
+	}
+
 }

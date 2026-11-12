@@ -267,7 +267,8 @@
 				</c:choose>
 					<dl class="expert-meta">
 						<dt>서비스 위치</dt>
-						<dd>${edto.serviceAddress}</dd>
+						<%-- 시·군·구까지만 (ExpertProfileDto.getServiceRegion). 정확한 주소는 보여 주지 않는다 --%>
+						<dd><c:out value="${edto.serviceRegion}" /></dd>
 						<dt>활동 가능 지역</dt>
 						<dd>
 							<c:choose>
