@@ -81,8 +81,8 @@
 
 				<div class="form-group">
 					<label for="images">사진</label>
-					<input type="file" id="images" name="images" accept="image/*" multiple>
-					<div class="form-hint">최대 5장까지 올릴 수 있어요. 첫 번째 사진이 대표 사진이 됩니다.</div>
+					<input type="file" id="images" name="images" accept="image/png,image/jpeg" multiple>
+					<div class="form-hint">jpg, png 파일을 최대 5장까지 올릴 수 있어요. 첫 번째 사진이 대표 사진이 됩니다.</div>
 					<div class="preview" id="preview"></div>
 				</div>
 
@@ -104,6 +104,13 @@
 
 			if (this.files.length > MAX_IMAGES) {
 				alert('사진은 최대 ' + MAX_IMAGES + '장까지 올릴 수 있어요.');
+				$(this).val('');
+				return;
+			}
+
+			//jpg, png 만 받는다 (PortfolioService.IMAGE_EXT 와 같은 기준)
+			if (Array.from(this.files).some(function (file) { return !/\.(jpe?g|png)$/i.test(file.name); })) {
+				alert('사진은 jpg, png 파일만 올릴 수 있어요.');
 				$(this).val('');
 				return;
 			}

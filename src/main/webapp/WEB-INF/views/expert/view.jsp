@@ -408,7 +408,7 @@
 						</c:when>
 						<c:otherwise>
 							<div class="grid-3">
-								<%-- TODO: 포트폴리오 상세(②-09) 화면을 만들면 이 주소로 연결된다 --%>
+								<%-- 누르면 포트폴리오 상세(②-09)로 간다 --%>
 								<c:forEach items="${portfolioList}" var="portfolio">
 								<a class="card card-link" href="${path}/expert/portfolio/view.do?portfolioSeq=${portfolio.portfolioSeq}">
 									<div class="thumb">

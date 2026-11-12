@@ -34,7 +34,7 @@ public class ExpertService {
 	private static final int MAX_CAREERS = 20;
 
 	//프로필 사진으로 받을 수 있는 확장자
-	private static final Set<String> IMAGE_EXT = Set.of("jpg", "jpeg", "png", "gif");
+	private static final Set<String> IMAGE_EXT = Set.of("jpg", "jpeg", "png");
 
 	private final ExpertDao expertDao;
 

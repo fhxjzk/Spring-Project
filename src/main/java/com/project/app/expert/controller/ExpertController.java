@@ -53,8 +53,7 @@ public class ExpertController {
 
 		ExpertProfileDto edto = expertService.getProfile(expertSeq);
 
-
-		//TODO 공용 에러 페이지가 있을경우 해당 경로로 redirect 하기
+		//없는 고수 번호면 메인으로 보낸다
 		if(edto == null) {
 			return "redirect:/index.do";
 		}

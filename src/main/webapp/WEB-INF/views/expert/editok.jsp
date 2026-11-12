@@ -30,7 +30,7 @@
 		</c:if>
 
 		<c:if test="${result == -3}">
-		alert('프로필 사진은 jpg, png, gif 파일만 올릴 수 있어요.');
+		alert('프로필 사진은 jpg, png 파일만 올릴 수 있어요.');
 		history.back();
 		</c:if>
 

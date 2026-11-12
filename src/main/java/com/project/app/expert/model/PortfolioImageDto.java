@@ -17,7 +17,6 @@ import lombok.ToString;
 @ToString
 public class PortfolioImageDto {
 
-	// TODO 컬럼을 camelCase 필드로 (PK/FK 는 Long)
 	private Long imageSeq;
 	private Long portfolioSeq;
 	private String fileName;
