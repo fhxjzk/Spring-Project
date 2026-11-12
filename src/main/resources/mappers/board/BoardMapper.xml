@@ -30,14 +30,16 @@
 	</sql>
 
 	<!-- 지역별 글 목록, 최신순 (B-09-01, B-09-02)
-	     내용(content)은 목록에 안 쓰므로 가져오지 않는다 -->
+	     내용(content)은 목록에 안 쓰므로 가져오지 않는다
+	     최신순은 작성일 기준이다. 번호 순으로만 정렬하면 더미처럼 번호와 작성일 순서가 다를 때
+	     오래된 글이 위로 올라온다. 작성일이 같으면 번호가 큰(나중에 쓴) 글을 위로 둔다 -->
 	<select id="getList" parameterType="BoardPageDto" resultType="BoardDto">
 		select b.board_seq, b.member_seq, b.region_seq, b.subject, b.readcount,
 				m.name as writer_name,
 				r.region_name,
 				to_char(b.regdate, 'YYYY-MM-DD') as regdate
 			<include refid="listWhere" />
-				order by b.board_seq desc
+				order by b.regdate desc, b.board_seq desc
 					offset #{offset} rows fetch next #{size} rows only
 	</select>
 
