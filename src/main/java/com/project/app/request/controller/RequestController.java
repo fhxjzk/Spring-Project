@@ -44,10 +44,12 @@ public class RequestController {
 	 *
 	 * add.do                  : 공개 요청서 (C-01-a). 대분류 → 소분류를 고른다.
 	 * add.do?expertSeq=고수번호 : 지정 요청서 (C-01-b). 고수 상세의 '요청하기'로 들어온다. 그 고수의 서비스 중에서 고른다.
+	 * add.do?expertSeq=고수번호&categorySeq=카테고리번호 : 서비스 상세의 '요청하기'로 들어온다. 그 서비스가 미리 골라져 있다.
 	 */
 	@GetMapping(value = "/add.do")
 	public String add(Model model, Authentication auth,
-			@RequestParam(value = "expertSeq", required = false) Long expertSeq) {
+			@RequestParam(value = "expertSeq", required = false) Long expertSeq,
+			@RequestParam(value = "categorySeq", required = false) String categorySeq) {
 
 		Long memberSeq = ((CustomUser) auth.getPrincipal()).getMemberSeq();
 
@@ -72,6 +74,7 @@ public class RequestController {
 			model.addAttribute("expertSeq", expertSeq);
 			model.addAttribute("expertName", expertName);
 			model.addAttribute("categoryList", categoryList);
+			model.addAttribute("selectedCategorySeq", selectedCategory(categoryList, categorySeq));
 
 		} else {
 			model.addAttribute("parentList", requestService.parentCategoryList());
@@ -174,6 +177,25 @@ public class RequestController {
 	private Long getMemberSeq(Authentication auth) {
 
 		return ((CustomUser) auth.getPrincipal()).getMemberSeq();
+	}
+
+	/**
+	 * 지정 요청서에서 미리 골라 둘 서비스 카테고리
+	 *
+	 * 서비스 상세에서 들어와 카테고리 번호가 넘어왔고, 그 고수가 하는 서비스면 그것을 고른다.
+	 * 번호가 없어도 고수의 서비스가 하나뿐이면 그것을 고른다. 그 밖에는 null (고객이 직접 고른다)
+	 */
+	private Long selectedCategory(List<RequestCategoryDto> categoryList, String categorySeq) {
+
+		if (categorySeq != null) {
+			for (RequestCategoryDto category : categoryList) {
+				if (category.getCategorySeq().toString().equals(categorySeq.trim())) {
+					return category.getCategorySeq();
+				}
+			}
+		}
+
+		return categoryList.size() == 1 ? categoryList.get(0).getCategorySeq() : null;
 	}
 
 }

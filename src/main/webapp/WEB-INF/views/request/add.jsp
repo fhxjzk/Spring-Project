@@ -126,9 +126,12 @@
 					<select id="categorySeq" name="categorySeq">
 						<option value="">서비스 선택</option>
 						<c:forEach items="${categoryList}" var="category">
-						<option value="${category.categorySeq}"><c:out value="${category.name}" /></option>
+						<option value="${category.categorySeq}" ${category.categorySeq eq selectedCategorySeq ? 'selected' : ''}><c:out value="${category.name}" /></option>
 						</c:forEach>
 					</select>
+					<c:if test="${not empty selectedCategorySeq}">
+					<p class="hint">고른 서비스가 미리 선택되어 있어요. 다른 서비스로 바꿀 수도 있어요.</p>
+					</c:if>
 					</c:if>
 				</div>
 
@@ -227,6 +230,11 @@
 				}
 			});
 		});
+
+		//지정 요청에서 서비스가 미리 골라져 있으면, 그 서비스의 질문을 바로 불러온다
+		if ($('#parentSeq').length == 0 && $('#categorySeq').val()) {
+			$('#categorySeq').change();
+		}
 
 		//질문 하나를 화면에 그린다 (객관식 하나: 라디오, 여러 개: 체크박스, 주관식: 글상자)
 		function makeQuestion(question) {
