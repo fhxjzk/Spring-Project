@@ -167,6 +167,24 @@
 				and status in ('PAID', 'IN_PROGRESS', 'DELIVERED')
 	</select>
 
+	<!--
+		알림 받을 회원 (TradeNoticeService)
+		탈퇴했거나 사용 중지된 회원(enabled = 'N')에게는 보내지 않는다.
+	-->
+	<select id="noticeMember" parameterType="Long" resultType="TradeNoticeDto">
+		select member_seq, id from tbl_member
+			where member_seq = #{memberSeq} and enabled = 'Y'
+	</select>
+
+	<!-- 결제한 요청서에 견적을 보냈다가 미선택된 고수들 -->
+	<select id="noticeUnselectedExperts" resultType="TradeNoticeDto">
+		select m.member_seq, m.id
+			from tbl_quote q
+				join tbl_member m on m.member_seq = q.expert_seq
+					where q.request_seq = #{requestSeq} and q.quote_seq != #{quoteSeq}
+						and q.status = 'UNSELECTED' and m.enabled = 'Y'
+	</select>
+
 	<!-- 결과물 파일 -->
 	<insert id="addFile" parameterType="TradeFileDto">
 		insert into tbl_trade_file (trade_file_seq, trade_seq, orgname, filename, filesize)

@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Param;
 
 import com.project.app.trade.model.TradeDto;
 import com.project.app.trade.model.TradeFileDto;
+import com.project.app.trade.model.TradeNoticeDto;
 import com.project.app.trade.model.TradeQuoteDto;
 
 //SQL은 resources/mappers/trade/TradeMapper.xml 에 있다 (메서드 이름 = XML의 id)
@@ -47,6 +48,10 @@ public interface TradeMapper {
 	int countConfirmedByExpert(Long expertSeq);
 
 	int countOngoing(Long memberSeq);
+
+	//알림 받을 회원 (TradeNoticeService)
+	TradeNoticeDto noticeMember(Long memberSeq);
+	List<TradeNoticeDto> noticeUnselectedExperts(@Param("requestSeq") Long requestSeq, @Param("quoteSeq") Long quoteSeq);
 
 	//결과물 파일
 	int addFile(TradeFileDto dto);
